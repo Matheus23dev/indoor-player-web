@@ -40,17 +40,49 @@ export const useSignIn = () => {
 
     try {
       setLoading(true);
-      const token = await signInRequest(email, password);
-      await login(token, navigate);
-    } catch (error) {
-      notifyError("Erro ao fazer login. Verifique suas credenciais.");
-      buttonRef.current?.reset(Colors.amarelo);
-    } finally {
-      setLoading(false);
-      handleOverlay("", false);
-    }
-  };
-
+    
+      const token = await signInRequest(
+        email,
+        password,
+      );
+    
+      console.log('TOKEN:', token);
+    
+      await login(
+        token,
+        navigate,
+      );
+    
+      console.log('LOGIN OK');
+    } catch (error: any) {
+      console.log(
+        'ERRO:',
+        error,
+      );
+    
+      console.log(
+        'RESPONSE:',
+        error?.response,
+      );
+    
+      console.log(
+        'DATA:',
+        error?.response?.data,
+      );
+    
+      console.log(
+        'STATUS:',
+        error?.response?.status,
+      );
+    
+      notifyError(
+        "Erro ao fazer login. Verifique suas credenciais."
+      );
+    
+      buttonRef.current?.reset(
+        Colors.amarelo,
+      );
+    }}
   return {
     email,
     setEmail,

@@ -20,7 +20,7 @@ const SignIn = () => {
         {/* <img src={animation} alt="animation SignIn" /> */}
       </div>
 
-      <section className="flex md:gap-20 pt-20 justify-center bg-[var(--azul-terciario)] h-full w-full p-2">
+      <section className="flex md:gap-20 pt-20 justify-center bg-(--azul-terciario) h-full w-full p-2">
         <SignInForm />
       </section>
     </main>

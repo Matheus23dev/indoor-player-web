@@ -1,8 +1,8 @@
 import axios from 'axios';
-import * as Cookies from 'js-cookie';
+import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 
-const baseURL = (import.meta as ImportMeta & { env: { VITE_BASE_URL_API: string } }).env.VITE_BASE_URL_API;
+const baseURL = import.meta.env.VITE_BASE_URL_API;
 
 const instance = axios.create({
   baseURL,
