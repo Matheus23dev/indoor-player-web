@@ -7,6 +7,9 @@ import SignIn from "../app/SignIn";
 import { createBrowserRouter } from "react-router-dom";
 import Home from "@/app/(auth)/Home";
 import Devices from "@/app/(auth)/Devices";
+import Playlists from "@/app/(auth)/Playlists";
+import MediasPage from "@/app/(auth)/medias";
+import Schedules from "@/app/(auth)/Schedules";
 
 
 const errorElement = <ErrorPage />
@@ -39,7 +42,23 @@ export const router = createBrowserRouter([
         path: "devices",
         element: withProviders(<Devices/>),
         errorElement
-      },]
+      },
+      {
+        path: "playlists",
+        element: withProviders(<Playlists/>),
+        errorElement
+      },
+      {
+        path: "medias",
+        element: withProviders(<MediasPage/>),
+        errorElement
+      },
+       {
+        path: "schedules",
+        element: withProviders(<Schedules/>),
+        errorElement
+      }
+    ]
   },
   
     

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 
-import {
-  getDevices,
-} from "../services/devices.services";
+import { getDevices } from "../services/devices.services";
+
+import type { Device } from "../types/device";
 
 export function useDevices() {
   const [devices, setDevices] =
-    useState([]);
+    useState<Device[]>([]);
 
   const [loading, setLoading] =
     useState(true);
@@ -18,7 +18,7 @@ export function useDevices() {
 
       setDevices(data);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -28,7 +28,10 @@ export function useDevices() {
     loadDevices();
 
     const interval =
-      setInterval(loadDevices, 30000);
+      setInterval(
+        loadDevices,
+        10000,
+      );
 
     return () =>
       clearInterval(interval);

@@ -31,7 +31,7 @@ url: "/home/devices",
 {
 title: "Mídias",
 icon: Image,
-url: "/home/media",
+url: "/home/medias",
 },
 
 {

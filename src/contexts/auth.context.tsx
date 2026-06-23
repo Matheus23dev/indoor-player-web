@@ -8,16 +8,11 @@ type DecodedToken = {
   sub: string;
 };
 
-type UserType = {
-  nome: any;
-  sector: any;
- 
-  data: any; id: number; name: string; email: string;  urlImageUser: string, portaria: { id: number; }
-};
+;
 
 type AuthContextType = {
   isAuthenticated: boolean;
-  user: UserType | null;
+  user: any | null;
   token: string | null;
   login: (token: string, navigate: (path: string) => void) => Promise<void>;
   logout: () => void;
@@ -27,7 +22,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { showToast } = useApp();
-  const [user, setUser] = useState<UserType | null>(() => {
+  const [user, setUser] = useState< any | null>(() => {
     const cookieUser = Cookies.get("user");
     return cookieUser ? JSON.parse(cookieUser) : null;
   });
