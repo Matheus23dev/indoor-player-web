@@ -18,28 +18,17 @@ export async function deleteMedia(
   return response.data;
 }
 
-export async function uploadMedia(
-  file: File,
-) {
-  const formData =
-    new FormData();
+export async function uploadMedia(file: File, folderId?: string | null) {
+  const formData = new FormData();
+  formData.append("file", file);
+  
+  if (folderId) {
+    formData.append("folderId", folderId); 
+  }
 
-  formData.append(
-    "file",
-    file,
-  );
-
-  const response =
-    await instance.post(
-      "/medias/upload",
-      formData,
-      {
-        headers: {
-          "Content-Type":
-            "multipart/form-data",
-        },
-      },
-    );
+  const response = await instance.post("/medias/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 
   return response.data;
 }
