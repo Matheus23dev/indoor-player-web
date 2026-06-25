@@ -1,115 +1,378 @@
-import { useEffect, useState } from "react";
+import { Search, X, Image as ImageIcon, Video, Check } from "lucide-react";
 
-import {
-  addMediaToPlaylist,
-  getMedias,
-} from "../services/Playlists.services";
+import { useEffect, useMemo, useState } from "react";
 
-type Props = {
+import { getMedias } from "../../medias/services/medias.services";
+
+interface Props {
   open: boolean;
-  playlistId: string | null;
+  playlistId: string;
   onClose: () => void;
-};
+  onAdd: (mediaId: string, duration?: number) => Promise<void>;
+}
 
-export function AddMediaToPlaylistModal({
-  open,
-  playlistId,
-  onClose,
-}: Props) {
+export default function AddMediaModal({ open, onClose, onAdd }: Props) {
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
   const [medias, setMedias] = useState<any[]>([]);
-  const [selected, setSelected] = useState<string[]>([]);
-  
-  // Novo estado para controlar o carregamento do botão
-  const [isSaving, setIsSaving] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<any>(null);
+  const [duration, setDuration] = useState(5);
 
   useEffect(() => {
     if (!open) return;
+
     loadMedias();
   }, [open]);
 
   async function loadMedias() {
-    const data = await getMedias();
-    setMedias(data);
-  }
-
-  async function handleSave() {
-    if (!playlistId) return;
-
-    setIsSaving(true); // Bloqueia o botão
-
     try {
-      // 🚀 CORREÇÃO: Usando for...of para enviar uma mídia por vez (Sequencial)
-      for (const mediaId of selected) {
-        await addMediaToPlaylist(playlistId, mediaId, 10);
-      }
+      setLoading(true);
 
-      // Limpa a seleção para a próxima vez que o modal for aberto
-      setSelected([]);
-      onClose();
-    } catch (error) {
-      console.error("Erro ao salvar mídias:", error);
-      alert("Ocorreu um erro ao adicionar algumas mídias.");
+      const data = await getMedias();
+
+      setMedias(data);
     } finally {
-      setIsSaving(false); // Libera o botão
+      setLoading(false);
     }
   }
 
-  // Função auxiliar para garantir que limpamos a seleção ao cancelar
-  function handleCloseModal() {
-    setSelected([]);
+  async function handleSubmit() {
+    if (!selectedMedia) {
+      return;
+    }
+
+    await onAdd(
+      selectedMedia.id,
+      selectedMedia.type === "IMAGE" ? duration : undefined,
+    );
+
+    setSelectedMedia(null);
+    setDuration(5);
     onClose();
   }
+
+  const filtered = useMemo(() => {
+    return medias.filter((media) =>
+      media.name.toLowerCase().includes(search.toLowerCase()),
+    );
+  }, [medias, search]);
 
   if (!open) {
     return null;
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-      <div className="bg-white w-full max-w-lg rounded-xl p-6">
-        <h2 className="font-bold text-xl mb-4">
-          Adicionar mídias
-        </h2>
-
-        <div className="space-y-3 max-h-80 overflow-y-auto">
-          {medias.map((media) => (
-            <label
-              key={media.id}
-              className={`flex gap-3 border rounded-lg p-3 cursor-pointer transition-colors ${
-                selected.includes(media.id) ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50"
-              }`}
+    <div
+      className=" fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4
+      "
+    >
+      <div
+        className="
+          bg-white
+          w-full
+          max-w-5xl
+          rounded-3xl
+          overflow-hidden
+          shadow-xl
+        "
+      >
+        <div
+          className="
+            flex
+            justify-between
+            items-center
+            p-6
+            border-b
+          "
+        >
+          <div>
+            <h2
+              className="
+                text-xl
+                font-semibold
+              "
             >
-              <input
-                type="checkbox"
-                checked={selected.includes(media.id)}
-                onChange={() => {
-                  if (selected.includes(media.id)) {
-                    setSelected(selected.filter((id) => id !== media.id));
-                  } else {
-                    setSelected([...selected, media.id]);
-                  }
-                }}
-              />
-              <span>{media.name}</span>
-            </label>
-          ))}
+              Adicionar mídia
+            </h2>
+
+            <p
+              className="
+                text-sm
+                text-gray-500
+              "
+            >
+              Escolha uma mídia
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="
+              h-10
+              w-10
+              rounded-xl
+              hover:bg-gray-100
+              flex
+              items-center
+              justify-center
+            "
+          >
+            <X size={18} />
+          </button>
         </div>
 
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={handleCloseModal}
-            disabled={isSaving}
-            className="border px-4 py-2 rounded-lg disabled:opacity-50"
+        <div className="p-6">
+          <div
+            className="
+              relative
+              mb-6
+            "
           >
-            Depois
+            <Search
+              size={18}
+              className="
+                absolute
+                left-4
+                top-3.5
+                text-gray-400
+              "
+            />
+
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Pesquisar mídia..."
+              className="
+                w-full
+                border
+                rounded-xl
+                pl-11
+                pr-4
+                py-3
+              "
+            />
+          </div>
+
+          {loading ? (
+            <div
+              className="
+                flex
+                justify-center
+                py-16
+              "
+            >
+              Carregando...
+            </div>
+          ) : (
+            <div
+              className="
+                grid
+                grid-cols-1
+                md:grid-cols-2
+                xl:grid-cols-3
+                gap-4
+                max-h-[500px]
+                overflow-y-auto
+              "
+            >
+              {filtered.map((media) => (
+                <button
+                  key={media.id}
+                  onClick={() => setSelectedMedia(media)}
+                  className={`
+                      relative
+                      border
+                      rounded-2xl
+                      overflow-hidden
+                      text-left
+                      transition-all
+                      ${
+                        selectedMedia?.id === media.id
+                          ? "border-blue-600 ring-2 ring-blue-200"
+                          : "hover:border-blue-300"
+                      }
+                    `}
+                >
+                  {selectedMedia?.id === media.id && (
+                    <div
+                      className="
+                          absolute
+                          top-3
+                          right-3
+                          h-8
+                          w-8
+                          rounded-full
+                          bg-blue-600
+                          text-white
+                          flex
+                          items-center
+                          justify-center
+                          z-10
+                        "
+                    >
+                      <Check size={16} />
+                    </div>
+                  )}
+
+                  <div
+                    className="
+                        h-44
+                        bg-gray-100
+                      "
+                  >
+                    {media.type === "IMAGE" ? (
+                      <img
+                        src={`${import.meta.env.VITE_BASE_URL_API}${media.fileUrl}`}
+                        alt={media.name}
+                        className="
+                            h-full
+                            w-full
+                            object-cover
+                          "
+                      />
+                    ) : (
+                      <video
+                        src={`${import.meta.env.VITE_BASE_URL_API}${media.fileUrl}`}
+                        className="
+                            h-full
+                            w-full
+                            object-cover
+                          "
+                      />
+                    )}
+                  </div>
+
+                  <div className="p-4">
+                    <h3
+                      className="
+                          font-medium
+                          truncate
+                        "
+                    >
+                      {media.name}
+                    </h3>
+
+                    <div
+                      className="
+                          flex
+                          items-center
+                          gap-2
+                          mt-2
+                        "
+                    >
+                      {media.type === "IMAGE" ? (
+                        <>
+                          <ImageIcon
+                            size={16}
+                            className="
+                                text-blue-600
+                              "
+                          />
+
+                          <span
+                            className="
+                                text-sm
+                                text-gray-500
+                              "
+                          >
+                            Imagem
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Video
+                            size={16}
+                            className="
+                                text-purple-600
+                              "
+                          />
+
+                          <span
+                            className="
+                                text-sm
+                                text-gray-500
+                              "
+                          >
+                            Vídeo
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {selectedMedia?.type === "IMAGE" && (
+            <div
+              className="
+                mt-6
+                border-t
+                pt-6
+              "
+            >
+              <label
+                className="
+                  block
+                  mb-2
+                  font-medium
+                "
+              >
+                Duração da imagem
+              </label>
+
+              <input
+                type="number"
+                min={1}
+                value={duration}
+                onChange={(e) => setDuration(Number(e.target.value))}
+                className="
+                  border
+                  rounded-xl
+                  px-4
+                  py-3
+                  w-40
+                "
+              />
+            </div>
+          )}
+        </div>
+
+        <div
+          className="
+            border-t
+            p-6
+            flex
+            justify-end
+            gap-3
+          "
+        >
+          <button
+            onClick={onClose}
+            className="
+              px-5
+              py-3
+              border
+              rounded-xl
+            "
+          >
+            Cancelar
           </button>
 
           <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 flex items-center gap-2"
+            disabled={!selectedMedia}
+            onClick={handleSubmit}
+            className="
+              px-5
+              py-3
+              rounded-xl
+              bg-blue-600
+              text-white
+              disabled:opacity-50
+            "
           >
-            {isSaving ? "Salvando..." : "Salvar"}
+            Adicionar
           </button>
         </div>
       </div>
