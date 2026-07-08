@@ -5,36 +5,53 @@ import {
 } from "react";
 
 import {
-  ListVideo,
+  FolderPlus,
   Save,
   X,
 } from "lucide-react";
 
 import Swal from "sweetalert2";
 
-interface CreatePlaylistModalProps {
+import {
+  createFolder,
+  updateFolder,
+} from "../services/folders.services";
+
+import type {
+  Folder,
+} from "../types";
+interface FolderModalProps {
   open: boolean;
-  saving: boolean;
+  folder?: Folder | null;
   onClose: () => void;
-  onCreate: (
-    name: string,
-  ) => Promise<unknown>;
+  onSaved: () => Promise<void> | void;
 }
 
-export default function CreatePlaylistModal({
+export default function FolderModal({
   open,
-  saving,
+  folder,
   onClose,
-  onCreate,
-}: CreatePlaylistModalProps) {
+  onSaved,
+}: FolderModalProps) {
   const [name, setName] =
     useState("");
 
+  const [saving, setSaving] =
+    useState(false);
+
+  const editing =
+    Boolean(folder);
+
   useEffect(() => {
-    if (!open) {
-      setName("");
+    if (open) {
+      setName(
+        folder?.name ?? "",
+      );
     }
-  }, [open]);
+  }, [
+    open,
+    folder,
+  ]);
 
   if (!open) {
     return null;
@@ -51,44 +68,54 @@ export default function CreatePlaylistModal({
     if (!normalizedName) {
       await Swal.fire({
         icon: "warning",
-        title:
-          "Nome obrigatório",
-        text:
-          "Informe o nome da playlist.",
+        title: "Nome obrigatório",
+        text: "Informe o nome da pasta.",
       });
 
       return;
     }
 
     try {
-      await onCreate(
-        normalizedName,
-      );
+      setSaving(true);
+
+      if (folder) {
+        await updateFolder(
+          folder.id,
+          {
+            name: normalizedName,
+          },
+        );
+      } else {
+        await createFolder({
+          name: normalizedName,
+        });
+      }
 
       await Swal.fire({
         icon: "success",
-        title:
-          "Playlist criada",
+        title: editing
+          ? "Pasta renomeada"
+          : "Pasta criada",
         timer: 1500,
         showConfirmButton: false,
       });
 
-      setName("");
+      await onSaved();
       onClose();
     } catch (error: any) {
       const message =
-        error?.response?.data
-          ?.message ??
-        "Não foi possível criar a playlist.";
+        error?.response?.data?.message ??
+        "Não foi possível salvar a pasta.";
 
       await Swal.fire({
         icon: "error",
-        title:
-          "Erro ao criar",
+        title: "Erro",
         text: Array.isArray(message)
           ? message[0]
           : message,
       });
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -101,11 +128,15 @@ export default function CreatePlaylistModal({
         <header className="flex items-center justify-between border-b px-6 py-4">
           <div>
             <h2 className="text-xl font-black text-gray-900">
-              Nova playlist
+              {editing
+                ? "Renomear pasta"
+                : "Nova pasta"}
             </h2>
 
             <p className="text-sm text-gray-500">
-              Crie uma sequência de mídias.
+              {editing
+                ? "Altere o nome da pasta."
+                : "Crie uma pasta para organizar suas mídias."}
             </p>
           </div>
 
@@ -113,7 +144,8 @@ export default function CreatePlaylistModal({
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 disabled:opacity-50"
+            className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 disabled:opacity-50"
+            aria-label="Fechar"
           >
             <X size={22} />
           </button>
@@ -121,20 +153,20 @@ export default function CreatePlaylistModal({
 
         <div className="p-6">
           <label
-            htmlFor="playlist-name"
+            htmlFor="folder-name"
             className="mb-2 block text-sm font-bold text-gray-700"
           >
-            Nome da playlist
+            Nome da pasta
           </label>
 
           <div className="relative">
-            <ListVideo
+            <FolderPlus
               size={19}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
 
             <input
-              id="playlist-name"
+              id="folder-name"
               autoFocus
               value={name}
               onChange={(event) =>
@@ -143,11 +175,15 @@ export default function CreatePlaylistModal({
                 )
               }
               maxLength={100}
+              placeholder="Ex.: Promoções"
               disabled={saving}
-              placeholder="Ex.: Promoções da semana"
               className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
             />
           </div>
+
+          <p className="mt-2 text-right text-xs text-gray-400">
+            {name.length}/100
+          </p>
         </div>
 
         <footer className="flex justify-end gap-3 border-t px-6 py-4">
@@ -155,7 +191,7 @@ export default function CreatePlaylistModal({
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
           >
             Cancelar
           </button>
@@ -166,13 +202,15 @@ export default function CreatePlaylistModal({
               saving ||
               !name.trim()
             }
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Save size={18} />
 
             {saving
-              ? "Criando..."
-              : "Criar playlist"}
+              ? "Salvando..."
+              : editing
+                ? "Salvar"
+                : "Criar pasta"}
           </button>
         </footer>
       </form>

@@ -1,117 +1,568 @@
 import {
-  MonitorSmartphone,
+  useState,
+} from "react";
+
+import {
+  CalendarDays,
+  Check,
+  CheckCircle2,
   Clock3,
-  Calendar,
+  Copy,
   FileText,
+  Link2,
+  LoaderCircle,
+  MonitorSmartphone,
+  TriangleAlert,
+  Unlink2,
+  X,
 } from "lucide-react";
 
-import type { Device } from "../types/device";
+import type {
+  Device,
+} from "../types/device";
 
-import { DeviceStatusBadge } from "./DeviceStatusBadge";
+import {
+  DevicePreview,
+} from "./DevicePreview";
 
-type Props = {
-  device: Device;
-  onLogs: (id: string) => void;
-};
+import {
+  DeviceStatusBadge,
+} from "./DeviceStatusBadge";
+
+interface Props {
+  device:
+    Device;
+
+  onLogs: (
+    device: Device,
+  ) => void;
+
+  onUnlink: (
+    device: Device,
+  ) => Promise<void>;
+}
 
 export function DeviceCard({
   device,
   onLogs,
+  onUnlink,
 }: Props) {
-  const createdAt =
-    new Date(
-      device.createdAt,
-    ).toLocaleDateString(
-      "pt-BR",
+  const [
+    codeCopied,
+    setCodeCopied,
+  ] = useState(false);
+
+  const [
+    unlinkModalOpen,
+    setUnlinkModalOpen,
+  ] = useState(false);
+
+  const [
+    unlinking,
+    setUnlinking,
+  ] = useState(false);
+
+  const [
+    unlinkError,
+    setUnlinkError,
+  ] = useState("");
+
+  const deviceName =
+    device.name?.trim() ||
+    "Dispositivo sem nome";
+
+  async function handleCopyCode() {
+    try {
+      await navigator.clipboard.writeText(
+        device.code,
+      );
+
+      setCodeCopied(
+        true,
+      );
+
+      window.setTimeout(() => {
+        setCodeCopied(
+          false,
+        );
+      }, 1800);
+    } catch (error) {
+      console.error(
+        "[DEVICE CARD] Erro ao copiar código:",
+        error,
+      );
+    }
+  }
+
+  function handleOpenUnlinkModal() {
+    setUnlinkError(
+      "",
     );
 
-  const lastHeartbeat =
-    device.lastHeartbeat
-      ? new Date(
-          device.lastHeartbeat,
-        ).toLocaleString(
-          "pt-BR",
-        )
-      : "Sem comunicação";
+    setUnlinkModalOpen(
+      true,
+    );
+  }
+
+  function handleCloseUnlinkModal() {
+    if (unlinking) {
+      return;
+    }
+
+    setUnlinkModalOpen(
+      false,
+    );
+
+    setUnlinkError(
+      "",
+    );
+  }
+
+  async function handleConfirmUnlink() {
+    if (unlinking) {
+      return;
+    }
+
+    try {
+      setUnlinking(
+        true,
+      );
+
+      setUnlinkError(
+        "",
+      );
+
+      await onUnlink(
+        device,
+      );
+
+      setUnlinkModalOpen(
+        false,
+      );
+    } catch (error) {
+      console.error(
+        "[DEVICE CARD] Erro ao desvincular dispositivo:",
+        error,
+      );
+
+      setUnlinkError(
+        getErrorMessage(
+          error,
+        ),
+      );
+    } finally {
+      setUnlinking(
+        false,
+      );
+    }
+  }
 
   return (
-    <div className="bg-white rounded-2xl border shadow-sm hover:shadow-lg transition p-5">
-      <div className="flex justify-between items-start">
-        <div className="flex gap-3">
-          <div className="h-12 w-12 rounded-xl bg-blue-50 flex items-center justify-center">
-            <MonitorSmartphone
-              size={24}
-              className="text-blue-600"
-            />
-          </div>
-
-          <div>
-            <h3 className="font-semibold text-lg">
-              {device.name}
-            </h3>
-
-            <p className="text-sm text-gray-500">
-              Código: {device.code}
-            </p>
-          </div>
-        </div>
-
-        <DeviceStatusBadge
-          status={device.status}
-        />
-      </div>
-
-      <div className="mt-6 space-y-3 text-sm">
-        <div className="flex justify-between">
-          <span className="text-gray-500">
-            Vinculado
-          </span>
-
-          <span
-            className={
-              device.isLinked
-                ? "text-green-600 font-medium"
-                : "text-red-600 font-medium"
+    <>
+      <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg">
+        <div className="p-4">
+          <DevicePreview
+            preview={
+              device.preview
             }
-          >
-            {device.isLinked
-              ? "Sim"
-              : "Não"}
-          </span>
+            status={
+              device.status
+            }
+          />
         </div>
 
-        <div className="flex items-center gap-2 text-gray-600">
-          <Calendar size={16} />
-          <span>
-            Criado em {createdAt}
-          </span>
-        </div>
+        <div className="border-t border-slate-100 p-5">
+          <header className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                <MonitorSmartphone
+                  size={22}
+                />
+              </div>
 
-        <div className="flex items-center gap-2 text-gray-600">
-          <Clock3 size={16} />
-          <span>
-            {lastHeartbeat}
-          </span>
-        </div>
-      </div>
+              <div className="min-w-0">
+                <h3 className="truncate text-base font-extrabold text-slate-900">
+                  {deviceName}
+                </h3>
 
-      <div className="grid grid-cols-2 gap-3 mt-6">
-        <button
-          onClick={() =>
-            onLogs(device.id)
-          }
-          className="border rounded-lg py-2 flex justify-center items-center gap-2 hover:bg-gray-50"
+                <div className="mt-1 flex items-center gap-2">
+                  <code className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-xs font-bold tracking-wider text-slate-600">
+                    {device.code}
+                  </code>
+
+                  <button
+                    type="button"
+                    onClick={
+                      handleCopyCode
+                    }
+                    aria-label="Copiar código"
+                    className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  >
+                    {codeCopied ? (
+                      <Check
+                        size={14}
+                        className="text-emerald-600"
+                      />
+                    ) : (
+                      <Copy
+                        size={14}
+                      />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <DeviceStatusBadge
+              status={
+                device.status
+              }
+            />
+          </header>
+
+          <div className="mt-5 grid gap-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 text-sm">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-slate-500">
+                Vinculação
+              </span>
+
+              <span
+                className={
+                  device.isLinked
+                    ? "inline-flex items-center gap-1.5 font-bold text-emerald-700"
+                    : "inline-flex items-center gap-1.5 font-bold text-amber-700"
+                }
+              >
+                {device.isLinked ? (
+                  <CheckCircle2
+                    size={16}
+                  />
+                ) : (
+                  <Link2
+                    size={16}
+                  />
+                )}
+
+                {device.isLinked
+                  ? "Vinculado"
+                  : "Não vinculado"}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 text-slate-600">
+              <CalendarDays
+                size={16}
+                className="shrink-0 text-slate-400"
+              />
+
+              <span>
+                Criado em{" "}
+                {formatDate(
+                  device.createdAt,
+                )}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 text-slate-600">
+              <Clock3
+                size={16}
+                className="shrink-0 text-slate-400"
+              />
+
+              <span>
+                {formatHeartbeat(
+                  device.lastHeartbeat,
+                )}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                onLogs(
+                  device,
+                )
+              }
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+            >
+              <FileText
+                size={17}
+              />
+
+              Visualizar logs
+            </button>
+
+            {device.isLinked && (
+              <button
+                type="button"
+                onClick={
+                  handleOpenUnlinkModal
+                }
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 text-sm font-bold text-amber-700 transition hover:border-amber-300 hover:bg-amber-100"
+              >
+                <Unlink2
+                  size={17}
+                />
+
+                Desvincular dispositivo
+              </button>
+            )}
+          </div>
+        </div>
+      </article>
+
+      {unlinkModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="unlink-device-title"
+          onMouseDown={(
+            event,
+          ) => {
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
+              handleCloseUnlinkModal();
+            }
+          }}
         >
-          <FileText size={16} />
-          Logs
-        </button>
+          <div className="w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+                  <TriangleAlert
+                    size={24}
+                  />
+                </div>
 
-        <button
-          className="bg-blue-600 text-white rounded-lg py-2 hover:bg-blue-700"
-        >
-          Playlist
-        </button>
-      </div>
-    </div>
+                <div>
+                  <h2
+                    id="unlink-device-title"
+                    className="text-lg font-extrabold text-slate-900"
+                  >
+                    Desvincular dispositivo
+                  </h2>
+
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    Confirme a remoção deste dispositivo da sua empresa.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={
+                  handleCloseUnlinkModal
+                }
+                disabled={
+                  unlinking
+                }
+                aria-label="Fechar"
+                className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <X
+                  size={20}
+                />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="font-bold text-slate-900">
+                  {deviceName}
+                </p>
+
+                <p className="mt-1 font-mono text-sm font-bold tracking-wider text-slate-500">
+                  Código:{" "}
+                  {device.code}
+                </p>
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+                <p>
+                  A TV será desconectada da empresa e voltará para a tela de ativação.
+                </p>
+
+                <p className="mt-2">
+                  O código será mantido, mas os agendamentos vinculados ao dispositivo serão removidos.
+                </p>
+              </div>
+
+              {unlinkError && (
+                <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+                  {unlinkError}
+                </div>
+              )}
+
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={
+                    handleCloseUnlinkModal
+                  }
+                  disabled={
+                    unlinking
+                  }
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={
+                    handleConfirmUnlink
+                  }
+                  disabled={
+                    unlinking
+                  }
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 text-sm font-bold text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {unlinking ? (
+                    <>
+                      <LoaderCircle
+                        size={18}
+                        className="animate-spin"
+                      />
+
+                      Desvinculando...
+                    </>
+                  ) : (
+                    <>
+                      <Unlink2
+                        size={18}
+                      />
+
+                      Desvincular
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
+}
+
+function formatDate(
+  value: string,
+) {
+  const date =
+    new Date(
+      value,
+    );
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return "data indisponível";
+  }
+
+  return new Intl.DateTimeFormat(
+    "pt-BR",
+    {
+      dateStyle:
+        "short",
+    },
+  ).format(
+    date,
+  );
+}
+
+function formatHeartbeat(
+  value:
+    string | null,
+) {
+  if (!value) {
+    return "Nunca se comunicou";
+  }
+
+  const date =
+    new Date(
+      value,
+    );
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return "Última comunicação indisponível";
+  }
+
+  const seconds =
+    Math.floor(
+      (
+        Date.now() -
+        date.getTime()
+      ) / 1000,
+    );
+
+  if (seconds < 60) {
+    return "Comunicou-se há poucos segundos";
+  }
+
+  const minutes =
+    Math.floor(
+      seconds / 60,
+    );
+
+  if (minutes < 60) {
+    return `Comunicou-se há ${minutes} ${
+      minutes === 1
+        ? "minuto"
+        : "minutos"
+    }`;
+  }
+
+  const hours =
+    Math.floor(
+      minutes / 60,
+    );
+
+  return `Comunicou-se há ${hours} ${
+    hours === 1
+      ? "hora"
+      : "horas"
+  }`;
+}
+
+function getErrorMessage(
+  error: unknown,
+) {
+  if (
+    typeof error ===
+    "object" &&
+    error !== null
+  ) {
+    const axiosError =
+      error as {
+        response?: {
+          data?: {
+            message?:
+              string;
+          };
+        };
+      };
+
+    const message =
+      axiosError
+        .response
+        ?.data
+        ?.message;
+
+    if (message) {
+      return message;
+    }
+  }
+
+  return "Não foi possível desvincular o dispositivo.";
 }

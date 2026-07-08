@@ -7,22 +7,21 @@ import SignIn from "../app/SignIn";
 import { createBrowserRouter } from "react-router-dom";
 import Home from "@/app/(auth)/Home";
 import Devices from "@/app/(auth)/Devices";
-import Playlists from "@/app/(auth)/Playlists";
+import Playlists from "@/app/(auth)/Playlists/index";
 import MediasPage from "@/app/(auth)/medias";
 import Schedules from "@/app/(auth)/Schedules";
+import PlaylistDetails from "@/app/(auth)/Playlists/details";
 
+const errorElement = <ErrorPage />;
 
-const errorElement = <ErrorPage />
-
-const withProviders = (element: JSX.Element, protectedRoute: boolean = true) => (
+const withProviders = (
+  element: JSX.Element,
+  protectedRoute: boolean = true,
+) => (
   <Providers>
-    <RenderConditional condition={!protectedRoute}>
-      {element}
-    </RenderConditional>
+    <RenderConditional condition={!protectedRoute}>{element}</RenderConditional>
     <RenderConditional condition={protectedRoute}>
-      <ProtectedRoute>
-        {element}
-      </ProtectedRoute>
+      <ProtectedRoute>{element}</ProtectedRoute>
     </RenderConditional>
   </Providers>
 );
@@ -30,37 +29,41 @@ const withProviders = (element: JSX.Element, protectedRoute: boolean = true) => 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: withProviders(<SignIn/>, false),
+    element: withProviders(<SignIn />, false),
     errorElement,
   },
   {
     path: "/home",
-    element: withProviders(<Home/>),
+    element: withProviders(<Home />),
     errorElement,
     children: [
       {
         path: "devices",
-        element: withProviders(<Devices/>),
-        errorElement
+        element: withProviders(<Devices />),
+        errorElement,
       },
       {
         path: "playlists",
-        element: withProviders(<Playlists/>),
-        errorElement
+        element: withProviders(<Playlists />),
+        errorElement,
       },
+     {
+  path: "playlists/:id",
+  element: withProviders(
+    <PlaylistDetails />,
+  ),
+  errorElement,
+},
       {
         path: "medias",
-        element: withProviders(<MediasPage/>),
-        errorElement
+        element: withProviders(<MediasPage />),
+        errorElement,
       },
-       {
+      {
         path: "schedules",
-        element: withProviders(<Schedules/>),
-        errorElement
-      }
-    ]
+        element: withProviders(<Schedules />),
+        errorElement,
+      },
+    ],
   },
-  
-    
-  
 ]);

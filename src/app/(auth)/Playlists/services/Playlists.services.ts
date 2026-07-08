@@ -1,53 +1,105 @@
-import instance from "../../../../services/axios";
+import api from "../../../../services/axios";
 
-export async function getPlaylists() {
-  const response = await instance.get("/playlists");
+import type {
+  AddPlaylistItemPayload,
+  CreatePlaylistPayload,
+  DeletePlaylistItemResponse,
+  DeletePlaylistResponse,
+  Playlist,
+  PlaylistItem,
+  ReorderPlaylistPayload,
+  UpdatePlaylistItemPayload,
+} from "../types";
+
+export async function getPlaylists(): Promise<Playlist[]> {
+  const response =
+    await api.get<Playlist[]>(
+      "/playlists",
+    );
+
   return response.data;
 }
 
-export async function createPlaylist(name: string) {
-  const response = await instance.post("/playlists", {
-    name,
-  });
+export async function getPlaylist(
+  id: string,
+): Promise<Playlist> {
+  const response =
+    await api.get<Playlist>(
+      `/playlists/${id}`,
+    );
+
   return response.data;
 }
 
-export async function removePlaylist(id: string) {
-  const response = await instance.delete(`/playlists/${id}`);
+export async function createPlaylist(
+  data: CreatePlaylistPayload,
+): Promise<Playlist> {
+  const response =
+    await api.post<Playlist>(
+      "/playlists",
+      data,
+    );
+
   return response.data;
 }
 
-export async function addMediaToPlaylist(
+export async function deletePlaylist(
+  id: string,
+): Promise<DeletePlaylistResponse> {
+  const response =
+    await api.delete<DeletePlaylistResponse>(
+      `/playlists/${id}`,
+    );
+
+  return response.data;
+}
+
+export async function addPlaylistItem(
   playlistId: string,
-  mediaId: string,
-  duration = 10,
-) {
-  const response = await instance.post(
-    `/playlists/${playlistId}/items`,
-    {
-      mediaId,
-      duration,
-    },
-  );
+  data: AddPlaylistItemPayload,
+): Promise<PlaylistItem> {
+  const response =
+    await api.post<PlaylistItem>(
+      `/playlists/${playlistId}/items`,
+      data,
+    );
+
   return response.data;
 }
 
-export async function addMultipleMediasToPlaylist(
-  playlistId: string,
-  mediaIds: string[],
-  duration = 10,
-) {
-  const results = [];
-  
-  for (const mediaId of mediaIds) {
-    const result = await addMediaToPlaylist(playlistId, mediaId, duration);
-    results.push(result);
-  }
-  
-  return results;
+export async function updatePlaylistItem(
+  itemId: string,
+  data: UpdatePlaylistItemPayload,
+): Promise<PlaylistItem> {
+  const response =
+    await api.patch<PlaylistItem>(
+      `/playlists/items/${itemId}`,
+      data,
+    );
+
+  return response.data;
 }
 
-export async function getMedias() {
-  const response = await instance.get("/medias");
+export async function deletePlaylistItem(
+  itemId: string,
+): Promise<DeletePlaylistItemResponse> {
+  const response =
+    await api.delete<DeletePlaylistItemResponse>(
+      `/playlists/items/${itemId}`,
+    );
+
+  return response.data;
+}
+
+export async function reorderPlaylist(
+  playlistId: string,
+  data: ReorderPlaylistPayload,
+): Promise<Playlist> {
+  const response =
+    await api.patch<Playlist>(
+      `/playlists/${playlistId}/reorder`,
+      data,
+    );
+
   return response.data;
 }
