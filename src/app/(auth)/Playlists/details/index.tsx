@@ -1,119 +1,60 @@
-import { useState } from "react";
-
 import {
   ArrowLeft,
   Clock3,
+  Images,
+  Loader2,
   Plus,
-  Image,
-  Video,
-  ListVideo,
 } from "lucide-react";
+
+import {
+  useState,
+} from "react";
 
 import {
   useNavigate,
   useParams,
 } from "react-router-dom";
 
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-} from "@hello-pangea/dnd";
-
+import AddMediaModal from "../components/AddMediaModal";
 import PlaylistItemCard from "../components/PlaylistItemCard";
-import AddMediaModal from "../components/AddMediaToPlaylistModal";
 
-import { usePlaylistDetails } from "../hooks/usePlaylistDetail";
-
-import { formatDuration } from "../utils/FormatDuration";
-
-import type {
-  PlaylistItem,
-} from "../types/playlist";
+import {
+  usePlaylistDetails,
+} from "../hooks/usePlaylistDetails";
 
 export default function PlaylistDetails() {
+  const { id } =
+    useParams<{
+      id: string;
+    }>();
+
   const navigate =
     useNavigate();
 
-  const { id } =
-    useParams();
-
-  const [openModal, setOpenModal] =
-    useState(false);
+  const [
+    addMediaModalOpen,
+    setAddMediaModalOpen,
+  ] = useState(false);
 
   const {
     playlist,
     loading,
+    saving,
     totalDuration,
+
+    loadPlaylist,
     addMedia,
-    removeMedia,
     updateDuration,
-    reorderItems,
-  } =
-    usePlaylistDetails(
-      id || "",
-    );
-
-  function handleDragEnd(
-    result: any,
-  ) {
-    if (
-      !result.destination ||
-      !playlist
-    ) {
-      return;
-    }
-
-    const reordered =
-      Array.from(
-        playlist.items,
-      );
-
-    const [removed] =
-      reordered.splice(
-        result.source.index,
-        1,
-      );
-
-    reordered.splice(
-      result.destination.index,
-      0,
-      removed,
-    );
-
-    reorderItems(
-      reordered,
-    );
-  }
+    removeItem,
+    moveItem,
+  } = usePlaylistDetails(id);
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
-        <div
-          className="
-            h-40
-            rounded-3xl
-            bg-gray-200
-            animate-pulse
-          "
-        />
-
-        <div
-          className="
-            h-28
-            rounded-2xl
-            bg-gray-200
-            animate-pulse
-          "
-        />
-
-        <div
-          className="
-            h-28
-            rounded-2xl
-            bg-gray-200
-            animate-pulse
-          "
+      <div className="flex min-h-[70vh] items-center justify-center">
+        <Loader2
+          size={38}
+          className="animate-spin text-blue-600"
         />
       </div>
     );
@@ -121,445 +62,249 @@ export default function PlaylistDetails() {
 
   if (!playlist) {
     return (
-      <div className="p-6">
-        <div
-          className="
-            bg-white
-            rounded-3xl
-            border
-            p-10
-            text-center
-          "
-        >
+      <div className="p-6 text-center">
+        <h1 className="text-2xl font-black text-gray-900">
           Playlist não encontrada
-        </div>
+        </h1>
+
+        <button
+          type="button"
+          onClick={() =>
+            navigate(
+              "/home/playlists",
+            )
+          }
+          className="mt-4 font-bold text-blue-600"
+        >
+          Voltar às playlists
+        </button>
       </div>
     );
   }
 
-  const imageCount =
-    playlist.items.filter(
-      (
-        item,
-      ) =>
-        item.media?.type ===
-        "IMAGE",
-    ).length;
-
-  const videoCount =
-    playlist.items.filter(
-      (
-        item,
-      ) =>
-        item.media?.type ===
-        "VIDEO",
-    ).length;
-
   return (
-    <div className="p-6">
-
-      <button
-        onClick={() =>
-          navigate(
-            "/home/playlists",
-          )
-        }
-        className="
-          flex
-          items-center
-          gap-2
-          text-gray-600
-          hover:text-black
-          mb-6
-        "
-      >
-        <ArrowLeft size={18} />
-        Voltar
-      </button>
-
-      <div className="grid lg:grid-cols-4 gap-6 mb-6">
-
-        <div
-          className="
-            lg:col-span-2
-            bg-white
-            border
-            rounded-3xl
-            p-6
-          "
-        >
-          <h1
-            className="
-              text-3xl
-              font-bold
-            "
-          >
-            {playlist.name}
-          </h1>
-
-          <p
-            className="
-              text-gray-500
-              mt-2
-            "
-          >
-            Playlist de exibição
-          </p>
-        </div>
-
-        <div
-          className="
-            bg-white
-            border
-            rounded-3xl
-            p-6
-          "
-        >
-          <p
-            className="
-              text-sm
-              text-gray-500
-            "
-          >
-            Total de mídias
-          </p>
-
-          <h2
-            className="
-              text-3xl
-              font-bold
-              mt-2
-            "
-          >
-            {
-              playlist.items
-                .length
-            }
-          </h2>
-        </div>
-
-        <div
-          className="
-            bg-white
-            border
-            rounded-3xl
-            p-6
-          "
-        >
-          <p
-            className="
-              text-sm
-              text-gray-500
-            "
-          >
-            Duração total
-          </p>
-
-          <h2
-            className="
-              text-2xl
-              font-bold
-              mt-2
-            "
-          >
-            {formatDuration(
-              totalDuration,
-            )}
-          </h2>
-        </div>
-
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6 mb-6">
-
-        <div
-          className="
-            bg-white
-            border
-            rounded-3xl
-            p-5
-          "
-        >
-          <div className="flex items-center gap-3">
-            <Image
-              className="
-                text-blue-600
-              "
-            />
+    <div className="min-h-full bg-gray-50 p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-6xl space-y-6">
+        <header className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div className="flex items-start gap-3">
+            <button
+              type="button"
+              onClick={() =>
+                navigate(
+                  "/home/playlists",
+                )
+              }
+              className="mt-1 rounded-xl border bg-white p-2.5 text-gray-600 hover:bg-gray-50"
+            >
+              <ArrowLeft
+                size={20}
+              />
+            </button>
 
             <div>
-              <p
-                className="
-                  text-gray-500
-                  text-sm
-                "
-              >
-                Imagens
-              </p>
+              <h1 className="text-3xl font-black tracking-tight text-gray-900">
+                {playlist.name}
+              </h1>
 
-              <h3
-                className="
-                  text-2xl
-                  font-bold
-                "
-              >
-                {imageCount}
-              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Organize a ordem e a duração das mídias.
+              </p>
             </div>
           </div>
-        </div>
-
-        <div
-          className="
-            bg-white
-            border
-            rounded-3xl
-            p-5
-          "
-        >
-          <div className="flex items-center gap-3">
-            <Video
-              className="
-                text-purple-600
-              "
-            />
-
-            <div>
-              <p
-                className="
-                  text-gray-500
-                  text-sm
-                "
-              >
-                Vídeos
-              </p>
-
-              <h3
-                className="
-                  text-2xl
-                  font-bold
-                "
-              >
-                {videoCount}
-              </h3>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <div
-        className="
-          flex
-          justify-end
-          mb-6
-        "
-      >
-        <button
-          onClick={() =>
-            setOpenModal(
-              true,
-            )
-          }
-          className="
-            bg-blue-600
-            hover:bg-blue-700
-            text-white
-            px-5
-            py-3
-            rounded-xl
-            flex
-            items-center
-            gap-2
-          "
-        >
-          <Plus size={18} />
-          Adicionar mídia
-        </button>
-      </div>
-
-      {playlist.items
-        .length === 0 ? (
-        <div
-          className="
-            bg-white
-            border
-            rounded-3xl
-            py-24
-            flex
-            flex-col
-            items-center
-            justify-center
-          "
-        >
-          <div
-            className="
-              h-20
-              w-20
-              rounded-full
-              bg-blue-100
-              flex
-              items-center
-              justify-center
-              mb-5
-            "
-          >
-            <ListVideo
-              size={32}
-              className="
-                text-blue-600
-              "
-            />
-          </div>
-
-          <h2
-            className="
-              text-xl
-              font-semibold
-            "
-          >
-            Playlist vazia
-          </h2>
-
-          <p
-            className="
-              text-gray-500
-              mt-2
-            "
-          >
-            Adicione imagens ou vídeos
-            para começar
-          </p>
 
           <button
+            type="button"
             onClick={() =>
-              setOpenModal(
+              setAddMediaModalOpen(
                 true,
               )
             }
-            className="
-              mt-6
-              bg-blue-600
-              text-white
-              px-5
-              py-3
-              rounded-xl
-            "
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700"
           >
+            <Plus size={19} />
             Adicionar mídia
           </button>
-        </div>
-      ) : (
-        <DragDropContext
-          onDragEnd={
-            handleDragEnd
-          }
-        >
-          <Droppable
-            droppableId="playlist"
-          >
-            {(
-              provided,
-            ) => (
-              <div
-                ref={
-                  provided.innerRef
-                }
-                {
-                  ...provided.droppableProps
-                }
-                className="
-                  flex
-                  flex-col
-                  gap-4
-                "
-              >
-                {playlist.items.map(
-                  (
-                    item: PlaylistItem,
-                    index: number,
-                  ) => (
-                    <Draggable
-                      key={
-                        item.id
-                      }
-                      draggableId={
-                        item.id
-                      }
-                      index={
-                        index
-                      }
-                    >
-                      {(
-                        provided,
-                        snapshot,
-                      ) => (
-                        <div
-                          ref={
-                            provided.innerRef
-                          }
-                          {
-                            ...provided.draggableProps
-                          }
-                          {
-                            ...provided.dragHandleProps
-                          }
-                          style={{
-                            ...provided
-                              .draggableProps
-                              .style,
-                            opacity:
-                              snapshot.isDragging
-                                ? 0.8
-                                : 1,
-                          }}
-                        >
-                          <PlaylistItemCard
-                            item={
-                              item
-                            }
-                            apiUrl={
-                              import.meta.env
-                                .VITE_BASE_URL_API
-                            }
-                            onRemove={
-                              removeMedia
-                            }
-                            onUpdateDuration={
-                              updateDuration
-                            }
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  ),
-                )}
+        </header>
 
-                {
-                  provided.placeholder
-                }
-              </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <SummaryCard
+            icon={
+              <Images size={21} />
+            }
+            label="Mídias"
+            value={String(
+              playlist.items.length,
             )}
-          </Droppable>
-        </DragDropContext>
-      )}
+          />
+
+          <SummaryCard
+            icon={
+              <Clock3 size={21} />
+            }
+            label="Duração total"
+            value={formatDuration(
+              totalDuration,
+            )}
+          />
+
+          <SummaryCard
+            icon={
+              <Clock3 size={21} />
+            }
+            label="Agendamentos"
+            value={String(
+              playlist.schedules
+                ?.length ?? 0,
+            )}
+          />
+        </div>
+
+        {playlist.items.length >
+        0 ? (
+          <section className="space-y-4">
+            {playlist.items.map(
+              (
+                item,
+                index,
+              ) => (
+                <PlaylistItemCard
+                  key={item.id}
+                  item={item}
+                  index={index}
+                  totalItems={
+                    playlist.items
+                      .length
+                  }
+                  saving={saving}
+                  onMove={moveItem}
+                  onUpdateDuration={
+                    updateDuration
+                  }
+                  onDelete={
+                    removeItem
+                  }
+                />
+              ),
+            )}
+          </section>
+        ) : (
+          <div className="flex min-h-80 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center">
+            <div>
+              <Images
+                size={52}
+                className="mx-auto text-gray-300"
+              />
+
+              <h2 className="mt-4 text-xl font-black text-gray-900">
+                Playlist vazia
+              </h2>
+
+              <p className="mt-2 text-sm text-gray-500">
+                Adicione imagens e vídeos para começar.
+              </p>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setAddMediaModalOpen(
+                    true,
+                  )
+                }
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700"
+              >
+                <Plus size={18} />
+                Adicionar mídia
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       <AddMediaModal
         open={
-          openModal
+          addMediaModalOpen
         }
-        playlistId={
-          playlist.id
-        }
+        saving={saving}
         onClose={() =>
-          setOpenModal(
+          setAddMediaModalOpen(
             false,
           )
         }
-        onAdd={
-          addMedia
-        }
+        onAdd={async (
+          media,
+          duration,
+        ) => {
+          await addMedia(
+            media,
+            duration,
+          );
+
+          await loadPlaylist();
+        }}
       />
     </div>
   );
+}
+
+interface SummaryCardProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}
+
+function SummaryCard({
+  icon,
+  label,
+  value,
+}: SummaryCardProps) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
+          {icon}
+        </div>
+
+        <div>
+          <p className="text-xs font-bold text-gray-500">
+            {label}
+          </p>
+
+          <p className="mt-1 text-xl font-black text-gray-900">
+            {value}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function formatDuration(
+  seconds: number,
+) {
+  const hours =
+    Math.floor(
+      seconds / 3600,
+    );
+
+  const minutes =
+    Math.floor(
+      (seconds % 3600) /
+        60,
+    );
+
+  const remainingSeconds =
+    seconds % 60;
+
+  return [
+    hours,
+    minutes,
+    remainingSeconds,
+  ]
+    .map((value) =>
+      String(value).padStart(
+        2,
+        "0",
+      ),
+    )
+    .join(":");
 }

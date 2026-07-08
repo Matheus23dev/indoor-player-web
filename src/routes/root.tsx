@@ -47,11 +47,13 @@ export const router = createBrowserRouter([
         element: withProviders(<Playlists />),
         errorElement,
       },
-      {
-        path: "playlists/:id",
-        element: <PlaylistDetails />,
-        errorElement,
-      },
+     {
+  path: "playlists/:id",
+  element: withProviders(
+    <PlaylistDetails />,
+  ),
+  errorElement,
+},
       {
         path: "medias",
         element: withProviders(<MediasPage />),

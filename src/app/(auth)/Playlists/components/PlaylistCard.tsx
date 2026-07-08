@@ -1,301 +1,207 @@
+import type { ReactNode } from "react";
+
 import {
-  Trash2,
-  PlaySquare,
-  Image,
-  Video,
+  CalendarClock,
   Clock3,
+  Images,
+  ListVideo,
+  Trash2,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 
-import type { Playlist } from "../types/playlist";
+import type { Playlist } from "../types";
 
-import { formatDuration } from "../utils/FormatDuration";
-
-interface Props {
+interface PlaylistCardProps {
   playlist: Playlist;
-   onOpen: () => void;
-
-  onDelete: (
-    id: string,
-  ) => void;
+  onDelete: (playlist: Playlist) => void;
 }
 
 export default function PlaylistCard({
   playlist,
-    onOpen,
   onDelete,
-}: Props) {
-  const navigate =
-    useNavigate();
+}: PlaylistCardProps) {
+  const navigate = useNavigate();
+
+  const itemsCount =
+    playlist._count?.items ??
+    playlist.items?.length ??
+    0;
+
+  const schedulesCount =
+    playlist._count?.schedules ?? 0;
 
   const totalDuration =
-    playlist.items.reduce(
-      (total, item) => {
-        if (
-          item.media?.type ===
-          "VIDEO"
-        ) {
-          return (
-            total +
-            (item.media
-              ?.duration || 0)
-          );
-        }
+    playlist.items?.reduce((total, item) => {
+      const duration =
+        item.duration ??
+        item.media.duration ??
+        0;
 
-        return (
-          total +
-          (item.duration || 5)
-        );
-      },
-      0,
+      return total + duration;
+    }, 0) ?? 0;
+
+  function handleOpenPlaylist() {
+    navigate(
+      `/home/playlists/${playlist.id}`,
     );
+  }
 
-  const imageCount =
-    playlist.items.filter(
-      (item) =>
-        item.media?.type ===
-        "IMAGE",
-    ).length;
-
-  const videoCount =
-    playlist.items.filter(
-      (item) =>
-        item.media?.type ===
-        "VIDEO",
-    ).length;
-
-  const handleDelete =
-    () => {
-      const confirmDelete =
-        window.confirm(
-          `Deseja realmente excluir a playlist "${playlist.name}"?`,
-        );
-
-      if (
-        confirmDelete
-      ) {
-        onDelete(
-          playlist.id,
-        );
-      }
-    };
+  function handleDelete(
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) {
+    event.stopPropagation();
+    onDelete(playlist);
+  }
 
   return (
-    <div
-     onClick={onOpen}
-      className="
-        bg-white
-        border
-        rounded-3xl
-        p-5
-        shadow-sm
-        hover:shadow-xl
-        hover:-translate-y-1
-        transition-all
-        duration-300
-      "
-    >
-      <div className="flex justify-between items-start">
-
-        <div>
-
-          <div
-            className="
-              h-12
-              w-12
-              rounded-2xl
-              bg-blue-100
-              flex
-              items-center
-              justify-center
-              mb-4
-            "
-          >
-            <PlaySquare
-              size={24}
-              className="
-                text-blue-600
-              "
-            />
-          </div>
-
-          <h3
-            className="
-              text-lg
-              font-bold
-              text-gray-900
-              line-clamp-1
-            "
-          >
-            {playlist.name}
-          </h3>
-
-          <p
-            className="
-              text-sm
-              text-gray-500
-              mt-1
-            "
-          >
-            {playlist.items.length} mídias
-          </p>
-
+    <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+      <button
+        type="button"
+        onClick={handleOpenPlaylist}
+        className="block w-full text-left"
+      >
+        <div className="flex aspect-video items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
+          <ListVideo size={62} />
         </div>
 
+        <div className="space-y-4 p-5">
+          <div>
+            <h2
+              title={playlist.name}
+              className="truncate text-lg font-black text-gray-900"
+            >
+              {playlist.name}
+            </h2>
+
+            <p className="mt-1 text-xs text-gray-500">
+              Atualizada em{" "}
+              {formatDate(
+                playlist.updatedAt,
+              )}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            <InfoItem
+              icon={<Images size={15} />}
+              label="Mídias"
+              value={String(itemsCount)}
+            />
+
+            <InfoItem
+              icon={<Clock3 size={15} />}
+              label="Duração"
+              value={formatDuration(
+                totalDuration,
+              )}
+            />
+
+            <InfoItem
+              icon={
+                <CalendarClock size={15} />
+              }
+              label="Agend."
+              value={String(
+                schedulesCount,
+              )}
+            />
+          </div>
+        </div>
+      </button>
+
+      <div className="border-t border-gray-100 p-4">
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-bold text-red-700 transition hover:bg-red-100"
+        >
+          <Trash2 size={18} />
+          Excluir playlist
+        </button>
       </div>
+    </article>
+  );
+}
 
-      <div
-        className="
-          mt-5
-          flex
-          items-center
-          gap-2
-          text-sm
-          text-gray-600
-        "
-      >
-        <Clock3 size={14} />
+interface InfoItemProps {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}
 
-        <span>
-          {formatDuration(
-            totalDuration,
-          )}
+function InfoItem({
+  icon,
+  label,
+  value,
+}: InfoItemProps) {
+  return (
+    <div className="min-w-0 rounded-xl bg-gray-50 p-3">
+      <div className="flex items-center gap-1 text-[11px] font-semibold text-gray-500">
+        {icon}
+        <span className="truncate">
+          {label}
         </span>
       </div>
 
-      <div
-        className="
-          grid
-          grid-cols-2
-          gap-3
-          mt-5
-        "
-      >
-        <div
-          className="
-            bg-gray-50
-            rounded-xl
-            p-3
-          "
-        >
-          <div className="flex items-center gap-2">
-            <Image
-              size={16}
-              className="
-                text-blue-600
-              "
-            />
-
-            <span
-              className="
-                text-sm
-                text-gray-500
-              "
-            >
-              Imagens
-            </span>
-          </div>
-
-          <p
-            className="
-              text-xl
-              font-bold
-              mt-2
-            "
-          >
-            {imageCount}
-          </p>
-        </div>
-
-        <div
-          className="
-            bg-gray-50
-            rounded-xl
-            p-3
-          "
-        >
-          <div className="flex items-center gap-2">
-            <Video
-              size={16}
-              className="
-                text-purple-600
-              "
-            />
-
-            <span
-              className="
-                text-sm
-                text-gray-500
-              "
-            >
-              Vídeos
-            </span>
-          </div>
-
-          <p
-            className="
-              text-xl
-              font-bold
-              mt-2
-            "
-          >
-            {videoCount}
-          </p>
-        </div>
-      </div>
-
-      <div
-        className="
-          mt-6
-          flex
-          gap-2
-        "
-      >
-        <button
-          onClick={() =>
-            navigate(
-              `/home/playlists/${playlist.id}`,
-            )
-          }
-          className="
-            flex-1
-            bg-blue-600
-            hover:bg-blue-700
-            transition
-            text-white
-            rounded-xl
-            py-2.5
-            font-medium
-          "
-        >
-          Abrir Playlist
-        </button>
-
-        <button
-          onClick={
-            handleDelete
-          }
-          className="
-            w-11
-            border
-            rounded-xl
-            flex
-            items-center
-            justify-center
-            hover:bg-red-50
-            hover:border-red-500
-            transition
-          "
-        >
-          <Trash2
-            size={18}
-            className="
-              text-red-600
-            "
-          />
-        </button>
-      </div>
+      <p className="mt-1 truncate text-sm font-black text-gray-900">
+        {value}
+      </p>
     </div>
   );
+}
+
+function formatDate(date: string) {
+  const parsedDate = new Date(date);
+
+  if (
+    Number.isNaN(
+      parsedDate.getTime(),
+    )
+  ) {
+    return "Data inválida";
+  }
+
+  return new Intl.DateTimeFormat(
+    "pt-BR",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    },
+  ).format(parsedDate);
+}
+
+function formatDuration(
+  totalSeconds: number,
+) {
+  const safeSeconds = Math.max(
+    0,
+    Math.floor(totalSeconds),
+  );
+
+  const hours = Math.floor(
+    safeSeconds / 3600,
+  );
+
+  const minutes = Math.floor(
+    (safeSeconds % 3600) / 60,
+  );
+
+  const seconds =
+    safeSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${String(
+      minutes,
+    ).padStart(2, "0")}m`;
+  }
+
+  return `${String(minutes).padStart(
+    2,
+    "0",
+  )}:${String(seconds).padStart(
+    2,
+    "0",
+  )}`;
 }

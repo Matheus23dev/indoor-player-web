@@ -1,15 +1,19 @@
-import instance from "../../../../services/axios";
+import api from "../../../../services/axios";
 
 import type {
   AddPlaylistItemPayload,
   CreatePlaylistPayload,
+  DeletePlaylistItemResponse,
+  DeletePlaylistResponse,
+  Playlist,
+  PlaylistItem,
   ReorderPlaylistPayload,
   UpdatePlaylistItemPayload,
-} from "../types/playlist";
+} from "../types";
 
-export async function getPlaylists() {
+export async function getPlaylists(): Promise<Playlist[]> {
   const response =
-    await instance.get(
+    await api.get<Playlist[]>(
       "/playlists",
     );
 
@@ -18,9 +22,9 @@ export async function getPlaylists() {
 
 export async function getPlaylist(
   id: string,
-) {
+): Promise<Playlist> {
   const response =
-    await instance.get(
+    await api.get<Playlist>(
       `/playlists/${id}`,
     );
 
@@ -28,12 +32,12 @@ export async function getPlaylist(
 }
 
 export async function createPlaylist(
-  payload: CreatePlaylistPayload,
-) {
+  data: CreatePlaylistPayload,
+): Promise<Playlist> {
   const response =
-    await instance.post(
+    await api.post<Playlist>(
       "/playlists",
-      payload,
+      data,
     );
 
   return response.data;
@@ -41,9 +45,9 @@ export async function createPlaylist(
 
 export async function deletePlaylist(
   id: string,
-) {
+): Promise<DeletePlaylistResponse> {
   const response =
-    await instance.delete(
+    await api.delete<DeletePlaylistResponse>(
       `/playlists/${id}`,
     );
 
@@ -52,23 +56,12 @@ export async function deletePlaylist(
 
 export async function addPlaylistItem(
   playlistId: string,
-  payload: AddPlaylistItemPayload,
-) {
+  data: AddPlaylistItemPayload,
+): Promise<PlaylistItem> {
   const response =
-    await instance.post(
+    await api.post<PlaylistItem>(
       `/playlists/${playlistId}/items`,
-      payload,
-    );
-
-  return response.data;
-}
-
-export async function removePlaylistItem(
-  itemId: string,
-) {
-  const response =
-    await instance.delete(
-      `/playlists/items/${itemId}`,
+      data,
     );
 
   return response.data;
@@ -76,12 +69,23 @@ export async function removePlaylistItem(
 
 export async function updatePlaylistItem(
   itemId: string,
-  payload: UpdatePlaylistItemPayload,
-) {
+  data: UpdatePlaylistItemPayload,
+): Promise<PlaylistItem> {
   const response =
-    await instance.patch(
+    await api.patch<PlaylistItem>(
       `/playlists/items/${itemId}`,
-      payload,
+      data,
+    );
+
+  return response.data;
+}
+
+export async function deletePlaylistItem(
+  itemId: string,
+): Promise<DeletePlaylistItemResponse> {
+  const response =
+    await api.delete<DeletePlaylistItemResponse>(
+      `/playlists/items/${itemId}`,
     );
 
   return response.data;
@@ -89,12 +93,12 @@ export async function updatePlaylistItem(
 
 export async function reorderPlaylist(
   playlistId: string,
-  payload: ReorderPlaylistPayload,
-) {
+  data: ReorderPlaylistPayload,
+): Promise<Playlist> {
   const response =
-    await instance.patch(
+    await api.patch<Playlist>(
       `/playlists/${playlistId}/reorder`,
-      payload,
+      data,
     );
 
   return response.data;

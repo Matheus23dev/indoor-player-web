@@ -1,37 +1,118 @@
 import {
-  useEffect,
+  useCallback,
   useState,
 } from "react";
 
 import {
+  deleteMedia,
   getMedias,
+  uploadMedia,
 } from "../services/medias.services";
+
+import type {
+  Media,
+} from "../types";
 
 export function useMedias() {
   const [medias, setMedias] =
-    useState<any[]>([]);
+    useState<Media[]>([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loadingMedias, setLoadingMedias] =
+    useState(false);
 
-  async function loadMedias() {
-    try {
-      const data =
-        await getMedias();
+  const [uploadingMedia, setUploadingMedia] =
+    useState(false);
 
-      setMedias(data);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [deletingMediaId, setDeletingMediaId] =
+    useState<string | null>(
+      null,
+    );
 
-  useEffect(() => {
-    loadMedias();
-  }, []);
+  const loadMedias =
+    useCallback(async () => {
+      try {
+        setLoadingMedias(true);
+
+        const data =
+          await getMedias();
+
+        setMedias(data);
+
+        return data;
+      } finally {
+        setLoadingMedias(false);
+      }
+    }, []);
+
+  const sendMedia =
+    useCallback(
+      async (
+        file: File,
+        folderId?: string | null,
+      ) => {
+        try {
+          setUploadingMedia(true);
+
+          const media =
+            await uploadMedia(
+              file,
+              folderId,
+            );
+
+          setMedias(
+            (currentMedias) => [
+              media,
+              ...currentMedias,
+            ],
+          );
+
+          return media;
+        } finally {
+          setUploadingMedia(false);
+        }
+      },
+      [],
+    );
+
+  const removeMedia =
+    useCallback(
+      async (
+        id: string,
+      ) => {
+        try {
+          setDeletingMediaId(id);
+
+          const response =
+            await deleteMedia(id);
+
+          setMedias(
+            (currentMedias) =>
+              currentMedias.filter(
+                (media) =>
+                  media.id !== id,
+              ),
+          );
+
+          return response;
+        } finally {
+          setDeletingMediaId(
+            null,
+          );
+        }
+      },
+      [],
+    );
 
   return {
     medias,
-    loading,
+    setMedias,
+
+    loadingMedias,
+    uploadingMedia,
+    deletingMediaId,
+
     loadMedias,
+    sendMedia,
+    removeMedia,
   };
 }

@@ -1,18 +1,14 @@
-import instance from "../../../../services/axios";
+import api from "../../../../services/axios";
 
-export async function getMedias() {
+import type {
+  Media,
+  RemoveMediaResponse,
+} from "../types";
+
+export async function getMedias(): Promise<Media[]> {
   const response =
-    await instance.get("/medias");
-
-  return response.data;
-}
-
-export async function deleteMedia(
-  id: string,
-) {
-  const response =
-    await instance.delete(
-      `/medias/${id}`,
+    await api.get<Media[]>(
+      "/medias",
     );
 
   return response.data;
@@ -20,7 +16,8 @@ export async function deleteMedia(
 
 export async function uploadMedia(
   file: File,
-) {
+  folderId?: string | null,
+): Promise<Media> {
   const formData =
     new FormData();
 
@@ -29,16 +26,28 @@ export async function uploadMedia(
     file,
   );
 
+  if (folderId) {
+    formData.append(
+      "folderId",
+      folderId,
+    );
+  }
+
   const response =
-    await instance.post(
+    await api.post<Media>(
       "/medias/upload",
       formData,
-      {
-        headers: {
-          "Content-Type":
-            "multipart/form-data",
-        },
-      },
+    );
+
+  return response.data;
+}
+
+export async function deleteMedia(
+  id: string,
+): Promise<RemoveMediaResponse> {
+  const response =
+    await api.delete<RemoveMediaResponse>(
+      `/medias/${id}`,
     );
 
   return response.data;
