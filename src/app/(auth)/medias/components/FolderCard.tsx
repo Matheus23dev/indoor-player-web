@@ -1,165 +1,241 @@
-<<<<<<< HEAD
-import { Folder as FolderIcon, Trash2 } from "lucide-react";
-
-type Folder = {
-  id: string;
-  name: string;
-};
-
-type Props = {
-  folder: Folder;
-  onClick: (id: string) => void;
-  onDelete: (id: string) => void;
-};
-
-export function FolderCard({ folder, onClick, onDelete }: Props) {
-  return (
-    <div className="bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between group cursor-pointer">
-      <div
-        className="flex items-center gap-3 flex-1"
-        onClick={() => onClick(folder.id)}
-      >
-        <div className="bg-blue-100 p-3 rounded-lg text-blue-600">
-          <FolderIcon size={24} />
-        </div>
-        <h3 className="font-semibold text-lg truncate">{folder.name}</h3>
-      </div>
-
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete(folder.id);
-        }}
-        className="text-gray-400 hover:text-red-600 p-2 hidden group-hover:block transition-colors"
-        title="Excluir Pasta"
-      >
-        <Trash2 size={20} />
-      </button>
-    </div>
-  );
-}
-=======
 import {
+  useEffect,
   useState,
+  type FormEvent,
 } from "react";
 
 import {
-  Folder as FolderIcon,
-  MoreVertical,
-  Pencil,
-  Trash2,
+  FolderPlus,
+  Save,
+  X,
 } from "lucide-react";
+
+import Swal from "sweetalert2";
+
+import {
+  createFolder,
+  updateFolder,
+} from "../services/folders.services";
 
 import type {
   Folder,
 } from "../types";
 
-interface FolderCardProps {
-  folder: Folder;
-  onOpen: (folder: Folder) => void;
-  onEdit: (folder: Folder) => void;
-  onDelete: (folder: Folder) => void;
+interface FolderModalProps {
+  open: boolean;
+  folder?: Folder | null;
+  onClose: () => void;
+  onSaved: () => Promise<void> | void;
 }
 
-export default function FolderCard({
+export default function FolderModal({
+  open,
   folder,
-  onOpen,
-  onEdit,
-  onDelete,
-}: FolderCardProps) {
-  const [menuOpen, setMenuOpen] =
+  onClose,
+  onSaved,
+}: FolderModalProps) {
+  const [name, setName] =
+    useState("");
+
+  const [saving, setSaving] =
     useState(false);
 
-  const mediasCount =
-    folder._count?.medias ?? 0;
+  const editing =
+    Boolean(folder);
+
+  useEffect(() => {
+    if (open) {
+      setName(
+        folder?.name ?? "",
+      );
+    }
+  }, [
+    open,
+    folder,
+  ]);
+
+  if (!open) {
+    return null;
+  }
+
+  function getErrorMessage(
+    error: unknown,
+  ) {
+    const apiError =
+      error as {
+        response?: {
+          data?: {
+            message?: string | string[];
+          };
+        };
+      };
+
+    const message =
+      apiError?.response?.data?.message;
+
+    if (Array.isArray(message)) {
+      return message[0];
+    }
+
+    return (
+      message ??
+      "Não foi possível salvar a pasta."
+    );
+  }
+
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    const normalizedName =
+      name.trim();
+
+    if (!normalizedName) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Nome obrigatório",
+        text: "Informe o nome da pasta.",
+      });
+
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      if (folder) {
+        await updateFolder(
+          folder.id,
+          {
+            name: normalizedName,
+          },
+        );
+      } else {
+        await createFolder({
+          name: normalizedName,
+        });
+      }
+
+      await Swal.fire({
+        icon: "success",
+        title: editing
+          ? "Pasta renomeada"
+          : "Pasta criada",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      await onSaved();
+      onClose();
+    } catch (error) {
+      await Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: getErrorMessage(
+          error,
+        ),
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
-    <article className="relative rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-blue-300 hover:shadow-md">
-      <button
-        type="button"
-        onClick={() =>
-          onOpen(folder)
-        }
-        className="flex w-full items-center gap-4 pr-10 text-left"
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md rounded-2xl bg-white shadow-2xl"
       >
-        <div className="rounded-2xl bg-amber-50 p-3 text-amber-500">
-          <FolderIcon
-            size={30}
-            fill="currentColor"
-          />
-        </div>
+        <header className="flex items-center justify-between border-b px-6 py-4">
+          <div>
+            <h2 className="text-xl font-black text-gray-900">
+              {editing
+                ? "Renomear pasta"
+                : "Nova pasta"}
+            </h2>
 
-        <div className="min-w-0 flex-1">
-          <h3
-            title={folder.name}
-            className="truncate text-base font-black text-gray-900"
+            <p className="text-sm text-gray-500">
+              {editing
+                ? "Altere o nome da pasta."
+                : "Crie uma pasta para organizar suas mídias."}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 disabled:opacity-50"
+            aria-label="Fechar"
           >
-            {folder.name}
-          </h3>
+            <X size={22} />
+          </button>
+        </header>
 
-          <p className="mt-1 text-xs font-medium text-gray-500">
-            {mediasCount}{" "}
-            {mediasCount === 1
-              ? "mídia"
-              : "mídias"}
-          </p>
-        </div>
-      </button>
+        <div className="p-6">
+          <label
+            htmlFor="folder-name"
+            className="mb-2 block text-sm font-bold text-gray-700"
+          >
+            Nome da pasta
+          </label>
 
-      <div className="absolute right-3 top-3">
-        <button
-          type="button"
-          onClick={() =>
-            setMenuOpen(
-              (current) => !current,
-            )
-          }
-          className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100"
-          aria-label="Opções da pasta"
-        >
-          <MoreVertical size={18} />
-        </button>
-
-        {menuOpen && (
-          <>
-            <button
-              type="button"
-              aria-label="Fechar menu"
-              onClick={() =>
-                setMenuOpen(false)
-              }
-              className="fixed inset-0 z-10 cursor-default"
+          <div className="relative">
+            <FolderPlus
+              size={19}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
 
-            <div className="absolute right-0 top-10 z-20 w-44 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-xl">
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  onEdit(folder);
-                }}
-                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-              >
-                <Pencil size={16} />
-                Renomear
-              </button>
+            <input
+              id="folder-name"
+              autoFocus
+              value={name}
+              onChange={(event) =>
+                setName(
+                  event.target.value,
+                )
+              }
+              maxLength={100}
+              placeholder="Ex.: Promoções"
+              disabled={saving}
+              className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
+            />
+          </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  onDelete(folder);
-                }}
-                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50"
-              >
-                <Trash2 size={16} />
-                Excluir pasta
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </article>
+          <p className="mt-2 text-right text-xs text-gray-400">
+            {name.length}/100
+          </p>
+        </div>
+
+        <footer className="flex justify-end gap-3 border-t px-6 py-4">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            disabled={
+              saving ||
+              !name.trim()
+            }
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Save size={18} />
+
+            {saving
+              ? "Salvando..."
+              : editing
+                ? "Salvar"
+                : "Criar pasta"}
+          </button>
+        </footer>
+      </form>
+    </div>
   );
 }
->>>>>>> feature/playlist

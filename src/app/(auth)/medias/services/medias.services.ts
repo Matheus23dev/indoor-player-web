@@ -14,19 +14,6 @@ export async function getMedias(): Promise<Media[]> {
   return response.data;
 }
 
-<<<<<<< HEAD
-export async function uploadMedia(file: File, folderId?: string | null) {
-  const formData = new FormData();
-  formData.append("file", file);
-  
-  if (folderId) {
-    formData.append("folderId", folderId); 
-  }
-
-  const response = await instance.post("/medias/upload", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-=======
 export async function uploadMedia(
   file: File,
   folderId?: string | null,
@@ -62,7 +49,6 @@ export async function deleteMedia(
     await api.delete<RemoveMediaResponse>(
       `/medias/${id}`,
     );
->>>>>>> feature/playlist
 
   return response.data;
 }
