@@ -158,9 +158,9 @@ function getMediaUrl(
 
   const baseURL =
     import.meta.env
-      .VITE_BASE_URL_API ?? "";
+      .VITE_BASE_URL_API_FILES;
 
-  return `${baseURL}${fileUrl}`;
+  return `${baseURL}/files/indoor-player-api${fileUrl}`;
 }
 
 function formatFileSize(
