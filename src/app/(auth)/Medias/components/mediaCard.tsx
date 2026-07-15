@@ -13,7 +13,7 @@ import type {
 
 interface MediaCardProps {
   media: Media;
-  onDelete: (media: Media) => void;
+  onDelete: (media: Media) => void | Promise<void>;
 }
 
 export default function MediaCard({
@@ -134,7 +134,7 @@ export default function MediaCard({
         <button
           type="button"
           onClick={() =>
-            onDelete(media)
+            void onDelete(media)
           }
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-bold text-red-700 transition hover:bg-red-100"
         >
@@ -158,9 +158,12 @@ function getMediaUrl(
 
   const baseURL =
     import.meta.env
-      .VITE_BASE_URL_API_FILES;
+      .VITE_BASE_URL_API_FILES ||
+    import.meta.env
+      .VITE_BASE_URL_API ||
+    "";
 
-  return `${baseURL}/files/indoor-player-api${fileUrl}`;
+  return `${baseURL}${fileUrl}`;
 }
 
 function formatFileSize(
@@ -248,4 +251,5 @@ function formatDate(
     },
   ).format(
     new Date(date),
-  )};
+  );
+}

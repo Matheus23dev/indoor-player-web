@@ -17,7 +17,7 @@ import {
 
 import type {
   Media,
-} from "../../medias/types";
+} from "../../Medias/types";
 
 import type {
   Playlist,

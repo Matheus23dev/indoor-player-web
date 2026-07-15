@@ -8,9 +8,10 @@ import { createBrowserRouter } from "react-router-dom";
 import Home from "@/app/(auth)/Home";
 import Devices from "@/app/(auth)/Devices";
 import Playlists from "@/app/(auth)/Playlists/index";
-import MediasPage from "@/app/(auth)/medias";
+import MediasPage from "@/app/(auth)/Medias";
 import Schedules from "@/app/(auth)/Schedules";
 import PlaylistDetails from "@/app/(auth)/Playlists/details";
+import { UsersPage } from "../app/(auth)/Users";
 
 const errorElement = <ErrorPage />;
 
@@ -47,6 +48,11 @@ export const router = createBrowserRouter([
         element: withProviders(<Playlists />),
         errorElement,
       },
+      {
+        path: "users",
+        element: withProviders(<UsersPage />),
+        errorElement,
+      },
      {
   path: "playlists/:id",
   element: withProviders(
@@ -64,6 +70,7 @@ export const router = createBrowserRouter([
         element: withProviders(<Schedules />),
         errorElement,
       },
+      
     ],
   },
 ]);

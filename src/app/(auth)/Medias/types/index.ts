@@ -8,8 +8,8 @@ export type {
 } from "./media.types";
 
 export type {
-  DeleteFolderResponse,
   Folder,
   FolderMediaCount,
   FolderPayload,
+  RemoveFolderResponse,
 } from "./folder.types";

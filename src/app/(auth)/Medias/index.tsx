@@ -1,7 +1,4 @@
-import {
-  useState,
-  type ReactNode,
-} from "react";
+import { useState, type ReactNode } from "react";
 
 import {
   ChevronRight,
@@ -24,27 +21,12 @@ import {
   type MediaFilter,
 } from "./hooks/useMediaLibrary";
 
-import type {
-  Folder,
-} from "./types";
+import type { Folder } from "./types";
 
 export default function MediasPage() {
-  const [
-    uploadModalOpen,
-    setUploadModalOpen,
-  ] = useState(false);
-
-  const [
-    folderModalOpen,
-    setFolderModalOpen,
-  ] = useState(false);
-
-  const [
-    editingFolder,
-    setEditingFolder,
-  ] = useState<Folder | null>(
-    null,
-  );
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
 
   const {
     folders,
@@ -78,9 +60,7 @@ export default function MediasPage() {
     setFolderModalOpen(true);
   }
 
-  function openEditFolder(
-    folder: Folder,
-  ) {
+  function openEditFolder(folder: Folder) {
     setEditingFolder(folder);
     setFolderModalOpen(true);
   }
@@ -116,11 +96,7 @@ export default function MediasPage() {
 
             <button
               type="button"
-              onClick={() =>
-                setUploadModalOpen(
-                  true,
-                )
-              }
+              onClick={() => setUploadModalOpen(true)}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
             >
               <Upload size={19} />
@@ -134,9 +110,7 @@ export default function MediasPage() {
             type="button"
             onClick={goToRoot}
             className={`shrink-0 transition hover:text-blue-600 ${
-              !selectedFolderId
-                ? "font-black text-gray-900"
-                : ""
+              !selectedFolderId ? "font-black text-gray-900" : ""
             }`}
           >
             Mídias
@@ -144,10 +118,7 @@ export default function MediasPage() {
 
           {selectedFolder && (
             <>
-              <ChevronRight
-                size={16}
-                className="shrink-0"
-              />
+              <ChevronRight size={16} className="shrink-0" />
 
               <span className="truncate font-black text-gray-900">
                 {selectedFolder.name}
@@ -160,31 +131,19 @@ export default function MediasPage() {
           <SummaryCard
             title="Pastas"
             value={folders.length}
-            icon={
-              <FolderIcon
-                size={22}
-              />
-            }
+            icon={<FolderIcon size={22} />}
           />
 
           <SummaryCard
             title="Imagens"
             value={totalImages}
-            icon={
-              <ImageIcon
-                size={22}
-              />
-            }
+            icon={<ImageIcon size={22} />}
           />
 
           <SummaryCard
             title="Vídeos"
             value={totalVideos}
-            icon={
-              <FileVideo
-                size={22}
-              />
-            }
+            icon={<FileVideo size={22} />}
           />
         </div>
 
@@ -198,11 +157,7 @@ export default function MediasPage() {
 
               <input
                 value={search}
-                onChange={(event) =>
-                  setSearch(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setSearch(event.target.value)}
                 placeholder={
                   selectedFolder
                     ? `Buscar em ${selectedFolder.name}...`
@@ -215,36 +170,24 @@ export default function MediasPage() {
             <div className="flex overflow-x-auto rounded-xl bg-gray-100 p-1">
               <FilterButton
                 filter="ALL"
-                activeFilter={
-                  filterType
-                }
-                onChange={
-                  setFilterType
-                }
+                activeFilter={filterType}
+                onChange={setFilterType}
               >
                 Todas
               </FilterButton>
 
               <FilterButton
                 filter="IMAGE"
-                activeFilter={
-                  filterType
-                }
-                onChange={
-                  setFilterType
-                }
+                activeFilter={filterType}
+                onChange={setFilterType}
               >
                 Imagens
               </FilterButton>
 
               <FilterButton
                 filter="VIDEO"
-                activeFilter={
-                  filterType
-                }
-                onChange={
-                  setFilterType
-                }
+                activeFilter={filterType}
+                onChange={setFilterType}
               >
                 Vídeos
               </FilterButton>
@@ -255,10 +198,7 @@ export default function MediasPage() {
         {loading && (
           <div className="flex min-h-80 items-center justify-center rounded-2xl border border-gray-200 bg-white">
             <div className="flex flex-col items-center gap-3 text-gray-500">
-              <Loader2
-                className="animate-spin"
-                size={34}
-              />
+              <Loader2 className="animate-spin" size={34} />
 
               <p className="text-sm font-bold">
                 Carregando biblioteca...
@@ -267,75 +207,49 @@ export default function MediasPage() {
           </div>
         )}
 
-        {!loading &&
-          visibleFolders.length >
-            0 && (
-            <section className="space-y-3">
-              <h2 className="text-lg font-black text-gray-900">
-                Pastas
-              </h2>
+        {!loading && visibleFolders.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-lg font-black text-gray-900">
+              Pastas
+            </h2>
 
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {visibleFolders.map(
-                  (folder) => (
-                    <FolderCard
-                      key={
-                        folder.id
-                      }
-                      folder={
-                        folder
-                      }
-                      onOpen={
-                        openFolder
-                      }
-                      onEdit={
-                        openEditFolder
-                      }
-                      onDelete={
-                        handleDeleteFolder
-                      }
-                    />
-                  ),
-                )}
-              </div>
-            </section>
-          )}
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {visibleFolders.map((folder) => (
+                <FolderCard
+                  key={folder.id}
+                  folder={folder}
+                  onOpen={openFolder}
+                  onEdit={openEditFolder}
+                  onDelete={handleDeleteFolder}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
-        {!loading &&
-          visibleMedias.length >
-            0 && (
-            <section className="space-y-3">
-              <h2 className="text-lg font-black text-gray-900">
-                {selectedFolder
-                  ? `Mídias em ${selectedFolder.name}`
-                  : "Mídias sem pasta"}
-              </h2>
+        {!loading && visibleMedias.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-lg font-black text-gray-900">
+              {selectedFolder
+                ? `Mídias em ${selectedFolder.name}`
+                : "Mídias sem pasta"}
+            </h2>
 
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {visibleMedias.map(
-                  (media) => (
-                    <MediaCard
-                      key={
-                        media.id
-                      }
-                      media={
-                        media
-                      }
-                      onDelete={
-                        handleDeleteMedia
-                      }
-                    />
-                  ),
-                )}
-              </div>
-            </section>
-          )}
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {visibleMedias.map((media) => (
+                <MediaCard
+                  key={media.id}
+                  media={media}
+                  onDelete={handleDeleteMedia}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         {!loading &&
-          visibleFolders.length ===
-            0 &&
-          visibleMedias.length ===
-            0 && (
+          visibleFolders.length === 0 &&
+          visibleMedias.length === 0 && (
             <div className="flex min-h-80 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center">
               <div className="max-w-md">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-600">
@@ -359,38 +273,18 @@ export default function MediasPage() {
       </div>
 
       <UploadMediaModal
-        open={
-          uploadModalOpen
-        }
-        folders={
-          folders
-        }
-        selectedFolderId={
-          selectedFolderId
-        }
-        onClose={() =>
-          setUploadModalOpen(
-            false,
-          )
-        }
-        onUploaded={
-          loadLibrary
-        }
+        open={uploadModalOpen}
+        folders={folders}
+        selectedFolderId={selectedFolderId}
+        onClose={() => setUploadModalOpen(false)}
+        onUploaded={loadLibrary}
       />
 
       <FolderModal
-        open={
-          folderModalOpen
-        }
-        folder={
-          editingFolder
-        }
-        onClose={
-          closeFolderModal
-        }
-        onSaved={
-          loadLibrary
-        }
+        open={folderModalOpen}
+        folder={editingFolder}
+        onClose={closeFolderModal}
+        onSaved={loadLibrary}
       />
     </div>
   );
@@ -431,9 +325,7 @@ function SummaryCard({
 interface FilterButtonProps {
   filter: MediaFilter;
   activeFilter: MediaFilter;
-  onChange: (
-    filter: MediaFilter,
-  ) => void;
+  onChange: (filter: MediaFilter) => void;
   children: ReactNode;
 }
 
@@ -443,15 +335,12 @@ function FilterButton({
   onChange,
   children,
 }: FilterButtonProps) {
-  const active =
-    filter === activeFilter;
+  const active = filter === activeFilter;
 
   return (
     <button
       type="button"
-      onClick={() =>
-        onChange(filter)
-      }
+      onClick={() => onChange(filter)}
       className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-bold transition ${
         active
           ? "bg-white text-blue-700 shadow-sm"

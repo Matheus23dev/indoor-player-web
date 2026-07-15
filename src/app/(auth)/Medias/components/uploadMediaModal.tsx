@@ -127,7 +127,7 @@ export default function UploadMediaModal({
         selectedFiles.length >
       MAX_FILES
     ) {
-      Swal.fire({
+      void Swal.fire({
         icon: "warning",
         title:
           "Limite de arquivos excedido",
@@ -149,7 +149,7 @@ export default function UploadMediaModal({
       );
 
     if (invalidType) {
-      Swal.fire({
+      void Swal.fire({
         icon: "error",
         title: "Formato inválido",
         text: `O arquivo "${invalidType.name}" não é permitido. Use PNG, JPG, JPEG ou MP4.`,
@@ -166,7 +166,7 @@ export default function UploadMediaModal({
       );
 
     if (oversizedFile) {
-      Swal.fire({
+      void Swal.fire({
         icon: "error",
         title:
           "Arquivo muito grande",
@@ -214,7 +214,7 @@ export default function UploadMediaModal({
     if (
       newFiles.length === 0
     ) {
-      Swal.fire({
+      void Swal.fire({
         icon: "info",
         title:
           "Arquivos já selecionados",
@@ -287,11 +287,6 @@ export default function UploadMediaModal({
       setUploading(true);
       setCurrentUpload(0);
 
-      /*
-       * O backend atual recebe somente um arquivo
-       * no campo "file". Portanto, o frontend faz
-       * uma requisição por mídia.
-       */
       for (
         let index = 0;
         index < files.length;

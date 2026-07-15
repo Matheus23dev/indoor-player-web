@@ -61,7 +61,7 @@ export default function PlaylistCard({
         onClick={handleOpenPlaylist}
         className="block w-full text-left"
       >
-        <div className="flex aspect-video items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
+        <div className="flex aspect-video items-center justify-center bg-linear-to-br from-blue-600 to-indigo-700 text-white">
           <ListVideo size={62} />
         </div>
 

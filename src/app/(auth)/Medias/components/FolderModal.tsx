@@ -28,6 +28,31 @@ interface FolderModalProps {
   onSaved: () => Promise<void> | void;
 }
 
+function getErrorMessage(
+  error: unknown,
+) {
+  const apiError =
+    error as {
+      response?: {
+        data?: {
+          message?: string | string[];
+        };
+      };
+    };
+
+  const message =
+    apiError.response?.data?.message;
+
+  if (Array.isArray(message)) {
+    return message[0];
+  }
+
+  return (
+    message ??
+    "Não foi possível salvar a pasta."
+  );
+}
+
 export default function FolderModal({
   open,
   folder,
@@ -44,11 +69,13 @@ export default function FolderModal({
     Boolean(folder);
 
   useEffect(() => {
-    if (open) {
-      setName(
-        folder?.name ?? "",
-      );
+    if (!open) {
+      return;
     }
+
+    setName(
+      folder?.name ?? "",
+    );
   }, [
     open,
     folder,
@@ -58,29 +85,12 @@ export default function FolderModal({
     return null;
   }
 
-  function getErrorMessage(
-    error: unknown,
-  ) {
-    const apiError =
-      error as {
-        response?: {
-          data?: {
-            message?: string | string[];
-          };
-        };
-      };
-
-    const message =
-      apiError?.response?.data?.message;
-
-    if (Array.isArray(message)) {
-      return message[0];
+  function handleClose() {
+    if (saving) {
+      return;
     }
 
-    return (
-      message ??
-      "Não foi possível salvar a pasta."
-    );
+    onClose();
   }
 
   async function handleSubmit(
@@ -132,9 +142,7 @@ export default function FolderModal({
       await Swal.fire({
         icon: "error",
         title: "Erro",
-        text: getErrorMessage(
-          error,
-        ),
+        text: getErrorMessage(error),
       });
     } finally {
       setSaving(false);
@@ -164,7 +172,7 @@ export default function FolderModal({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={saving}
             className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 disabled:opacity-50"
             aria-label="Fechar"
@@ -211,7 +219,7 @@ export default function FolderModal({
         <footer className="flex justify-end gap-3 border-t px-6 py-4">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={saving}
             className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
           >

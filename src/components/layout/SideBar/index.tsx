@@ -16,11 +16,11 @@ ChevronRight,
 import { useAuth } from "../../../contexts/auth.context";
 
 const menuItems = [
-{
-title: "Dashboard",
-icon: LayoutDashboard,
-url: "/home/dashboard",
-},
+// {
+// title: "Dashboard",
+// icon: LayoutDashboard,
+// url: "/home/dashboard",
+// },
 
 {
 title: "Dispositivos",
@@ -47,19 +47,19 @@ url: "/home/schedules",
 },
 ];
 
-const adminItems = [
-{
-title: "Usuários",
-icon: Users,
-url: "/home/users",
-},
+// const adminItems = [
+// {
+// title: "Usuários",
+// icon: Users,
+// url: "/home/users",
+// },
 
-{
-title: "Configurações",
-icon: Settings,
-url: "/home/settings",
-},
-];
+// {
+// title: "Configurações",
+// icon: Settings,
+// url: "/home/settings",
+// },
+// ];
 
 const getInitials = (name?: string) => {
 if (!name) return "--";
@@ -152,7 +152,7 @@ className="absolute -right-3 top-7 bg-white border border-cinza/20 rounded-full 
       </nav>
     </div>
 
-    <div>
+    {/* <div>
       {isExpanded && (
         <p className="text-xs font-bold text-cinza/60 mb-3 px-2 uppercase tracking-wider">
           Administração
@@ -185,7 +185,7 @@ className="absolute -right-3 top-7 bg-white border border-cinza/20 rounded-full 
           </a>
         ))}
       </nav>
-    </div>
+    </div> */}
   </div>
 
   <div className="p-4 border-t border-cinza/10">

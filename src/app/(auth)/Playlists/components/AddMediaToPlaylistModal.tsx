@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { addMediaToPlaylist, getMedias } from "../services/Playlists.services";
-import { getFolders } from "../../medias/services/folders.services";
+import { addPlaylistItem } from "../services/Playlists.services";
+import { getFolders } from "../../Medias/services/folders.services";
+import { getMedias } from "../../Medias/services/medias.services";
 
 type Props = {
   open: boolean;
@@ -45,7 +46,7 @@ export function AddMediaToPlaylistModal({
 
     try {
       for (const mediaId of selected) {
-        await addMediaToPlaylist(playlistId, mediaId, 10);
+        await addPlaylistItem(playlistId, { mediaId });
       }
 
       handleCloseModal();

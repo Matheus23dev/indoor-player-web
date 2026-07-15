@@ -257,36 +257,38 @@ export function useMediaLibrary() {
               media.id,
             );
 
-          setFolders(
-            (currentFolders) =>
-              currentFolders.map(
-                (folder) => {
-                  if (
-                    folder.id !==
-                    media.folderId
-                  ) {
-                    return folder;
-                  }
+          if (media.folderId) {
+            setFolders(
+              (currentFolders) =>
+                currentFolders.map(
+                  (folder) => {
+                    if (
+                      folder.id !==
+                      media.folderId
+                    ) {
+                      return folder;
+                    }
 
-                  return {
-                    ...folder,
+                    return {
+                      ...folder,
 
-                    _count: {
-                      medias:
-                        Math.max(
-                          0,
-                          (
-                            folder
-                              ._count
-                              ?.medias ??
-                            0
-                          ) - 1,
-                        ),
-                    },
-                  };
-                },
-              ),
-          );
+                      _count: {
+                        medias:
+                          Math.max(
+                            0,
+                            (
+                              folder
+                                ._count
+                                ?.medias ??
+                              0
+                            ) - 1,
+                          ),
+                      },
+                    };
+                  },
+                ),
+            );
+          }
 
           await Swal.fire({
             icon: "success",
@@ -470,12 +472,17 @@ export function useMediaLibrary() {
 function escapeHtml(
   value: string,
 ) {
-  const map: { [key: string]: string } = {
+  const map: Record<string, string> = {
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
     "'": '&#039;',
   };
-  return value.replace(/[&<>"']/g, (ch) => map[ch]);
+
+  return value.replace(
+    /[&<>"']/g,
+    (character) =>
+      map[character],
+  );
 }

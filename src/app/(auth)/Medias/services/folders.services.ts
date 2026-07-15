@@ -1,9 +1,9 @@
 import api from "../../../../services/axios";
 
 import type {
-  DeleteFolderResponse,
   Folder,
   FolderPayload,
+  RemoveFolderResponse,
 } from "../types";
 
 export async function getFolders(): Promise<Folder[]> {
@@ -42,9 +42,9 @@ export async function updateFolder(
 
 export async function deleteFolder(
   id: string,
-): Promise<DeleteFolderResponse> {
+): Promise<RemoveFolderResponse> {
   const response =
-    await api.delete<DeleteFolderResponse>(
+    await api.delete<RemoveFolderResponse>(
       `/folders/${id}`,
     );
 

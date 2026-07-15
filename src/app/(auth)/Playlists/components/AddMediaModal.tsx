@@ -19,16 +19,16 @@ import Swal from "sweetalert2";
 
 import {
   getFolders,
-} from "../../medias/services/folders.services";
+} from "../../Medias/services/folders.services";
 
 import {
   getMedias,
-} from "../../medias/services/medias.services";
+} from "../../Medias/services/medias.services";
 
 import type {
   Folder as MediaFolder,
   Media,
-} from "../../medias/types";
+} from "../../Medias/types";
 
 interface AddMediaModalProps {
   open: boolean;

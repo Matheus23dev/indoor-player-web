@@ -16,7 +16,7 @@ export interface FolderPayload {
   name: string;
 }
 
-export interface DeleteFolderResponse {
+export interface RemoveFolderResponse {
   success: boolean;
   message: string;
   mediasMovedToRoot: number;

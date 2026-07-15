@@ -1,6 +1,6 @@
 import type {
   Media,
-} from "../../medias/types";
+} from "../../Medias/types";
 
 export interface PlaylistItem {
   id: string;

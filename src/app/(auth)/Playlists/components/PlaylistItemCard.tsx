@@ -70,11 +70,24 @@ export default function PlaylistItemCard({
     item.media.duration,
   ]);
 
-  const mediaUrl =
-    getMediaUrl(
-      item.media.fileUrl,
-    );
-
+  function getMediaUrl(
+    fileUrl: string,
+  ) {
+    if (
+      fileUrl.startsWith("http://") ||
+      fileUrl.startsWith("https://")
+    ) {
+      return fileUrl;
+    }
+  
+    const baseURL =
+      import.meta.env
+        .VITE_BASE_URL_API_FILES;
+  
+    return `${baseURL}${fileUrl}`;
+  }
+  
+ 
   async function saveDuration() {
     if (
       !Number.isInteger(
@@ -129,7 +142,7 @@ export default function PlaylistItemCard({
         <div className="relative aspect-video bg-black md:aspect-auto md:min-h-44">
           {isVideo ? (
             <video
-              src={mediaUrl}
+              src={getMediaUrl(item.media.fileUrl)}
               controls
               muted
               preload="metadata"
@@ -137,7 +150,7 @@ export default function PlaylistItemCard({
             />
           ) : (
             <img
-              src={mediaUrl}
+              src={getMediaUrl(item.media.fileUrl)  }
               alt={item.media.name}
               className="h-full w-full object-cover"
             />
@@ -297,24 +310,4 @@ export default function PlaylistItemCard({
       </div>
     </article>
   );
-}
-
-function getMediaUrl(
-  fileUrl: string,
-) {
-  if (
-    fileUrl.startsWith(
-      "http://",
-    ) ||
-    fileUrl.startsWith(
-      "https://",
-    )
-  ) {
-    return fileUrl;
-  }
-
-  return `${
-    import.meta.env
-      .VITE_BASE_URL_API ?? ""
-  }${fileUrl}`;
 }

@@ -94,10 +94,8 @@ export function resolveMediaUrl(
   }
 
   const baseUrl =
-    instance.defaults.baseURL ??
-    import.meta.env
-      .VITE_BASE_URL_API ??
-    window.location.origin;
+  
+    import.meta.env.VITE_BASE_URL_API_FILES;
 
   try {
     return new URL(
