@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(user);
       Cookies.set("user", JSON.stringify(user), { expires: 1 });
 
-      navigate("/home");
+      navigate("/home/devices");
 
 
     } catch (error) {
