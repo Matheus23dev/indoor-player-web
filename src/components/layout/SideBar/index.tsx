@@ -1,238 +1,241 @@
-import { useState } from "react";
+import {
+  useState,
+} from "react";
 
 import {
-LayoutDashboard,
-MonitorSmartphone,
-Image,
-ListVideo,
-CalendarDays,
-Users,
-Settings,
-LogOut,
-ChevronLeft,
-ChevronRight,
+  MonitorSmartphone,
+  Image,
+  ListVideo,
+  CalendarDays,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
-import { useAuth } from "../../../contexts/auth.context";
+import {
+  useAuth,
+} from "../../../contexts/auth.context";
 
 const menuItems = [
-// {
-// title: "Dashboard",
-// icon: LayoutDashboard,
-// url: "/home/dashboard",
-// },
+  {
+    title: "Dispositivos",
+    icon: MonitorSmartphone,
+    url: "/home/devices",
+  },
 
-{
-title: "Dispositivos",
-icon: MonitorSmartphone,
-url: "/home/devices",
-},
+  {
+    title: "Mídias",
+    icon: Image,
+    url: "/home/medias",
+  },
 
-{
-title: "Mídias",
-icon: Image,
-url: "/home/medias",
-},
+  {
+    title: "Playlists",
+    icon: ListVideo,
+    url: "/home/playlists",
+  },
 
-{
-title: "Playlists",
-icon: ListVideo,
-url: "/home/playlists",
-},
-
-{
-title: "Agendamentos",
-icon: CalendarDays,
-url: "/home/schedules",
-},
+  {
+    title: "Agendamentos",
+    icon: CalendarDays,
+    url: "/home/schedules",
+  },
 ];
 
-// const adminItems = [
-// {
-// title: "Usuários",
-// icon: Users,
-// url: "/home/users",
-// },
+const getInitials = (
+  name?: string,
+) => {
+  if (!name) {
+    return "--";
+  }
 
-// {
-// title: "Configurações",
-// icon: Settings,
-// url: "/home/settings",
-// },
-// ];
+  const names =
+    name
+      .trim()
+      .split(" ")
+      .filter(Boolean);
 
-const getInitials = (name?: string) => {
-if (!name) return "--";
+  if (names.length >= 2) {
+    return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+  }
 
-const names = name.trim().split(" ");
-
-if (names.length >= 2) {
-return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
-}
-
-return name.substring(0, 2).toUpperCase();
+  return name
+    .substring(
+      0,
+      2,
+    )
+    .toUpperCase();
 };
 
 export function AppSidebar() {
-const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] =
+    useState(true);
 
-const { logout, user } = useAuth();
+  const {
+    logout,
+    user,
+  } = useAuth();
 
-return (
-<aside
-className={`bg-white border-r border-cinza/20 h-screen transition-all duration-300 relative flex flex-col ${
-        isExpanded ? "w-64" : "w-20"
-      }`}
->
-<button
-onClick={() => setIsExpanded(!isExpanded)}
-className="absolute -right-3 top-7 bg-white border border-cinza/20 rounded-full p-1 text-cinza hover:text-azul-primario hover:bg-azul-primario/10 transition-colors z-50 shadow-sm"
->
-{isExpanded ? ( <ChevronLeft className="w-4 h-4" />
-) : ( <ChevronRight className="w-4 h-4" />
-)} </button>
-
-  <div
-    className={`p-6 border-b border-cinza/10 flex items-center transition-all min-h-21 ${
-      isExpanded
-        ? "justify-start"
-        : "justify-center px-0"
-    }`}
-  >
-    {isExpanded ? (
-      <div className="flex flex-col">
-      <h1 className="text-2xl font-extrabold text-blue-600">
-        Indoor Player
-      </h1>
-    
-      <span className="text-xs text-gray-500">
-        Gerenciamento de TVs e Conteúdo
-      </span>
-    </div>
-    ) : (
-      <h1 className="text-azul-primario text-3xl font-black leading-none select-none">
-        I
-      </h1>
-    )}
-  </div>
-
-  <div className="flex-1 p-4 space-y-6 overflow-y-auto overflow-x-hidden">
-    <div>
-      {isExpanded && (
-        <p className="text-xs font-bold text-cinza/60 mb-3 px-2 uppercase tracking-wider">
-          Operacional
-        </p>
-      )}
-
-      <nav className="flex flex-col gap-2">
-        {menuItems.map((item) => (
-          <a
-            key={item.title}
-            href={item.url}
-            title={!isExpanded ? item.title : undefined}
-            className={`flex items-center rounded-lg text-cinza hover:bg-azul-primario/5 hover:text-azul-primario transition-all font-medium text-sm group ${
-              isExpanded
-                ? "gap-3 px-3 py-2.5"
-                : "justify-center p-3"
-            }`}
-          >
-            <item.icon className="w-5 h-5 min-w-5 text-cinza/70 group-hover:text-azul-primario transition-colors" />
-
-            <span
-              className={`whitespace-nowrap transition-all duration-300 ${
-                isExpanded
-                  ? "opacity-100 block"
-                  : "opacity-0 hidden"
-              }`}
-            >
-              {item.title}
-            </span>
-          </a>
-        ))}
-      </nav>
-    </div>
-
-    {/* <div>
-      {isExpanded && (
-        <p className="text-xs font-bold text-cinza/60 mb-3 px-2 uppercase tracking-wider">
-          Administração
-        </p>
-      )}
-
-      <nav className="flex flex-col gap-2">
-        {adminItems.map((item) => (
-          <a
-            key={item.title}
-            href={item.url}
-            title={!isExpanded ? item.title : undefined}
-            className={`flex items-center rounded-lg text-cinza hover:bg-azul-primario/5 hover:text-azul-primario transition-all font-medium text-sm group ${
-              isExpanded
-                ? "gap-3 px-3 py-2.5"
-                : "justify-center p-3"
-            }`}
-          >
-            <item.icon className="w-5 h-5 min-w-5 text-cinza/70 group-hover:text-azul-primario transition-colors" />
-
-            <span
-              className={`whitespace-nowrap transition-all duration-300 ${
-                isExpanded
-                  ? "opacity-100 block"
-                  : "opacity-0 hidden"
-              }`}
-            >
-              {item.title}
-            </span>
-          </a>
-        ))}
-      </nav>
-    </div> */}
-  </div>
-
-  <div className="p-4 border-t border-cinza/10">
-    <div
-      className={`flex items-center ${
+  return (
+    <aside
+      className={`relative flex h-screen flex-col border-r border-slate-200 bg-white shadow-sm transition-all duration-300 ${
         isExpanded
-          ? "justify-between px-2"
-          : "justify-center"
-      } py-2`}
+          ? "w-72"
+          : "w-20"
+      }`}
     >
-      <div className="flex items-center gap-3 overflow-hidden">
-        <div className="w-8 h-8 min-w-8 rounded-full bg-blue-500 text-white  flex items-center justify-center font-bold text-xs">
-          {user ? getInitials(user.name) : "--"}
-        </div>
+      <button
+        type="button"
+        onClick={() =>
+          setIsExpanded(
+            !isExpanded,
+          )
+        }
+        className="absolute -right-3 top-8 z-50 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+        title={
+          isExpanded
+            ? "Recolher menu"
+            : "Expandir menu"
+        }
+      >
+        {isExpanded ? (
+          <ChevronLeft className="h-4 w-4" />
+        ) : (
+          <ChevronRight className="h-4 w-4" />
+        )}
+      </button>
 
-        {isExpanded && (
-          <div className="flex flex-col overflow-hidden">
-            <span
-              className="text-sm font-bold text-preto truncate"
-              title={user?.name}
-            >
-              {user?.name || "Carregando..."}
-            </span>
+      <div
+        className={`flex min-h-24 items-center border-b border-slate-100 px-5 transition-all ${
+          isExpanded
+            ? "justify-start"
+            : "justify-center"
+        }`}
+      >
+        {isExpanded ? (
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-lg font-black text-white shadow-sm">
+              IP
+            </div>
 
-            <span
-              className="text-[10px] text-cinza truncate"
-              title={user?.email}
-            >
-              {user?.email || "Aguarde"}
-            </span>
+            <div className="min-w-0">
+              <h1 className="truncate text-xl font-extrabold leading-tight text-slate-900">
+                Indoor Player
+              </h1>
+
+              <span className="mt-0.5 block truncate text-xs font-medium text-slate-500">
+                Gerenciamento de TVs
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-lg font-black text-white shadow-sm">
+            I
           </div>
         )}
       </div>
 
-      {isExpanded && (
-        <button
-          className="text-cinza hover:text-red-500 transition-colors p-2 rounded-md hover:bg-red-50"
-          title="Sair"
-          onClick={logout}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-5">
+        <div>
+          {isExpanded && (
+            <p className="mb-3 px-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+              Operacional
+            </p>
+          )}
+
+          <nav className="flex flex-col gap-2">
+            {menuItems.map(item => (
+              <a
+                key={item.title}
+                href={item.url}
+                title={
+                  !isExpanded
+                    ? item.title
+                    : undefined
+                }
+                className={`group flex items-center rounded-2xl text-sm font-semibold text-slate-600 transition-all hover:bg-blue-50 hover:text-blue-700 ${
+                  isExpanded
+                    ? "gap-3 px-3.5 py-3"
+                    : "justify-center p-3"
+                }`}
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-all group-hover:bg-blue-100 group-hover:text-blue-700">
+                  <item.icon className="h-5 w-5" />
+                </div>
+
+                <span
+                  className={`whitespace-nowrap transition-all duration-300 ${
+                    isExpanded
+                      ? "block opacity-100"
+                      : "hidden opacity-0"
+                  }`}
+                >
+                  {item.title}
+                </span>
+              </a>
+            ))}
+          </nav>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-100 p-4">
+        <div
+          className={`rounded-2xl bg-slate-50 transition-all ${
+            isExpanded
+              ? "p-3"
+              : "p-2"
+          }`}
         >
-          <LogOut className="w-5 h-5" />
-        </button>
-      )}
-    </div>
-  </div>
-</aside>
+          <div
+            className={`flex items-center ${
+              isExpanded
+                ? "justify-between gap-3"
+                : "justify-center"
+            }`}
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 min-w-10 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm">
+                {user
+                  ? getInitials(
+                      user.name,
+                    )
+                  : "--"}
+              </div>
 
+              {isExpanded && (
+                <div className="min-w-0 flex-1">
+                  <span
+                    className="block truncate text-sm font-bold text-slate-900"
+                    title={user?.name}
+                  >
+                    {user?.name ||
+                      "Carregando..."}
+                  </span>
 
-);
+                  <span
+                    className="mt-0.5 block truncate text-[11px] font-medium text-slate-500"
+                    title={user?.email}
+                  >
+                    {user?.email ||
+                      "Aguarde"}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {isExpanded && (
+              <button
+                type="button"
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-all hover:bg-red-50 hover:text-red-600"
+                title="Sair"
+                onClick={logout}
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
 }
