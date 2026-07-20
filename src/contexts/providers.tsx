@@ -1,4 +1,5 @@
-import { ReactNode } from "react";
+
+import type { ReactNode } from "react";
 import { AppProvider } from "./app.context";
 import { AuthProvider } from "./auth.context";
 

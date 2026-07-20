@@ -12,7 +12,7 @@ export const useSignIn = () => {
   const [loading, setLoading] = useState(false);
 
   const buttonRef = useRef<LoaderButtonHandle>(null);
-  const { notifyError, showToast, handleOverlay } = useApp();
+  const { notifyError, showToast } = useApp();
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 

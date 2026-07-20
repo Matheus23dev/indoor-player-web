@@ -39,21 +39,7 @@ import {
 import {
   getApiErrorMessage,
   pairDevice,
-  unlinkDevice,
 } from "./services/devices.services";
-
-import type {
-  Device,
-} from "./types/device";
-
-interface Feedback {
-  type:
-    | "success"
-    | "error";
-
-  message:
-    string;
-}
 
 export default function Devices() {
   const {
