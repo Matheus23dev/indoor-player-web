@@ -23,10 +23,23 @@ export async function getPlaylists(): Promise<Playlist[]> {
 export async function getPlaylist(
   id: string,
 ): Promise<Playlist> {
+  console.log(
+    "BUSCANDO PLAYLIST:",
+    id,
+  );
+
   const response =
     await api.get<Playlist>(
       `/playlists/${id}`,
+      {
+        timeout: 15_000,
+      },
     );
+
+  console.log(
+    "PLAYLIST RECEBIDA:",
+    response.data,
+  );
 
   return response.data;
 }

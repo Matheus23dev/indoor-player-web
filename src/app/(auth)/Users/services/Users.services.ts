@@ -1,52 +1,52 @@
-import api from '../../../../services/axios';
+import api from "../../../../services/axios";
 
 import type {
   CreateUserPayload,
-  RemoveUserResponse,
+  DeleteUserResponse,
   UpdateUserPayload,
   User,
-} from '../types/users.types';
+} from "../types/index";
 
 export async function getUsers(): Promise<User[]> {
   const response =
     await api.get<User[]>(
-      '/users',
+      "/users",
     );
 
   return response.data;
 }
 
 export async function createUser(
-  payload: CreateUserPayload,
+  data: CreateUserPayload,
 ): Promise<User> {
   const response =
     await api.post<User>(
-      '/users',
-      payload,
+      "/users",
+      data,
     );
 
   return response.data;
 }
 
 export async function updateUser(
-  id: string,
-  payload: UpdateUserPayload,
+  userId: string,
+  data: UpdateUserPayload,
 ): Promise<User> {
   const response =
     await api.patch<User>(
-      `/users/${id}`,
-      payload,
+      `/users/${userId}`,
+      data,
     );
 
   return response.data;
 }
 
-export async function removeUser(
-  id: string,
-): Promise<RemoveUserResponse> {
+export async function deleteUser(
+  userId: string,
+): Promise<DeleteUserResponse> {
   const response =
-    await api.delete<RemoveUserResponse>(
-      `/users/${id}`,
+    await api.delete<DeleteUserResponse>(
+      `/users/${userId}`,
     );
 
   return response.data;

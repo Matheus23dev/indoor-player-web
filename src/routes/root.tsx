@@ -11,7 +11,7 @@ import Playlists from "@/app/(auth)/Playlists/index";
 import MediasPage from "@/app/(auth)/Medias";
 import Schedules from "@/app/(auth)/Schedules";
 import PlaylistDetails from "@/app/(auth)/Playlists/details";
-import { UsersPage } from "../app/(auth)/Users";
+import Users from "../app/(auth)/Users";
 
 const errorElement = <ErrorPage />;
 
@@ -50,7 +50,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "users",
-        element: withProviders(<UsersPage />),
+        element: withProviders(<Users />),
         errorElement,
       },
      {

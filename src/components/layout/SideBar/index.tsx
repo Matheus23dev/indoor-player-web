@@ -1,50 +1,74 @@
 import {
+  useMemo,
   useState,
 } from "react";
 
 import {
-  MonitorSmartphone,
-  Image,
-  ListVideo,
   CalendarDays,
-  LogOut,
   ChevronLeft,
   ChevronRight,
+  Image,
+  ListVideo,
+  LogOut,
+  MonitorSmartphone,
+  User,
 } from "lucide-react";
+
+import {
+  NavLink,
+} from "react-router-dom";
 
 import {
   useAuth,
 } from "../../../contexts/auth.context";
 
-const menuItems = [
+type UserRole =
+  | "OWNER"
+  | "ADMIN"
+  | "OPERATOR";
+
+interface MenuItem {
+  title: string;
+  icon: React.ElementType;
+  url: string;
+  allowedRoles?: UserRole[];
+}
+
+const menuItems: MenuItem[] = [
   {
     title: "Dispositivos",
     icon: MonitorSmartphone,
     url: "/home/devices",
   },
-
   {
     title: "Mídias",
     icon: Image,
     url: "/home/medias",
   },
-
   {
     title: "Playlists",
     icon: ListVideo,
     url: "/home/playlists",
   },
-
   {
     title: "Agendamentos",
     icon: CalendarDays,
     url: "/home/schedules",
   },
+  {
+    title: "Usuários",
+    icon: User,
+    url: "/home/users",
+    allowedRoles: [
+      "OWNER",
+      "ADMIN",
+    ],
+  },
 ];
 
-const getInitials = (
+function getInitials(
   name?: string,
-) => {
+) {
   if (!name) {
     return "--";
   }
@@ -56,25 +80,72 @@ const getInitials = (
       .filter(Boolean);
 
   if (names.length >= 2) {
-    return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    return `${names[0][0]}${
+      names[
+        names.length - 1
+      ][0]
+    }`.toUpperCase();
   }
 
   return name
-    .substring(
-      0,
-      2,
-    )
+    .substring(0, 2)
     .toUpperCase();
-};
+}
+
+function getRoleLabel(
+  role?: UserRole,
+) {
+  switch (role) {
+    case "OWNER":
+      return "Proprietário";
+
+    case "ADMIN":
+      return "Administrador";
+
+    case "OPERATOR":
+      return "Operador";
+
+    default:
+      return "Usuário";
+  }
+}
 
 export function AppSidebar() {
-  const [isExpanded, setIsExpanded] =
-    useState(true);
+  const [
+    isExpanded,
+    setIsExpanded,
+  ] = useState(true);
 
   const {
     logout,
     user,
   } = useAuth();
+
+  const userRole =
+    user?.role as
+      | UserRole
+      | undefined;
+
+  const visibleMenuItems =
+    useMemo(() => {
+      if (!userRole) {
+        return [];
+      }
+
+      return menuItems.filter(
+        (item) => {
+          if (
+            !item.allowedRoles
+          ) {
+            return true;
+          }
+
+          return item.allowedRoles.includes(
+            userRole,
+          );
+        },
+      );
+    }, [userRole]);
 
   return (
     <aside
@@ -88,7 +159,8 @@ export function AppSidebar() {
         type="button"
         onClick={() =>
           setIsExpanded(
-            !isExpanded,
+            (current) =>
+              !current,
           )
         }
         className="absolute -right-3 top-8 z-50 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
@@ -136,46 +208,71 @@ export function AppSidebar() {
       </div>
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-5">
-        <div>
-          {isExpanded && (
-            <p className="mb-3 px-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-              Operacional
-            </p>
-          )}
+        {isExpanded && (
+          <p className="mb-3 px-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+            Operacional
+          </p>
+        )}
 
-          <nav className="flex flex-col gap-2">
-            {menuItems.map(item => (
-              <a
-                key={item.title}
-                href={item.url}
-                title={
-                  !isExpanded
-                    ? item.title
-                    : undefined
-                }
-                className={`group flex items-center rounded-2xl text-sm font-semibold text-slate-600 transition-all hover:bg-blue-50 hover:text-blue-700 ${
-                  isExpanded
-                    ? "gap-3 px-3.5 py-3"
-                    : "justify-center p-3"
-                }`}
-              >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-all group-hover:bg-blue-100 group-hover:text-blue-700">
-                  <item.icon className="h-5 w-5" />
-                </div>
+        <nav className="flex flex-col gap-2">
+          {visibleMenuItems.map(
+            (item) => {
+              const Icon =
+                item.icon;
 
-                <span
-                  className={`whitespace-nowrap transition-all duration-300 ${
-                    isExpanded
-                      ? "block opacity-100"
-                      : "hidden opacity-0"
-                  }`}
+              return (
+                <NavLink
+                  key={item.title}
+                  to={item.url}
+                  title={
+                    !isExpanded
+                      ? item.title
+                      : undefined
+                  }
+                  className={({
+                    isActive,
+                  }) =>
+                    `group flex items-center rounded-2xl text-sm font-semibold transition-all ${
+                      isExpanded
+                        ? "gap-3 px-3.5 py-3"
+                        : "justify-center p-3"
+                    } ${
+                      isActive
+                        ? "bg-blue-50 text-blue-700"
+                        : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+                    }`
+                  }
                 >
-                  {item.title}
-                </span>
-              </a>
-            ))}
-          </nav>
-        </div>
+                  {({
+                    isActive,
+                  }) => (
+                    <>
+                      <div
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all ${
+                          isActive
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-700"
+                        }`}
+                      >
+                        <Icon className="h-5 w-5" />
+                      </div>
+
+                      <span
+                        className={`whitespace-nowrap transition-all duration-300 ${
+                          isExpanded
+                            ? "block opacity-100"
+                            : "hidden opacity-0"
+                        }`}
+                      >
+                        {item.title}
+                      </span>
+                    </>
+                  )}
+                </NavLink>
+              );
+            },
+          )}
+        </nav>
       </div>
 
       <div className="border-t border-slate-100 p-4">
@@ -195,18 +292,18 @@ export function AppSidebar() {
           >
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-10 w-10 min-w-10 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm">
-                {user
-                  ? getInitials(
-                      user.name,
-                    )
-                  : "--"}
+                {getInitials(
+                  user?.name,
+                )}
               </div>
 
               {isExpanded && (
                 <div className="min-w-0 flex-1">
                   <span
                     className="block truncate text-sm font-bold text-slate-900"
-                    title={user?.name}
+                    title={
+                      user?.name
+                    }
                   >
                     {user?.name ||
                       "Carregando..."}
@@ -214,11 +311,21 @@ export function AppSidebar() {
 
                   <span
                     className="mt-0.5 block truncate text-[11px] font-medium text-slate-500"
-                    title={user?.email}
+                    title={
+                      user?.email
+                    }
                   >
                     {user?.email ||
                       "Aguarde"}
                   </span>
+
+                  {userRole && (
+                    <span className="mt-1 block text-[10px] font-bold uppercase tracking-wide text-blue-600">
+                      {getRoleLabel(
+                        userRole,
+                      )}
+                    </span>
+                  )}
                 </div>
               )}
             </div>

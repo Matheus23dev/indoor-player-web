@@ -8,6 +8,7 @@ export interface PlaylistItem {
   mediaId: string;
   order: number;
   duration?: number | null;
+  muted?: boolean | null; 
   createdAt: string;
   media: Media;
 }
@@ -56,7 +57,8 @@ export interface AddPlaylistItemPayload {
 }
 
 export interface UpdatePlaylistItemPayload {
-  duration: number;
+  duration?: number;
+  muted?: boolean;
 }
 
 export interface ReorderPlaylistItem {

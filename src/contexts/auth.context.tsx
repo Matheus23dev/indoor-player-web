@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userId = decoded.sub;
       instance.defaults.headers.common["Authorization"] = `Bearer ${tokenData}`;
 
-      const response = await instance.get(`/users/${userId}`);
+      const response = await instance.get(`/users/me`);
       const user = response.data;
       console.log("Usuário carregado:", user);
 

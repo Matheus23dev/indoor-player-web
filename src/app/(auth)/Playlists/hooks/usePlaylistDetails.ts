@@ -59,6 +59,9 @@ export function usePlaylistDetails(
   const loadPlaylist =
     useCallback(async () => {
       if (!playlistId) {
+        setPlaylist(null);
+        setLoading(false);
+
         return null;
       }
 
@@ -83,7 +86,9 @@ export function usePlaylistDetails(
           icon: "error",
           title:
             "Erro ao carregar",
-          text: Array.isArray(message)
+          text: Array.isArray(
+            message,
+          )
             ? message[0]
             : message,
         });
@@ -183,7 +188,8 @@ export function usePlaylistDetails(
                 items:
                   current.items.map(
                     (item) =>
-                      item.id === itemId
+                      item.id ===
+                      itemId
                         ? updatedItem
                         : item,
                   ),
@@ -192,6 +198,74 @@ export function usePlaylistDetails(
           );
 
           return updatedItem;
+        } finally {
+          setSaving(false);
+        }
+      },
+      [],
+    );
+
+  const updateMuted =
+    useCallback(
+      async (
+        itemId: string,
+        muted: boolean,
+      ) => {
+        try {
+          setSaving(true);
+
+          const updatedItem =
+            await updatePlaylistItem(
+              itemId,
+              {
+                muted,
+              },
+            );
+
+          setPlaylist(
+            (current) => {
+              if (!current) {
+                return current;
+              }
+
+              return {
+                ...current,
+
+                items:
+                  current.items.map(
+                    (item) =>
+                      item.id ===
+                      itemId
+                        ? updatedItem
+                        : item,
+                  ),
+
+                updatedAt:
+                  new Date()
+                    .toISOString(),
+              };
+            },
+          );
+
+          return updatedItem;
+        } catch (error: any) {
+          const message =
+            error?.response?.data
+              ?.message ??
+            "Não foi possível atualizar o áudio.";
+
+          await Swal.fire({
+            icon: "error",
+            title:
+              "Erro ao atualizar áudio",
+            text: Array.isArray(
+              message,
+            )
+              ? message[0]
+              : message,
+          });
+
+          throw error;
         } finally {
           setSaving(false);
         }
@@ -241,7 +315,9 @@ export function usePlaylistDetails(
               const remaining =
                 current.items
                   .filter(
-                    (currentItem) =>
+                    (
+                      currentItem,
+                    ) =>
                       currentItem.id !==
                       item.id,
                   )
@@ -251,6 +327,7 @@ export function usePlaylistDetails(
                       index,
                     ) => ({
                       ...currentItem,
+
                       order:
                         index + 1,
                     }),
@@ -259,6 +336,10 @@ export function usePlaylistDetails(
               return {
                 ...current,
                 items: remaining,
+
+                updatedAt:
+                  new Date()
+                    .toISOString(),
               };
             },
           );
@@ -285,15 +366,18 @@ export function usePlaylistDetails(
       [],
     );
 
-  const moveItem =
+  const reorderItems =
     useCallback(
       async (
-        itemId: string,
-        direction:
-          | "UP"
-          | "DOWN",
+        activeItemId: string,
+        overItemId: string,
       ) => {
-        if (!playlist) {
+        if (
+          !playlist ||
+          activeItemId ===
+            overItemId ||
+          saving
+        ) {
           return;
         }
 
@@ -301,56 +385,55 @@ export function usePlaylistDetails(
           playlist.items.findIndex(
             (item) =>
               item.id ===
-              itemId,
+              activeItemId,
           );
 
-        if (currentIndex < 0) {
-          return;
-        }
-
         const targetIndex =
-          direction === "UP"
-            ? currentIndex - 1
-            : currentIndex + 1;
+          playlist.items.findIndex(
+            (item) =>
+              item.id ===
+              overItemId,
+          );
 
         if (
-          targetIndex < 0 ||
-          targetIndex >=
-            playlist.items.length
+          currentIndex < 0 ||
+          targetIndex < 0
         ) {
           return;
         }
 
+        const previousItems =
+          playlist.items;
+
         const reorderedItems = [
-          ...playlist.items,
+          ...previousItems,
         ];
 
-        [
-          reorderedItems[
-            currentIndex
-          ],
-          reorderedItems[
-            targetIndex
-          ],
-        ] = [
-          reorderedItems[
-            targetIndex
-          ],
-          reorderedItems[
-            currentIndex
-          ],
-        ];
+        const [movedItem] =
+          reorderedItems.splice(
+            currentIndex,
+            1,
+          );
+
+        if (!movedItem) {
+          return;
+        }
+
+        reorderedItems.splice(
+          targetIndex,
+          0,
+          movedItem,
+        );
 
         const normalizedItems =
           reorderedItems.map(
             (item, index) => ({
               ...item,
-              order: index + 1,
+
+              order:
+                index + 1,
             }),
           );
-
-        const previousItems =
-          playlist.items;
 
         setPlaylist({
           ...playlist,
@@ -367,7 +450,9 @@ export function usePlaylistDetails(
                 items:
                   normalizedItems.map(
                     (item) => ({
-                      id: item.id,
+                      id:
+                        item.id,
+
                       order:
                         item.order,
                     }),
@@ -380,10 +465,15 @@ export function usePlaylistDetails(
               current
                 ? {
                     ...current,
+                    ...updatedPlaylist,
+
                     items:
-                      updatedPlaylist.items,
-                    updatedAt:
-                      updatedPlaylist.updatedAt,
+                      updatedPlaylist
+                        .items
+                        ?.length > 0
+                        ? updatedPlaylist
+                            .items
+                        : normalizedItems,
                   }
                 : current,
           );
@@ -393,6 +483,7 @@ export function usePlaylistDetails(
               current
                 ? {
                     ...current,
+
                     items:
                       previousItems,
                   }
@@ -418,7 +509,10 @@ export function usePlaylistDetails(
           setSaving(false);
         }
       },
-      [playlist],
+      [
+        playlist,
+        saving,
+      ],
     );
 
   useEffect(() => {
@@ -434,7 +528,8 @@ export function usePlaylistDetails(
     loadPlaylist,
     addMedia,
     updateDuration,
+    updateMuted,
     removeItem,
-    moveItem,
+    reorderItems,
   };
 }

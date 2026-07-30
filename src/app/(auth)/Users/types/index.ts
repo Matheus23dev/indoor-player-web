@@ -1,7 +1,7 @@
 export type UserRole =
-  | 'OWNER'
-  | 'ADMIN'
-  | 'EMPLOYEE';
+  | "OWNER"
+  | "ADMIN"
+  | "OPERATOR";
 
 export interface User {
   id: string;
@@ -13,21 +13,29 @@ export interface User {
   updatedAt: string;
 }
 
+export interface AuthenticatedUser {
+  id: string;
+  name?: string;
+  email?: string;
+  role: UserRole;
+  companyId?: string;
+}
+
 export interface CreateUserPayload {
   name: string;
   email: string;
   password: string;
-  role: Exclude<UserRole, 'OWNER'>;
+  role: Exclude<UserRole, "OWNER">;
 }
 
 export interface UpdateUserPayload {
   name?: string;
   email?: string;
   password?: string;
-  role?: Exclude<UserRole, 'OWNER'>;
+  role?: Exclude<UserRole, "OWNER">;
 }
 
-export interface RemoveUserResponse {
+export interface DeleteUserResponse {
   success: boolean;
   message: string;
 }

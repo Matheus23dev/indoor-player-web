@@ -1,4 +1,21 @@
 import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+
+import {
   ArrowLeft,
   Clock3,
   Images,
@@ -36,6 +53,26 @@ export default function PlaylistDetails() {
     setAddMediaModalOpen,
   ] = useState(false);
 
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 8,
+      },
+    }),
+
+    useSensor(KeyboardSensor, {
+      coordinateGetter:
+        sortableKeyboardCoordinates,
+    }),
+  );
+
   const {
     playlist,
     loading,
@@ -46,8 +83,30 @@ export default function PlaylistDetails() {
     addMedia,
     updateDuration,
     removeItem,
-    moveItem,
+    reorderItems,
+    updateMuted
   } = usePlaylistDetails(id);
+
+  async function handleDragEnd(
+    event: DragEndEvent,
+  ) {
+    const {
+      active,
+      over,
+    } = event;
+
+    if (
+      !over ||
+      active.id === over.id
+    ) {
+      return;
+    }
+
+    await reorderItems(
+      String(active.id),
+      String(over.id),
+    );
+  }
 
   if (loading) {
     return (
@@ -107,7 +166,7 @@ export default function PlaylistDetails() {
               </h1>
 
               <p className="mt-1 text-sm text-gray-500">
-                Organize a ordem e a duração das mídias.
+                Segure o ícone de arrastar e solte a mídia na posição desejada.
               </p>
             </div>
           </div>
@@ -119,7 +178,8 @@ export default function PlaylistDetails() {
                 true,
               )
             }
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700"
+            disabled={saving}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus size={19} />
             Adicionar mídia
@@ -159,34 +219,63 @@ export default function PlaylistDetails() {
           />
         </div>
 
+        {saving && (
+          <div className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700">
+            <Loader2
+              size={17}
+              className="animate-spin"
+            />
+            Salvando alterações...
+          </div>
+        )}
+
         {playlist.items.length >
         0 ? (
-          <section className="space-y-4">
-            {playlist.items.map(
-              (
-                item,
-                index,
-              ) => (
-                <PlaylistItemCard
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  totalItems={
-                    playlist.items
-                      .length
-                  }
-                  saving={saving}
-                  onMove={moveItem}
-                  onUpdateDuration={
-                    updateDuration
-                  }
-                  onDelete={
-                    removeItem
-                  }
-                />
-              ),
-            )}
-          </section>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={
+              closestCenter
+            }
+            onDragEnd={(event) => {
+              void handleDragEnd(
+                event,
+              );
+            }}
+          >
+            <SortableContext
+              items={playlist.items.map(
+                (item) => item.id,
+              )}
+              strategy={
+                verticalListSortingStrategy
+              }
+            >
+              <section className="space-y-4">
+                {playlist.items.map(
+                  (
+                    item,
+                    index,
+                  ) => (
+                    <PlaylistItemCard
+                      key={item.id}
+                      item={item}
+                      onUpdateMuted={
+                        updateMuted
+                      }
+                      index={index}
+                      saving={saving}
+                      onUpdateDuration={
+                        updateDuration
+                      }
+                      onDelete={
+                        removeItem
+                      }
+                    />
+                  ),
+                )}
+              </section>
+            </SortableContext>
+          </DndContext>
         ) : (
           <div className="flex min-h-80 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center">
             <div>

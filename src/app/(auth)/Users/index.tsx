@@ -1,454 +1,471 @@
 import {
-    useMemo,
-    useState,
-  } from 'react';
-  
-  import {
-    Edit,
-    Plus,
-    RefreshCw,
-    Trash2,
-    Users,
-  } from 'lucide-react';
-  
-  import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-  } from '@/components/ui/alert-dialog';
-  
-  import {
-    Button,
-  } from '@/components/ui/button';
-  
-  import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-  } from '@/components/ui/table';
-  
-  import {
-    UserFormModal,
-  } from './components/UserFormModal';
-  
-  import {
-    useUsers,
-  } from './hooks/useUsers';
-  
-  import type {
-    CreateUserPayload,
-    UpdateUserPayload,
-    User,
-    UserRole,
-  } from './types/users.types';
-  
-  export function UsersPage() {
-    const {
-      users,
-      loading,
-      saving,
-      loadUsers,
-      createUser,
-      updateUser,
-      removeUser,
-    } = useUsers();
-  
-    const [modalOpen, setModalOpen] =
-      useState(false);
-  
-    const [selectedUser, setSelectedUser] =
-      useState<User | null>(null);
-  
-    const [userToDelete, setUserToDelete] =
-      useState<User | null>(null);
-  
-    const [deleting, setDeleting] =
-      useState(false);
-  
-    const totalUsers =
-      users.length;
-  
-    const adminUsers =
-      useMemo(
-        () =>
-          users.filter(
-            user => user.role === 'ADMIN',
-          ).length,
-        [
-          users,
-        ],
-      );
-  
-    const employeeUsers =
-      useMemo(
-        () =>
-          users.filter(
-            user => user.role === 'EMPLOYEE',
-          ).length,
-        [
-          users,
-        ],
-      );
-  
-    function handleOpenCreate() {
-      setSelectedUser(null);
-      setModalOpen(true);
-    }
-  
-    function handleOpenEdit(
-      user: User,
-    ) {
-      setSelectedUser(user);
-      setModalOpen(true);
-    }
-  
-    async function handleCreate(
-      payload: CreateUserPayload,
-    ) {
-      await createUser(payload);
-    }
-  
-    async function handleUpdate(
-      id: string,
-      payload: UpdateUserPayload,
-    ) {
-      await updateUser(
-        id,
-        payload,
-      );
-    }
-  
-    async function handleConfirmDelete() {
-      if (!userToDelete) {
-        return;
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  Loader2,
+  Plus,
+  Search,
+  ShieldAlert,
+  ShieldCheck,
+  UserCog,
+  UsersRound,
+} from "lucide-react";
+
+import {
+  useAuth,
+} from "../../../contexts/auth.context";
+
+import UserFormModal from "./components/UserFormModal";
+import UsersTable from "./components/UsersTable";
+
+import {
+  useUsers,
+} from "./hooks/useUsers";
+
+import type {
+  AuthenticatedUser,
+  User,
+  UserRole,
+} from "./types";
+
+import {
+  canAccessUsersModule,
+  canCreateUser,
+} from "./utils/permissions";
+
+export default function Users() {
+  const auth =
+    useAuth() as unknown as {
+      user?: AuthenticatedUser | null;
+      currentUser?: AuthenticatedUser | null;
+      token?: string | null;
+    };
+
+  const currentUser =
+    auth.user ??
+    auth.currentUser ??
+    getUserFromStoredToken(
+      auth.token,
+    );
+
+  const hasAccess =
+    canAccessUsersModule(
+      currentUser?.role,
+    );
+
+  const {
+    users,
+    loading,
+    saving,
+    addUser,
+    editUser,
+    removeUser,
+  } = useUsers({
+    enabled:
+      Boolean(currentUser) &&
+      hasAccess,
+  });
+
+  const [search, setSearch] =
+    useState("");
+
+  const [modalOpen, setModalOpen] =
+    useState(false);
+
+  const [selectedUser, setSelectedUser] =
+    useState<User | null>(null);
+
+  const filteredUsers =
+    useMemo(() => {
+      const normalizedSearch =
+        search
+          .trim()
+          .toLowerCase();
+
+      if (!normalizedSearch) {
+        return users;
       }
-  
-      try {
-        setDeleting(true);
-  
-        await removeUser(
-          userToDelete.id,
-        );
-  
-        setUserToDelete(null);
-      } finally {
-        setDeleting(false);
-      }
-    }
-  
+
+      return users.filter(
+        (user) =>
+          user.name
+            .toLowerCase()
+            .includes(
+              normalizedSearch,
+            ) ||
+          user.email
+            .toLowerCase()
+            .includes(
+              normalizedSearch,
+            ) ||
+          user.role
+            .toLowerCase()
+            .includes(
+              normalizedSearch,
+            ),
+      );
+    }, [users, search]);
+
+  if (!currentUser) {
     return (
-      <div className="min-h-screen w-full bg-slate-50 p-6">
-        <div className="mx-auto w-full max-w-7xl space-y-6">
-          <div className="rounded-3xl bg-gradient-to-r from-blue-700 to-blue-500 p-6 text-white shadow-lg">
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                    <Users className="h-6 w-6" />
-                  </div>
-  
-                  <div>
-                    <h1 className="text-2xl font-bold tracking-tight">
-                      Usuários
-                    </h1>
-  
-                    <p className="mt-1 text-sm text-blue-100">
-                      Gerencie os acessos dos colaboradores ao painel administrativo.
-                    </p>
-                  </div>
-                </div>
-              </div>
-  
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  type="button"
-                  onClick={() => void loadUsers()}
-                  disabled={loading}
-                  className="border border-white/30 bg-white/10 text-white hover:bg-white/20"
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-  
-                  Atualizar
-                </Button>
-  
-                <Button
-                  type="button"
-                  onClick={handleOpenCreate}
-                  className="bg-white text-blue-700 hover:bg-blue-50"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-  
-                  Novo usuário
-                </Button>
-              </div>
-            </div>
+      <AccessMessage
+        title="Não foi possível identificar o usuário"
+        text="Confira se o usuário autenticado está disponível."
+      />
+    );
+  }
+
+  if (!hasAccess) {
+    return (
+      <AccessMessage
+        title="Acesso não permitido"
+        text="Operadores não possuem acesso ao módulo de usuários."
+      />
+    );
+  }
+
+  const adminsCount =
+    users.filter(
+      (user) =>
+        user.role === "ADMIN",
+    ).length;
+
+  const operatorsCount =
+    users.filter(
+      (user) =>
+        user.role === "OPERATOR",
+    ).length;
+
+  function openCreateModal() {
+    setSelectedUser(null);
+    setModalOpen(true);
+  }
+
+  function openEditModal(
+    user: User,
+  ) {
+    setSelectedUser(user);
+    setModalOpen(true);
+  }
+
+  function closeModal() {
+    if (saving) {
+      return;
+    }
+
+    setModalOpen(false);
+    setSelectedUser(null);
+  }
+
+  return (
+    <div className="min-h-full bg-gray-50 p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-7xl space-y-6">
+        <header className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-gray-900">
+              Usuários
+            </h1>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Gerencie os acessos e permissões da empresa.
+            </p>
           </div>
-  
-          <div className="grid gap-4 md:grid-cols-3">
-            <DashboardCard
-              title="Total de usuários"
-              value={totalUsers}
+
+          {canCreateUser(
+            currentUser.role,
+          ) && (
+            <button
+              type="button"
+              onClick={openCreateModal}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700"
+            >
+              <Plus size={19} />
+              Novo usuário
+            </button>
+          )}
+        </header>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          <SummaryCard
+            icon={
+              <UsersRound size={22} />
+            }
+            label="Total de usuários"
+            value={users.length}
+          />
+
+          <SummaryCard
+            icon={
+              <ShieldCheck size={22} />
+            }
+            label="Administradores"
+            value={adminsCount}
+          />
+
+          <SummaryCard
+            icon={
+              <UserCog size={22} />
+            }
+            label="Operadores"
+            value={operatorsCount}
+          />
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="relative max-w-md">
+            <Search
+              size={19}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
-  
-            <DashboardCard
-              title="Administradores"
-              value={adminUsers}
-            />
-  
-            <DashboardCard
-              title="Funcionários"
-              value={employeeUsers}
+
+            <input
+              value={search}
+              onChange={(event) =>
+                setSearch(
+                  event.target.value,
+                )
+              }
+              placeholder="Buscar por nome, e-mail ou perfil..."
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
             />
           </div>
-  
-          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+        </div>
+
+        {loading && (
+          <div className="flex min-h-80 items-center justify-center rounded-2xl border bg-white">
+            <Loader2
+              size={38}
+              className="animate-spin text-blue-600"
+            />
+          </div>
+        )}
+
+        {!loading &&
+          filteredUsers.length > 0 && (
+            <UsersTable
+              users={filteredUsers}
+              currentUser={currentUser}
+              saving={saving}
+              onEdit={openEditModal}
+              onDelete={(user) => {
+                void removeUser(user);
+              }}
+            />
+          )}
+
+        {!loading &&
+          filteredUsers.length === 0 && (
+            <div className="flex min-h-80 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center">
               <div>
-                <h2 className="text-lg font-semibold text-slate-900">
-                  Lista de usuários
+                <UsersRound
+                  size={52}
+                  className="mx-auto text-gray-300"
+                />
+
+                <h2 className="mt-4 text-xl font-black text-gray-900">
+                  Nenhum usuário encontrado
                 </h2>
-  
-                <p className="mt-1 text-sm text-slate-500">
-                  Visualize, edite ou remova usuários cadastrados.
+
+                <p className="mt-2 text-sm text-gray-500">
+                  Ajuste a busca ou cadastre um novo usuário.
                 </p>
               </div>
             </div>
-  
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50 hover:bg-slate-50">
-                    <TableHead className="text-slate-600">
-                      Nome
-                    </TableHead>
-  
-                    <TableHead className="text-slate-600">
-                      Email
-                    </TableHead>
-  
-                    <TableHead className="text-slate-600">
-                      Permissão
-                    </TableHead>
-  
-                    <TableHead className="text-slate-600">
-                      Criado em
-                    </TableHead>
-  
-                    <TableHead className="w-[130px] text-right text-slate-600">
-                      Ações
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-  
-                <TableBody>
-                  {loading && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        className="h-28 text-center text-slate-500"
-                      >
-                        Carregando usuários...
-                      </TableCell>
-                    </TableRow>
-                  )}
-  
-                  {!loading &&
-                    users.length === 0 && (
-                      <TableRow>
-                        <TableCell
-                          colSpan={5}
-                          className="h-28 text-center text-slate-500"
-                        >
-                          Nenhum usuário cadastrado.
-                        </TableCell>
-                      </TableRow>
-                    )}
-  
-                  {!loading &&
-                    users.map(user => (
-                      <TableRow
-                        key={user.id}
-                        className="hover:bg-blue-50/40"
-                      >
-                        <TableCell className="font-medium text-slate-900">
-                          {user.name}
-                        </TableCell>
-  
-                        <TableCell className="text-slate-600">
-                          {user.email}
-                        </TableCell>
-  
-                        <TableCell>
-                          <RoleBadge role={user.role} />
-                        </TableCell>
-  
-                        <TableCell className="text-slate-600">
-                          {formatDate(user.createdAt)}
-                        </TableCell>
-  
-                        <TableCell>
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              type="button"
-                              size="icon"
-                              onClick={() =>
-                                handleOpenEdit(user)
-                              }
-                              disabled={user.role === 'OWNER'}
-                              className="h-9 w-9 border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-  
-                            <Button
-                              type="button"
-                              size="icon"
-                              onClick={() =>
-                                setUserToDelete(user)
-                              }
-                              disabled={user.role === 'OWNER'}
-                              className="h-9 w-9 bg-red-50 text-red-600 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+          )}
+      </div>
+
+      <UserFormModal
+        open={modalOpen}
+        saving={saving}
+        currentUser={currentUser}
+        user={selectedUser}
+        onClose={closeModal}
+        onCreate={addUser}
+        onUpdate={editUser}
+      />
+    </div>
+  );
+}
+
+interface SummaryCardProps {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+}
+
+function SummaryCard({
+  icon,
+  label,
+  value,
+}: SummaryCardProps) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
+          {icon}
         </div>
-  
-        <UserFormModal
-          open={modalOpen}
-          user={selectedUser}
-          saving={saving}
-          onClose={() => setModalOpen(false)}
-          onCreate={handleCreate}
-          onUpdate={handleUpdate}
-        />
-  
-        <AlertDialog
-          open={Boolean(userToDelete)}
-          onOpenChange={open => {
-            if (!open) {
-              setUserToDelete(null);
-            }
-          }}
-        >
-          <AlertDialogContent className="border border-slate-200 bg-white text-slate-900">
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                Remover usuário
-              </AlertDialogTitle>
-  
-              <AlertDialogDescription className="text-slate-500">
-                Tem certeza que deseja remover o usuário {userToDelete?.name}?
-                Essa ação não poderá ser desfeita.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-  
-            <AlertDialogFooter>
-              <AlertDialogCancel
-                disabled={deleting}
-                className="border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
-              >
-                Cancelar
-              </AlertDialogCancel>
-  
-              <AlertDialogAction
-                onClick={() => void handleConfirmDelete()}
-                disabled={deleting}
-                className="bg-red-600 text-white hover:bg-red-700"
-              >
-                {deleting
-                  ? 'Removendo...'
-                  : 'Remover'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+
+        <div>
+          <p className="text-sm font-bold text-gray-500">
+            {label}
+          </p>
+
+          <p className="mt-1 text-2xl font-black text-gray-900">
+            {value}
+          </p>
+        </div>
       </div>
-    );
-  }
-  
-  interface DashboardCardProps {
-    title: string;
-    value: number;
-  }
-  
-  function DashboardCard({
-    title,
-    value,
-  }: DashboardCardProps) {
-    return (
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-sm font-medium text-slate-500">
+    </div>
+  );
+}
+
+function AccessMessage({
+  title,
+  text,
+}: {
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="flex min-h-[70vh] items-center justify-center bg-gray-50 p-6">
+      <div className="max-w-lg rounded-2xl border border-red-100 bg-white p-8 text-center shadow-sm">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
+          <ShieldAlert size={28} />
+        </div>
+
+        <h1 className="mt-4 text-2xl font-black text-gray-900">
           {title}
-        </p>
-  
-        <p className="mt-3 text-3xl font-bold text-slate-900">
-          {value}
+        </h1>
+
+        <p className="mt-2 text-sm text-gray-500">
+          {text}
         </p>
       </div>
-    );
+    </div>
+  );
+}
+
+function getUserFromStoredToken(
+  contextToken?: string | null,
+): AuthenticatedUser | null {
+  const token =
+    contextToken ??
+    getStoredToken();
+
+  if (!token) {
+    return null;
   }
-  
-  function RoleBadge({
-    role,
-  }: {
-    role: UserRole;
-  }) {
-    const className =
-      role === 'OWNER'
-        ? 'bg-blue-700 text-white'
-        : role === 'ADMIN'
-          ? 'bg-blue-100 text-blue-700'
-          : 'bg-slate-100 text-slate-700';
-  
-    return (
-      <span
-        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${className}`}
-      >
-        {formatRole(role)}
-      </span>
-    );
+
+  try {
+    const payloadPart =
+      token.split(".")[1];
+
+    if (!payloadPart) {
+      return null;
+    }
+
+    const normalized =
+      payloadPart
+        .replace(/-/g, "+")
+        .replace(/_/g, "/")
+        .padEnd(
+          Math.ceil(
+            payloadPart.length / 4,
+          ) * 4,
+          "=",
+        );
+
+    const payload =
+      JSON.parse(
+        decodeURIComponent(
+          Array.from(
+            atob(normalized),
+          )
+            .map(
+              (character) =>
+                `%${character
+                  .charCodeAt(0)
+                  .toString(16)
+                  .padStart(2, "0")}`,
+            )
+            .join(""),
+        ),
+      ) as Record<
+        string,
+        unknown
+      >;
+
+    const role =
+      payload.role as
+        | UserRole
+        | undefined;
+
+    const id =
+      String(
+        payload.id ??
+          payload.sub ??
+          "",
+      );
+
+    if (
+      !id ||
+      ![
+        "OWNER",
+        "ADMIN",
+        "OPERATOR",
+      ].includes(
+        String(role),
+      )
+    ) {
+      return null;
+    }
+
+    return {
+      id,
+      role: role!,
+      name:
+        typeof payload.name ===
+        "string"
+          ? payload.name
+          : undefined,
+      email:
+        typeof payload.email ===
+        "string"
+          ? payload.email
+          : undefined,
+      companyId:
+        typeof payload.companyId ===
+        "string"
+          ? payload.companyId
+          : undefined,
+    };
+  } catch {
+    return null;
   }
-  
-  function formatRole(
-    role: UserRole,
-  ) {
-    const roles:
-      Record<UserRole, string> = {
-        OWNER: 'Dono',
-        ADMIN: 'Administrador',
-        EMPLOYEE: 'Funcionário',
-      };
-  
-    return roles[role] ?? role;
+}
+
+function getStoredToken() {
+  const possibleKeys = [
+    "token",
+    "accessToken",
+    "access_token",
+    "@auth:token",
+    "indoor_player_token",
+  ];
+
+  for (const key of possibleKeys) {
+    const value =
+      localStorage.getItem(key);
+
+    if (value) {
+      return value.replace(
+        /^"|"$/g,
+        "",
+      );
+    }
   }
-  
-  function formatDate(
-    date: string,
-  ) {
-    return new Intl.DateTimeFormat(
-      'pt-BR',
-      {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      },
-    ).format(
-      new Date(date),
-    );
-  }
+
+  return null;
+}

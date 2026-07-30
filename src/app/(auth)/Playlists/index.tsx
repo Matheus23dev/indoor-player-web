@@ -30,7 +30,7 @@ export default function Playlists() {
     useState("");
 
   const [
-    modalOpen,
+    modalOpen,  
     setModalOpen,
   ] = useState(false);
 
