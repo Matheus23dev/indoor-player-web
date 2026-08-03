@@ -16,6 +16,7 @@ import { NavLink } from "react-router-dom";
 
 import type { UserRole } from "../../../contexts/auth-context";
 import { useAuth } from "../../../contexts/useAuth";
+import indoorPlayerLogo from "../../../assets/images/monitor-tijuca.png"
 
 interface MenuItem {
   title: string;
@@ -120,16 +121,17 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
 
       <div className="relative flex min-h-24 items-center border-b border-white/10 px-5">
         <div className={`flex items-center gap-3 ${isExpanded ? "" : "lg:mx-auto"}`}>
-          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-300/20 bg-blue-600 text-white shadow-lg shadow-blue-950/30">
-            <MonitorPlay size={23} strokeWidth={1.8} />
-            <span className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-[#071426] bg-cyan-400" />
+          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
+          <img
+  src={indoorPlayerLogo}
+  alt="Logo Indoor Player"
+  className="h-12 w-12 rounded-xl object-contain "
+/>
           </div>
 
           <div className={`min-w-0 ${isExpanded ? "lg:block" : "lg:hidden"}`}>
             <h1 className="truncate text-lg font-bold tracking-tight text-white">Indoor Player</h1>
-            <span className="mt-0.5 block truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-200/75">
-              Digital Signage
-            </span>
+          
           </div>
         </div>
       </div>

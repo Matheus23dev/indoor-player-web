@@ -28,7 +28,7 @@ export default function Playlists() {
         <header className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-700">
-              Curadoria e sequência
+              Organização e sequência
             </p>
             <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-slate-950">Playlists</h1>
 

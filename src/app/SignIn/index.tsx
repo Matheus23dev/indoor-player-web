@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 
 import SignInForm from "./components/SignInForm";
 import { useSignIn } from "./hooks/useSignIn";
+import indoorPlayerLogo from "../../assets/images/monitor-tijuca.png"
 
 const capabilities = [
   {
@@ -36,16 +37,17 @@ const SignIn = () => {
         <div className="pointer-events-none absolute -bottom-48 left-8 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
 
         <div className="relative flex items-center gap-3">
-          <div className="relative flex h-12 w-12 items-center justify-center rounded-xl border border-blue-300/20 bg-blue-600 shadow-xl shadow-blue-950/30">
-            <MonitorPlay size={25} strokeWidth={1.8} />
-            <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-[#071426] bg-cyan-400" />
+          <div className="relative flex h-12 w-12 items-center justify-center rounded-xl">
+          <img
+  src={indoorPlayerLogo}
+  alt="Logo Indoor Player"
+  className="h-12 w-12 rounded-xl object-contain shadow-xl shadow-blue-950/30"
+/>
           </div>
 
           <div>
             <p className="text-lg font-bold tracking-tight">Indoor Player</p>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-200/70">
-              Digital Signage Platform
-            </p>
+         
           </div>
         </div>
 

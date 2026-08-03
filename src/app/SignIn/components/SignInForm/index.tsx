@@ -24,7 +24,7 @@ const SignInForm = () => {
       <form className="mt-8 space-y-5" onSubmit={handleSignIn}>
         <div>
           <label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-700">
-            E-mail corporativo
+            E-mail
           </label>
           <div className="relative">
             <Mail
@@ -36,7 +36,7 @@ const SignInForm = () => {
               id="email"
               autoComplete="email"
               className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-11 pr-4 text-sm text-slate-900 transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
-              placeholder="nome@empresa.com.br"
+              placeholder="nome@example.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               disabled={loading}
