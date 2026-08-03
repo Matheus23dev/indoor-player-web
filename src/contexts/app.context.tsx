@@ -1,94 +1,67 @@
-import React, { createContext, useContext, useState } from 'react';
-import Swal, { type SweetAlertOptions, type SweetAlertResult } from 'sweetalert2';
-import { HelmetProvider } from 'react-helmet-async'
-import { toast, Toaster } from 'sonner';
-import { Colors } from '../constants';
-import Overlay from '../components/feedback/Overlay';
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import Swal, { type SweetAlertOptions, type SweetAlertResult } from "sweetalert2";
+import { HelmetProvider } from "react-helmet-async";
+import { toast, Toaster } from "sonner";
+import { Colors } from "../constants";
+import Overlay from "../components/feedback/Overlay";
+import { AppContext, type ToastType } from "./app-context";
 
-import useStorage from '../hooks/useStorage';
+export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const [overlay, setOverlay] = useState({ message: "", isLoading: false });
 
-type ToastType = 'success' | 'info' | 'error' | 'warn';
+  const notifySuccess = useCallback(
+    (message: string) => toast.success(message, { duration: 4000 }),
+    [],
+  );
+  const notifyError = useCallback((message: string) => toast.error(message), []);
 
-interface AppContextValue {
-  notifySuccess: (message: string) => void;
-  notifyError: (message: string) => void;
-  showToast: (text: string, type: ToastType) => void;
-  SAlert: (config: SweetAlertOptions) => Promise<SweetAlertResult>;
-  handleOverlay: (message: string, isLoading: boolean) => void;
-  user: any;
-  setUser: (user: any) => void;
- 
-}
-
-const AppContext = createContext<AppContextValue | undefined>(undefined);
-
-export const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const [overlay, setOverlay] = useState({ message: '', isLoading: false });
-  const [user, setUser] = useStorage<any | null>("@USER", null);
- 
-  const toastColors: Record<ToastType, string> = {
-    success: Colors.verde,
-    info: Colors.azulSecundario,
-    error: Colors.vermelho,
-    warn: Colors.amarelo
-  };
-
-  const notifySuccess = (message: string) => toast.success(message, { duration: 4000 });
-  const notifyError = (message: string) => toast.error(message);
-
-  const showToast = (text: string, type: ToastType) => {
+  const showToast = useCallback((text: string, type: ToastType) => {
+    const toastColors: Record<ToastType, string> = {
+      success: Colors.verde,
+      info: Colors.azulSecundario,
+      error: Colors.vermelho,
+      warn: Colors.amarelo,
+    };
     const color = toastColors[type];
-    toast.custom((t: any) => (
+    toast.custom((toastId) => (
       <div
-        className={`relative p-4 shadow-md rounded-lg text-white w-full pr-10 ${t.visible ? 'animate-fade-in' : 'animate-fade-out'}`}
+        className="relative w-full animate-fade-in rounded-lg p-4 pr-10 text-white shadow-md"
         style={{ backgroundColor: color }}
       >
         <span className="text-sm text-white">{text}</span>
         <button
-          onClick={() => toast.dismiss(t.id)}
-          className="absolute top-1 right-4 text-2xl text-white font-bold"
+          type="button"
+          aria-label="Fechar notificação"
+          onClick={() => toast.dismiss(toastId)}
+          className="absolute right-4 top-1 text-2xl font-bold text-white"
         >
           &times;
         </button>
       </div>
     ));
-  };
+  }, []);
 
-  const SAlert = (config: SweetAlertOptions): Promise<SweetAlertResult> => {
+  const SAlert = useCallback((config: SweetAlertOptions): Promise<SweetAlertResult> => {
     return Swal.fire(config);
-  };
+  }, []);
 
-  const handleOverlay = (message: string, isLoading: boolean) => {
+  const handleOverlay = useCallback((message: string, isLoading: boolean) => {
     setOverlay({ message, isLoading });
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ notifySuccess, notifyError, showToast, SAlert, handleOverlay }),
+    [SAlert, handleOverlay, notifyError, notifySuccess, showToast],
+  );
 
   return (
-    <AppContext.Provider
-      value={{
-        notifySuccess,
-        notifyError,
-        showToast,
-        SAlert,
-        handleOverlay,
-        user,
-        setUser
-      }}
-    >
+    <AppContext.Provider value={value}>
       <HelmetProvider>
-        <meta charSet="utf-8" />
-        <title>Tijuca track</title>
+        <title>Indoor Player</title>
       </HelmetProvider>
       <Toaster richColors position="top-right" />
-      <Overlay message={overlay.message || 'Carregando...'} isLoading={overlay.isLoading} />
+      <Overlay message={overlay.message || "Carregando..."} isLoading={overlay.isLoading} />
       {children}
     </AppContext.Provider>
   );
-};
-
-export const useApp = () => {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useApp deve ser usado dentro de um AppProvider');
-  }
-  return context;
 };

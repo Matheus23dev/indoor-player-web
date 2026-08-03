@@ -1,10 +1,6 @@
-export type DeviceStatus =
-  | "ONLINE"
-  | "OFFLINE";
+export type DeviceStatus = "ONLINE" | "OFFLINE";
 
-export type MediaType =
-  | "IMAGE"
-  | "VIDEO";
+export type MediaType = "IMAGE" | "VIDEO";
 
 export interface DevicePreviewSchedule {
   id: string;
@@ -29,46 +25,33 @@ export interface DevicePreviewMedia {
   name: string;
   type: MediaType;
   fileUrl: string;
-  duration:
-    number | null;
+  duration: number | null;
 }
 
 export interface DevicePreviewPlayback {
-  currentTime:
-    number | null;
+  currentTime: number | null;
 
-  duration:
-    number | null;
+  duration: number | null;
 
-  progress:
-    number | null;
+  progress: number | null;
 
-  startedAt:
-    string | null;
+  muted: boolean | null;
 
-  updatedAt:
-    string | null;
+  startedAt: string | null;
+
+  updatedAt: string | null;
 }
 
 export interface DevicePreview {
-  schedule:
-    | DevicePreviewSchedule
-    | null;
+  schedule: DevicePreviewSchedule | null;
 
-  playlist:
-    | DevicePreviewPlaylist
-    | null;
+  playlist: DevicePreviewPlaylist | null;
 
-  item:
-    | DevicePreviewItem
-    | null;
+  item: DevicePreviewItem | null;
 
-  media:
-    | DevicePreviewMedia
-    | null;
+  media: DevicePreviewMedia | null;
 
-  playback:
-    DevicePreviewPlayback;
+  playback: DevicePreviewPlayback;
 }
 
 export interface Device {

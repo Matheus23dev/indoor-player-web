@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../../contexts/auth.context";
+import { useAuth } from "../../../contexts/useAuth";
 import { useApp } from "../../../contexts";
 import { signInRequest } from "../services/auth.service";
 import { Colors } from "../../../constants";
 import type { LoaderButtonHandle } from "../../../components/common/LoaderButton";
+import { getApiErrorMessage } from "../../../lib/apiError";
 
 export const useSignIn = () => {
   const [email, setEmail] = useState("");
@@ -40,49 +41,16 @@ export const useSignIn = () => {
 
     try {
       setLoading(true);
-    
-      const token = await signInRequest(
-        email,
-        password,
-      );
-    
-      console.log('TOKEN:', token);
-    
-      await login(
-        token,
-        navigate,
-      );
-    
-      console.log('LOGIN OK');
-    } catch (error: any) {
-      console.log(
-        'ERRO:',
-        error,
-      );
-    
-      console.log(
-        'RESPONSE:',
-        error?.response,
-      );
-    
-      console.log(
-        'DATA:',
-        error?.response?.data,
-      );
-    
-      console.log(
-        'STATUS:',
-        error?.response?.status,
-      );
-    
-      notifyError(
-        "Erro ao fazer login. Verifique suas credenciais."
-      );
-    
-      buttonRef.current?.reset(
-        Colors.amarelo,
-      );
-    }}
+
+      const token = await signInRequest(email, password);
+
+      await login(token, navigate);
+    } catch (error: unknown) {
+      notifyError(getApiErrorMessage(error, "Erro ao fazer login. Verifique suas credenciais."));
+
+      buttonRef.current?.reset(Colors.amarelo);
+    }
+  };
   return {
     email,
     setEmail,

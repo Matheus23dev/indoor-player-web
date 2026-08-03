@@ -1,8 +1,7 @@
-import React, { useState, forwardRef, useImperativeHandle } from 'react';
-import { Colors } from '../../../constants';
+import React, { useState, forwardRef, useImperativeHandle } from "react";
+import { Colors } from "../../../constants";
 
 export interface LoaderButtonHandle {
-  start?: any;
   init: () => void;
   reset: (feedBackColor: string) => void;
 }
@@ -15,7 +14,10 @@ interface LoaderButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
 }
 
 export const LoaderButton = forwardRef<LoaderButtonHandle, LoaderButtonProps>(
-  ({ onPress, buttonText, bgColor = Colors.branco, color = Colors.azulPrimario, ...props }, ref) => {
+  (
+    { onPress, buttonText, bgColor = Colors.branco, color = Colors.azulPrimario, ...props },
+    ref,
+  ) => {
     const [buttonScale, setButtonScale] = useState(0);
     const [buttonColor, setButtonColor] = useState(bgColor);
     const [isLoading, setIsLoading] = useState(false);
@@ -68,7 +70,7 @@ export const LoaderButton = forwardRef<LoaderButtonHandle, LoaderButtonProps>(
                 className="animate-spin border-4 border-t-transparent rounded-full w-5 h-5"
                 style={{
                   borderColor: color,
-                  borderTopColor: 'transparent',
+                  borderTopColor: "transparent",
                 }}
               />
             ) : (
@@ -80,5 +82,5 @@ export const LoaderButton = forwardRef<LoaderButtonHandle, LoaderButtonProps>(
         </button>
       </div>
     );
-  }
+  },
 );

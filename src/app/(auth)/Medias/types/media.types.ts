@@ -1,6 +1,4 @@
-export type MediaType =
-  | "IMAGE"
-  | "VIDEO";
+export type MediaType = "IMAGE" | "VIDEO";
 
 export interface MediaFolder {
   id: string;

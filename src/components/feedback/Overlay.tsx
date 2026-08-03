@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface OverlayProps {
   message: string;
@@ -19,4 +19,3 @@ const Overlay: React.FC<OverlayProps> = ({ message, isLoading }) => {
 };
 
 export default Overlay;
-  

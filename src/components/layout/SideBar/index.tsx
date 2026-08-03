@@ -1,8 +1,4 @@
-import {
-  useMemo,
-  useState,
-} from "react";
-
+import { useState, type ElementType } from "react";
 import {
   CalendarDays,
   ChevronLeft,
@@ -10,337 +6,236 @@ import {
   Image,
   ListVideo,
   LogOut,
+  MonitorPlay,
   MonitorSmartphone,
-  User,
+  ShieldCheck,
+  UserRoundCog,
+  X,
 } from "lucide-react";
+import { NavLink } from "react-router-dom";
 
-import {
-  NavLink,
-} from "react-router-dom";
-
-import {
-  useAuth,
-} from "../../../contexts/auth.context";
-
-type UserRole =
-  | "OWNER"
-  | "ADMIN"
-  | "OPERATOR";
+import type { UserRole } from "../../../contexts/auth-context";
+import { useAuth } from "../../../contexts/useAuth";
 
 interface MenuItem {
   title: string;
-  icon: React.ElementType;
+  description: string;
+  icon: ElementType;
   url: string;
   allowedRoles?: UserRole[];
+}
+
+interface AppSidebarProps {
+  mobileOpen: boolean;
+  onMobileClose: () => void;
 }
 
 const menuItems: MenuItem[] = [
   {
     title: "Dispositivos",
+    description: "Players e operação ao vivo",
     icon: MonitorSmartphone,
     url: "/home/devices",
   },
   {
     title: "Mídias",
+    description: "Acervo institucional",
     icon: Image,
     url: "/home/medias",
   },
   {
     title: "Playlists",
+    description: "Sequências de conteúdo",
     icon: ListVideo,
     url: "/home/playlists",
   },
   {
     title: "Agendamentos",
+    description: "Grade de exibição",
     icon: CalendarDays,
     url: "/home/schedules",
   },
   {
     title: "Usuários",
-    icon: User,
+    description: "Acessos e permissões",
+    icon: UserRoundCog,
     url: "/home/users",
-    allowedRoles: [
-      "OWNER",
-      "ADMIN",
-    ],
+    allowedRoles: ["OWNER", "ADMIN"],
   },
 ];
 
-function getInitials(
-  name?: string,
-) {
-  if (!name) {
-    return "--";
-  }
+function getInitials(name?: string) {
+  if (!name) return "--";
 
-  const names =
-    name
-      .trim()
-      .split(" ")
-      .filter(Boolean);
-
-  if (names.length >= 2) {
-    return `${names[0][0]}${
-      names[
-        names.length - 1
-      ][0]
-    }`.toUpperCase();
-  }
-
-  return name
-    .substring(0, 2)
-    .toUpperCase();
+  const names = name.trim().split(" ").filter(Boolean);
+  return (
+    names.length >= 2 ? `${names[0][0]}${names[names.length - 1][0]}` : name.slice(0, 2)
+  ).toUpperCase();
 }
 
-function getRoleLabel(
-  role?: UserRole,
-) {
-  switch (role) {
-    case "OWNER":
-      return "Proprietário";
-
-    case "ADMIN":
-      return "Administrador";
-
-    case "OPERATOR":
-      return "Operador";
-
-    default:
-      return "Usuário";
-  }
+function getRoleLabel(role?: UserRole) {
+  return {
+    OWNER: "Proprietário",
+    ADMIN: "Administrador",
+    OPERATOR: "Operador",
+  }[role ?? "OPERATOR"];
 }
 
-export function AppSidebar() {
-  const [
-    isExpanded,
-    setIsExpanded,
-  ] = useState(true);
+export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const { logout, user } = useAuth();
 
-  const {
-    logout,
-    user,
-  } = useAuth();
-
-  const userRole =
-    user?.role as
-      | UserRole
-      | undefined;
-
-  const visibleMenuItems =
-    useMemo(() => {
-      if (!userRole) {
-        return [];
-      }
-
-      return menuItems.filter(
-        (item) => {
-          if (
-            !item.allowedRoles
-          ) {
-            return true;
-          }
-
-          return item.allowedRoles.includes(
-            userRole,
-          );
-        },
-      );
-    }, [userRole]);
+  const visibleMenuItems = menuItems.filter(
+    (item) => !item.allowedRoles || (user?.role && item.allowedRoles.includes(user.role)),
+  );
 
   return (
     <aside
-      className={`relative flex h-screen flex-col border-r border-slate-200 bg-white shadow-sm transition-all duration-300 ${
-        isExpanded
-          ? "w-72"
-          : "w-20"
-      }`}
+      aria-label="Navegação principal"
+      className={`fixed inset-y-0 left-0 z-50 flex w-[17rem] shrink-0 flex-col border-r border-white/10 bg-[#071426] text-white shadow-2xl transition-[width,transform] duration-300 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0 lg:shadow-none ${
+        mobileOpen ? "translate-x-0" : "-translate-x-full"
+      } ${isExpanded ? "lg:w-[17rem]" : "lg:w-[5.25rem]"}`}
     >
+      <div className="institutional-grid pointer-events-none absolute inset-0 opacity-35" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-blue-700/20 to-transparent" />
+
       <button
         type="button"
-        onClick={() =>
-          setIsExpanded(
-            (current) =>
-              !current,
-          )
-        }
-        className="absolute -right-3 top-8 z-50 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
-        title={
-          isExpanded
-            ? "Recolher menu"
-            : "Expandir menu"
-        }
+        onClick={onMobileClose}
+        aria-label="Fechar menu"
+        className="absolute right-4 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 transition hover:bg-white/10 hover:text-white lg:hidden"
       >
-        {isExpanded ? (
-          <ChevronLeft className="h-4 w-4" />
-        ) : (
-          <ChevronRight className="h-4 w-4" />
-        )}
+        <X size={20} />
       </button>
 
-      <div
-        className={`flex min-h-24 items-center border-b border-slate-100 px-5 transition-all ${
-          isExpanded
-            ? "justify-start"
-            : "justify-center"
-        }`}
+      <button
+        type="button"
+        onClick={() => setIsExpanded((current) => !current)}
+        className="absolute -right-3 top-9 z-50 hidden h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition hover:border-blue-300 hover:text-blue-700 lg:flex"
+        title={isExpanded ? "Recolher menu" : "Expandir menu"}
+        aria-label={isExpanded ? "Recolher menu" : "Expandir menu"}
       >
-        {isExpanded ? (
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-lg font-black text-white shadow-sm">
-              IP
-            </div>
+        {isExpanded ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
+      </button>
 
-            <div className="min-w-0">
-              <h1 className="truncate text-xl font-extrabold leading-tight text-slate-900">
-                Indoor Player
-              </h1>
+      <div className="relative flex min-h-24 items-center border-b border-white/10 px-5">
+        <div className={`flex items-center gap-3 ${isExpanded ? "" : "lg:mx-auto"}`}>
+          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-300/20 bg-blue-600 text-white shadow-lg shadow-blue-950/30">
+            <MonitorPlay size={23} strokeWidth={1.8} />
+            <span className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-[#071426] bg-cyan-400" />
+          </div>
 
-              <span className="mt-0.5 block truncate text-xs font-medium text-slate-500">
-                Gerenciamento de TVs
-              </span>
-            </div>
+          <div className={`min-w-0 ${isExpanded ? "lg:block" : "lg:hidden"}`}>
+            <h1 className="truncate text-lg font-bold tracking-tight text-white">Indoor Player</h1>
+            <span className="mt-0.5 block truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-200/75">
+              Digital Signage
+            </span>
           </div>
-        ) : (
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-lg font-black text-white shadow-sm">
-            I
-          </div>
-        )}
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-5">
-        {isExpanded && (
-          <p className="mb-3 px-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-            Operacional
-          </p>
-        )}
+      <div className="relative flex-1 overflow-y-auto overflow-x-hidden px-3 py-6">
+        <div
+          className={`mb-4 flex items-center gap-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 ${
+            isExpanded ? "lg:flex" : "lg:hidden"
+          }`}
+        >
+          <ShieldCheck size={13} />
+          Gestão operacional
+        </div>
 
-        <nav className="flex flex-col gap-2">
-          {visibleMenuItems.map(
-            (item) => {
-              const Icon =
-                item.icon;
+        <nav className="flex flex-col gap-1.5">
+          {visibleMenuItems.map((item) => {
+            const Icon = item.icon;
 
-              return (
-                <NavLink
-                  key={item.title}
-                  to={item.url}
-                  title={
-                    !isExpanded
-                      ? item.title
-                      : undefined
-                  }
-                  className={({
-                    isActive,
-                  }) =>
-                    `group flex items-center rounded-2xl text-sm font-semibold transition-all ${
-                      isExpanded
-                        ? "gap-3 px-3.5 py-3"
-                        : "justify-center p-3"
-                    } ${
-                      isActive
-                        ? "bg-blue-50 text-blue-700"
-                        : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-                    }`
-                  }
-                >
-                  {({
-                    isActive,
-                  }) => (
-                    <>
-                      <div
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all ${
-                          isActive
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-700"
-                        }`}
-                      >
-                        <Icon className="h-5 w-5" />
-                      </div>
+            return (
+              <NavLink
+                key={item.url}
+                to={item.url}
+                onClick={onMobileClose}
+                title={!isExpanded ? item.title : undefined}
+                className={({ isActive }) =>
+                  `group relative flex min-h-12 items-center rounded-xl transition duration-200 ${
+                    isExpanded ? "gap-3 px-3" : "lg:justify-center lg:px-0"
+                  } ${
+                    isActive
+                      ? "bg-white/10 text-white shadow-sm ring-1 ring-white/10"
+                      : "text-slate-400 hover:bg-white/[0.06] hover:text-white"
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <span className="absolute -left-0.5 h-6 w-0.5 rounded-full bg-cyan-400" />
+                    )}
 
-                      <span
-                        className={`whitespace-nowrap transition-all duration-300 ${
-                          isExpanded
-                            ? "block opacity-100"
-                            : "hidden opacity-0"
-                        }`}
-                      >
-                        {item.title}
+                    <span
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${
+                        isActive
+                          ? "bg-blue-500/20 text-cyan-300"
+                          : "text-slate-500 group-hover:text-blue-300"
+                      }`}
+                    >
+                      <Icon size={19} strokeWidth={1.8} />
+                    </span>
+
+                    <span className={`min-w-0 ${isExpanded ? "lg:block" : "lg:hidden"}`}>
+                      <span className="block truncate text-sm font-semibold">{item.title}</span>
+                      <span className="mt-0.5 block truncate text-[10px] text-slate-500 group-hover:text-slate-400">
+                        {item.description}
                       </span>
-                    </>
-                  )}
-                </NavLink>
-              );
-            },
-          )}
+                    </span>
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
         </nav>
       </div>
 
-      <div className="border-t border-slate-100 p-4">
+      <div className="relative border-t border-white/10 p-3">
         <div
-          className={`rounded-2xl bg-slate-50 transition-all ${
-            isExpanded
-              ? "p-3"
-              : "p-2"
-          }`}
+          className={`rounded-xl border border-white/10 bg-white/[0.045] ${isExpanded ? "p-3" : "lg:p-2"}`}
         >
-          <div
-            className={`flex items-center ${
-              isExpanded
-                ? "justify-between gap-3"
-                : "justify-center"
-            }`}
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-10 w-10 min-w-10 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm">
-                {getInitials(
-                  user?.name,
-                )}
-              </div>
-
-              {isExpanded && (
-                <div className="min-w-0 flex-1">
-                  <span
-                    className="block truncate text-sm font-bold text-slate-900"
-                    title={
-                      user?.name
-                    }
-                  >
-                    {user?.name ||
-                      "Carregando..."}
-                  </span>
-
-                  <span
-                    className="mt-0.5 block truncate text-[11px] font-medium text-slate-500"
-                    title={
-                      user?.email
-                    }
-                  >
-                    {user?.email ||
-                      "Aguarde"}
-                  </span>
-
-                  {userRole && (
-                    <span className="mt-1 block text-[10px] font-bold uppercase tracking-wide text-blue-600">
-                      {getRoleLabel(
-                        userRole,
-                      )}
-                    </span>
-                  )}
-                </div>
-              )}
+          <div className={`flex items-center ${isExpanded ? "gap-3" : "lg:justify-center"}`}>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-xs font-bold text-white ring-1 ring-blue-400/30">
+              {getInitials(user?.name)}
             </div>
 
-            {isExpanded && (
-              <button
-                type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-all hover:bg-red-50 hover:text-red-600"
-                title="Sair"
-                onClick={logout}
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
-            )}
+            <div className={`min-w-0 flex-1 ${isExpanded ? "lg:block" : "lg:hidden"}`}>
+              <span className="block truncate text-xs font-semibold text-white">
+                {user?.name || "Usuário"}
+              </span>
+              <span className="mt-0.5 block truncate text-[10px] text-slate-500">
+                {getRoleLabel(user?.role)}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              className={`h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-red-500/10 hover:text-red-300 ${
+                isExpanded ? "flex" : "hidden"
+              }`}
+              title="Encerrar sessão"
+              aria-label="Encerrar sessão"
+              onClick={logout}
+            >
+              <LogOut size={17} />
+            </button>
           </div>
+
+          {!isExpanded && (
+            <button
+              type="button"
+              className="mt-2 hidden h-8 w-full items-center justify-center rounded-lg text-slate-500 transition hover:bg-red-500/10 hover:text-red-300 lg:flex"
+              title="Encerrar sessão"
+              aria-label="Encerrar sessão"
+              onClick={logout}
+            >
+              <LogOut size={17} />
+            </button>
+          )}
         </div>
       </div>
     </aside>

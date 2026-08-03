@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { 
-  LayoutDashboard, 
-  PackageSearch, 
-  FileText, 
-  Settings, 
-  Users, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  PackageSearch,
+  FileText,
+  Settings,
+  Users,
+  LogOut,
   MonitorPlay,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 
 const menuItems = [
@@ -28,13 +28,13 @@ export function AppSidebar() {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
-    <aside 
+    <aside
       className={`bg-white border-r border-cinza/20 h-screen transition-all duration-300 relative flex flex-col ${
         isExpanded ? "w-64" : "w-20"
       }`}
     >
       {/* BOTÃO DE SETAS (RECOLHER/EXPANDIR) */}
-      <button 
+      <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="absolute -right-3 top-7 bg-white border border-cinza/20 rounded-full p-1 text-cinza hover:text-azul-primario hover:bg-azul-primario/10 transition-colors z-50 shadow-sm"
       >
@@ -42,7 +42,9 @@ export function AppSidebar() {
       </button>
 
       {/* CABEÇALHO (Logo) */}
-      <div className={`p-6 border-b border-cinza/10 flex items-center transition-all min-h-[85px] ${isExpanded ? "justify-start" : "justify-center px-0"}`}>
+      <div
+        className={`p-6 border-b border-cinza/10 flex items-center transition-all min-h-[85px] ${isExpanded ? "justify-start" : "justify-center px-0"}`}
+      >
         {isExpanded ? (
           <div className="flex flex-col items-start select-none w-full">
             <h1 className="text-azul-primario text-2xl font-black tracking-tighter italic leading-none">
@@ -64,7 +66,6 @@ export function AppSidebar() {
 
       {/* CONTEÚDO PRINCIPAL (Menus) */}
       <div className="flex-1 p-4 space-y-6 overflow-y-auto overflow-x-hidden custom-scrollbar">
-        
         {/* Operacional */}
         <div>
           {isExpanded && (
@@ -83,7 +84,9 @@ export function AppSidebar() {
                 `}
               >
                 <item.icon className="w-5 h-5 min-w-[20px] text-cinza/70 group-hover:text-azul-primario transition-colors" />
-                <span className={`whitespace-nowrap transition-all duration-300 ${isExpanded ? "opacity-100 block" : "opacity-0 hidden"}`}>
+                <span
+                  className={`whitespace-nowrap transition-all duration-300 ${isExpanded ? "opacity-100 block" : "opacity-0 hidden"}`}
+                >
                   {item.title}
                 </span>
               </a>
@@ -109,19 +112,22 @@ export function AppSidebar() {
                 `}
               >
                 <item.icon className="w-5 h-5 min-w-[20px] text-cinza/70 group-hover:text-azul-primario transition-colors" />
-                <span className={`whitespace-nowrap transition-all duration-300 ${isExpanded ? "opacity-100 block" : "opacity-0 hidden"}`}>
+                <span
+                  className={`whitespace-nowrap transition-all duration-300 ${isExpanded ? "opacity-100 block" : "opacity-0 hidden"}`}
+                >
                   {item.title}
                 </span>
               </a>
             ))}
           </nav>
         </div>
-
       </div>
 
       {/* RODAPÉ (Usuário) */}
       <div className="p-4 border-t border-cinza/10">
-        <div className={`flex items-center ${isExpanded ? "justify-between px-2" : "justify-center"} py-2 transition-all`}>
+        <div
+          className={`flex items-center ${isExpanded ? "justify-between px-2" : "justify-center"} py-2 transition-all`}
+        >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 min-w-[32px] rounded-full bg-azul-primario text-white flex items-center justify-center font-bold text-xs">
               JD
@@ -133,15 +139,17 @@ export function AppSidebar() {
               </div>
             )}
           </div>
-          
+
           {isExpanded && (
-            <button className="text-cinza hover:text-red-500 transition-colors p-2 rounded-md hover:bg-red-50" title="Sair">
+            <button
+              className="text-cinza hover:text-red-500 transition-colors p-2 rounded-md hover:bg-red-50"
+              title="Sair"
+            >
               <LogOut className="w-5 h-5" />
             </button>
           )}
         </div>
       </div>
-
     </aside>
   );
 }

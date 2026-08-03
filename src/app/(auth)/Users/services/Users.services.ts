@@ -8,46 +8,25 @@ import type {
 } from "../types/index";
 
 export async function getUsers(): Promise<User[]> {
-  const response =
-    await api.get<User[]>(
-      "/users",
-    );
+  const response = await api.get<User[]>("/users");
 
   return response.data;
 }
 
-export async function createUser(
-  data: CreateUserPayload,
-): Promise<User> {
-  const response =
-    await api.post<User>(
-      "/users",
-      data,
-    );
+export async function createUser(data: CreateUserPayload): Promise<User> {
+  const response = await api.post<User>("/users", data);
 
   return response.data;
 }
 
-export async function updateUser(
-  userId: string,
-  data: UpdateUserPayload,
-): Promise<User> {
-  const response =
-    await api.patch<User>(
-      `/users/${userId}`,
-      data,
-    );
+export async function updateUser(userId: string, data: UpdateUserPayload): Promise<User> {
+  const response = await api.patch<User>(`/users/${userId}`, data);
 
   return response.data;
 }
 
-export async function deleteUser(
-  userId: string,
-): Promise<DeleteUserResponse> {
-  const response =
-    await api.delete<DeleteUserResponse>(
-      `/users/${userId}`,
-    );
+export async function deleteUser(userId: string): Promise<DeleteUserResponse> {
+  const response = await api.delete<DeleteUserResponse>(`/users/${userId}`);
 
   return response.data;
 }

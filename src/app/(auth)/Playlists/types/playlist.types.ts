@@ -1,6 +1,4 @@
-import type {
-  Media,
-} from "../../Medias/types";
+import type { Media } from "../../Medias/types";
 
 export interface PlaylistItem {
   id: string;
@@ -8,7 +6,7 @@ export interface PlaylistItem {
   mediaId: string;
   order: number;
   duration?: number | null;
-  muted?: boolean | null; 
+  muted?: boolean | null;
   createdAt: string;
   media: Media;
 }

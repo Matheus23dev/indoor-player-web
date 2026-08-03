@@ -1,8 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import Swal from "sweetalert2";
 
@@ -13,13 +9,9 @@ import {
   updateSchedule,
 } from "../services/schedules.service";
 
-import {
-  getDevices,
-} from "../services/devices.service";
+import { getDevices } from "../services/devices.service";
 
-import {
-  getPlaylists,
-} from "../services/playlists.service";
+import { getPlaylists } from "../services/playlists.service";
 
 import type {
   CreateSchedulePayload,
@@ -28,340 +20,202 @@ import type {
   SchedulePlaylist,
   UpdateSchedulePayload,
 } from "../types";
+import { getApiErrorMessage } from "../../../../lib/apiError";
 
 export function useSchedules() {
-  const [
-    schedules,
-    setSchedules,
-  ] = useState<Schedule[]>([]);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
 
-  const [
-    devices,
-    setDevices,
-  ] = useState<ScheduleDevice[]>([]);
+  const [devices, setDevices] = useState<ScheduleDevice[]>([]);
 
-  const [
-    playlists,
-    setPlaylists,
-  ] = useState<SchedulePlaylist[]>([]);
+  const [playlists, setPlaylists] = useState<SchedulePlaylist[]>([]);
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [
-    saving,
-    setSaving,
-  ] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const [
-    deletingScheduleId,
-    setDeletingScheduleId,
-  ] = useState<string | null>(null);
+  const [deletingScheduleId, setDeletingScheduleId] = useState<string | null>(null);
 
-  const [
-    togglingScheduleId,
-    setTogglingScheduleId,
-  ] = useState<string | null>(null);
+  const [togglingScheduleId, setTogglingScheduleId] = useState<string | null>(null);
 
-  const loadSchedules =
-    useCallback(async () => {
-      const data =
-        await getSchedules();
+  const loadSchedules = useCallback(async () => {
+    const data = await getSchedules();
 
-      setSchedules(data);
+    setSchedules(data);
 
-      return data;
-    }, []);
+    return data;
+  }, []);
 
-  const loadDevices =
-    useCallback(async () => {
-      const data =
-        await getDevices();
+  const loadDevices = useCallback(async () => {
+    const data = await getDevices();
 
-      setDevices(data);
+    setDevices(data);
 
-      return data;
-    }, []);
+    return data;
+  }, []);
 
-  const loadPlaylists =
-    useCallback(async () => {
-      const data =
-        await getPlaylists();
+  const loadPlaylists = useCallback(async () => {
+    const data = await getPlaylists();
 
-      setPlaylists(data);
+    setPlaylists(data);
 
-      return data;
-    }, []);
+    return data;
+  }, []);
 
-  const loadData =
-    useCallback(async () => {
-      try {
-        setLoading(true);
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
 
-        const [
-          schedulesData,
-          devicesData,
-          playlistsData,
-        ] = await Promise.all([
-          getSchedules(),
-          getDevices(),
-          getPlaylists(),
-        ]);
+      const [schedulesData, devicesData, playlistsData] = await Promise.all([
+        getSchedules(),
+        getDevices(),
+        getPlaylists(),
+      ]);
 
-        setSchedules(
-          schedulesData,
-        );
+      setSchedules(schedulesData);
 
-        setDevices(
-          devicesData,
-        );
+      setDevices(devicesData);
 
-        setPlaylists(
-          playlistsData,
-        );
+      setPlaylists(playlistsData);
 
-        return {
-          schedules:
-            schedulesData,
+      return {
+        schedules: schedulesData,
 
-          devices:
-            devicesData,
+        devices: devicesData,
 
-          playlists:
-            playlistsData,
-        };
-      } catch (error: any) {
-        const message =
-          getErrorMessage(
-            error,
-            "Não foi possível carregar os agendamentos.",
-          );
+        playlists: playlistsData,
+      };
+    } catch (error: unknown) {
+      const message = getApiErrorMessage(error, "Não foi possível carregar os agendamentos.");
 
-        await Swal.fire({
-          icon: "error",
-          title:
-            "Erro ao carregar",
-          text: message,
-        });
+      await Swal.fire({
+        icon: "error",
+        title: "Erro ao carregar",
+        text: message,
+      });
 
-        return null;
-      } finally {
-        setLoading(false);
-      }
-    }, []);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const addSchedule =
-    useCallback(
-      async (
-        data: CreateSchedulePayload,
-      ) => {
-        try {
-          setSaving(true);
+  const addSchedule = useCallback(async (data: CreateSchedulePayload) => {
+    try {
+      setSaving(true);
 
-          const schedule =
-            await createSchedule(
-              data,
-            );
+      const schedule = await createSchedule(data);
 
-          setSchedules(
-            (currentSchedules) => [
-              schedule,
-              ...currentSchedules,
-            ],
-          );
+      setSchedules((currentSchedules) => [schedule, ...currentSchedules]);
 
-          return schedule;
-        } finally {
-          setSaving(false);
-        }
-      },
-      [],
-    );
+      return schedule;
+    } finally {
+      setSaving(false);
+    }
+  }, []);
 
-  const editSchedule =
-    useCallback(
-      async (
-        id: string,
-        data: UpdateSchedulePayload,
-      ) => {
-        try {
-          setSaving(true);
+  const editSchedule = useCallback(async (id: string, data: UpdateSchedulePayload) => {
+    try {
+      setSaving(true);
 
-          const schedule =
-            await updateSchedule(
-              id,
-              data,
-            );
+      const schedule = await updateSchedule(id, data);
 
-          setSchedules(
-            (currentSchedules) =>
-              currentSchedules.map(
-                (
-                  currentSchedule,
-                ) =>
-                  currentSchedule.id ===
-                  id
-                    ? schedule
-                    : currentSchedule,
-              ),
-          );
+      setSchedules((currentSchedules) =>
+        currentSchedules.map((currentSchedule) =>
+          currentSchedule.id === id ? schedule : currentSchedule,
+        ),
+      );
 
-          return schedule;
-        } finally {
-          setSaving(false);
-        }
-      },
-      [],
-    );
+      return schedule;
+    } finally {
+      setSaving(false);
+    }
+  }, []);
 
-  const toggleScheduleActive =
-    useCallback(
-      async (
-        schedule: Schedule,
-      ) => {
-        try {
-          setTogglingScheduleId(
-            schedule.id,
-          );
+  const toggleScheduleActive = useCallback(async (schedule: Schedule) => {
+    try {
+      setTogglingScheduleId(schedule.id);
 
-          const updatedSchedule =
-            await updateSchedule(
-              schedule.id,
-              {
-                active:
-                  !schedule.active,
-              },
-            );
+      const updatedSchedule = await updateSchedule(schedule.id, {
+        active: !schedule.active,
+      });
 
-          setSchedules(
-            (currentSchedules) =>
-              currentSchedules.map(
-                (
-                  currentSchedule,
-                ) =>
-                  currentSchedule.id ===
-                  schedule.id
-                    ? updatedSchedule
-                    : currentSchedule,
-              ),
-          );
+      setSchedules((currentSchedules) =>
+        currentSchedules.map((currentSchedule) =>
+          currentSchedule.id === schedule.id ? updatedSchedule : currentSchedule,
+        ),
+      );
 
-          return updatedSchedule;
-        } catch (error: any) {
-          const message =
-            getErrorMessage(
-              error,
-              "Não foi possível alterar o status do agendamento.",
-            );
+      return updatedSchedule;
+    } catch (error: unknown) {
+      const message = getApiErrorMessage(
+        error,
+        "Não foi possível alterar o status do agendamento.",
+      );
 
-          await Swal.fire({
-            icon: "error",
-            title:
-              "Erro ao alterar status",
-            text: message,
-          });
+      await Swal.fire({
+        icon: "error",
+        title: "Erro ao alterar status",
+        text: message,
+      });
 
-          return null;
-        } finally {
-          setTogglingScheduleId(
-            null,
-          );
-        }
-      },
-      [],
-    );
+      return null;
+    } finally {
+      setTogglingScheduleId(null);
+    }
+  }, []);
 
-  const removeSchedule =
-    useCallback(
-      async (
-        schedule: Schedule,
-      ) => {
-        const result =
-          await Swal.fire({
-            icon: "warning",
-            title:
-              "Excluir agendamento?",
+  const removeSchedule = useCallback(async (schedule: Schedule) => {
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Excluir agendamento?",
 
-            html: `
+      html: `
               <p>
                 O agendamento
-                <strong>${escapeHtml(
-                  schedule.name,
-                )}</strong>
+                <strong>${escapeHtml(schedule.name)}</strong>
                 será excluído.
               </p>
             `,
 
-            showCancelButton:
-              true,
+      showCancelButton: true,
 
-            confirmButtonText:
-              "Sim, excluir",
+      confirmButtonText: "Sim, excluir",
 
-            cancelButtonText:
-              "Cancelar",
+      cancelButtonText: "Cancelar",
 
-            confirmButtonColor:
-              "#dc2626",
-          });
+      confirmButtonColor: "#dc2626",
+    });
 
-        if (
-          !result.isConfirmed
-        ) {
-          return;
-        }
+    if (!result.isConfirmed) {
+      return;
+    }
 
-        try {
-          setDeletingScheduleId(
-            schedule.id,
-          );
+    try {
+      setDeletingScheduleId(schedule.id);
 
-          const response =
-            await deleteSchedule(
-              schedule.id,
-            );
+      const response = await deleteSchedule(schedule.id);
 
-          setSchedules(
-            (currentSchedules) =>
-              currentSchedules.filter(
-                (
-                  currentSchedule,
-                ) =>
-                  currentSchedule.id !==
-                  schedule.id,
-              ),
-          );
+      setSchedules((currentSchedules) =>
+        currentSchedules.filter((currentSchedule) => currentSchedule.id !== schedule.id),
+      );
 
-          await Swal.fire({
-            icon: "success",
-            title:
-              "Agendamento excluído",
-            text:
-              response.message,
-          });
-        } catch (error: any) {
-          const message =
-            getErrorMessage(
-              error,
-              "Não foi possível excluir o agendamento.",
-            );
+      await Swal.fire({
+        icon: "success",
+        title: "Agendamento excluído",
+        text: response.message,
+      });
+    } catch (error: unknown) {
+      const message = getApiErrorMessage(error, "Não foi possível excluir o agendamento.");
 
-          await Swal.fire({
-            icon: "error",
-            title:
-              "Erro ao excluir",
-            text: message,
-          });
-        } finally {
-          setDeletingScheduleId(
-            null,
-          );
-        }
-      },
-      [],
-    );
+      await Swal.fire({
+        icon: "error",
+        title: "Erro ao excluir",
+        text: message,
+      });
+    } finally {
+      setDeletingScheduleId(null);
+    }
+  }, []);
 
   useEffect(() => {
     void loadData();
@@ -395,34 +249,16 @@ export function useSchedules() {
   };
 }
 
-function getErrorMessage(
-  error: any,
-  fallback: string,
-) {
-  const message =
-    error?.response?.data
-      ?.message ??
-    fallback;
-
-  if (
-    Array.isArray(message)
-  ) {
-    return (
-      message[0] ??
-      fallback
-    );
-  }
-
-  return String(message);
-}
-
-function escapeHtml(
-  value: string,
-) {
+function escapeHtml(value: string) {
   return value
-    .split("&").join("&amp;")
-    .split("<").join("&lt;")
-    .split(">").join("&gt;")
-    .split('"').join("&quot;")
-    .split("'").join("&#039;");
+    .split("&")
+    .join("&amp;")
+    .split("<")
+    .join("&lt;")
+    .split(">")
+    .join("&gt;")
+    .split('"')
+    .join("&quot;")
+    .split("'")
+    .join("&#039;");
 }

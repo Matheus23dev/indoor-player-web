@@ -1,11 +1,11 @@
-import * as React from "react"
-import { Eye, EyeOff } from "lucide-react"
-import { cn } from "../../lib/utils"
+import * as React from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { cn } from "../../lib/utils";
 
 type InputWithIconProps = React.ComponentProps<"input"> & {
-  icon?: React.ReactNode
-  showTogglePassword?: boolean
-}
+  icon?: React.ReactNode;
+  showTogglePassword?: boolean;
+};
 
 function Input({
   className,
@@ -14,10 +14,10 @@ function Input({
   showTogglePassword = false,
   ...props
 }: InputWithIconProps) {
-  const [showPassword, setShowPassword] = React.useState(false)
+  const [showPassword, setShowPassword] = React.useState(false);
 
-  const isPassword = type === "password" && showTogglePassword
-  const inputType = isPassword ? (showPassword ? "text" : "password") : type
+  const isPassword = type === "password" && showTogglePassword;
+  const inputType = isPassword ? (showPassword ? "text" : "password") : type;
 
   return (
     <div className="relative w-full">
@@ -36,7 +36,7 @@ function Input({
           isPassword && "pr-10",
           "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
           "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-          className
+          className,
         )}
         {...props}
       />
@@ -52,7 +52,7 @@ function Input({
         </button>
       )}
     </div>
-  )
+  );
 }
 
-export { Input }
+export { Input };

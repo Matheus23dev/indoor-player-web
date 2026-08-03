@@ -1,2 +1,81 @@
-
 @import "tailwindcss";
+
+@import "@fontsource-variable/geist";
+
+:root {
+  color: #0f172a;
+  background: #f3f6fa;
+  font-family: "Geist Variable", Inter, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  min-width: 320px;
+  background: #f3f6fa;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 85% -10%, rgb(219 234 254 / 0.55), transparent 28rem), #f3f6fa;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  outline-offset: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+::selection {
+  color: #fff;
+  background: #1d4ed8;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: #cbd5e1;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+  background-clip: padding-box;
+}
+
+.institutional-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 36px 36px;
+}

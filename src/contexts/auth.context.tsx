@@ -1,80 +1,88 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import Cookies from "js-cookie";
+
 import instance from "../services/axios";
-import { jwtDecode } from "jwt-decode";
-import { useApp } from "./app.context";
+import { useApp } from "./useApp";
+import { AuthContext, type AuthUser } from "./auth-context";
 
-type DecodedToken = {
-  sub: string;
-};
+const TOKEN_COOKIE = "@TOKEN";
+const USER_COOKIE = "user";
 
-;
+function readStoredUser(): AuthUser | null {
+  const value = Cookies.get(USER_COOKIE);
 
-type AuthContextType = {
-  isAuthenticated: boolean;
-  user: any | null;
-  token: string | null;
-  login: (token: string, navigate: (path: string) => void) => Promise<void>;
-  logout: () => void;
-};
+  if (!value) {
+    return null;
+  }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+  try {
+    const user = JSON.parse(value) as Partial<AuthUser>;
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const { showToast } = useApp();
-  const [user, setUser] = useState< any | null>(() => {
-    const cookieUser = Cookies.get("user");
-    return cookieUser ? JSON.parse(cookieUser) : null;
-  });
-
-  const [token, setToken] = useState<string | null>(() => Cookies.get("@TOKEN") || null);
-
-
-  const isAuthenticated = !!token;
-
-  const login = async (tokenData: string, navigate: (path: string) => void) => {
-    setToken(tokenData);
-    Cookies.set("@TOKEN", tokenData, { expires: 1 });
-
-    try {
-      const decoded: DecodedToken = jwtDecode(tokenData);
-      const userId = decoded.sub;
-      instance.defaults.headers.common["Authorization"] = `Bearer ${tokenData}`;
-
-      const response = await instance.get(`/users/me`);
-      const user = response.data;
-      console.log("Usuário carregado:", user);
-
-      setUser(user);
-      Cookies.set("user", JSON.stringify(user), { expires: 1 });
-
-      navigate("/home/devices");
-
-
-    } catch (error) {
-      showToast("Erro ao buscar dados do usuário", "error" );
-      logout();
-
+    if (
+      typeof user.id === "string" &&
+      typeof user.name === "string" &&
+      typeof user.email === "string" &&
+      (user.role === "OWNER" || user.role === "ADMIN" || user.role === "OPERATOR")
+    ) {
+      return user as AuthUser;
     }
-  };
+  } catch {
+    Cookies.remove(USER_COOKIE);
+  }
 
-  const logout = () => {
+  return null;
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const { showToast } = useApp();
+  const [user, setUser] = useState<AuthUser | null>(readStoredUser);
+  const [token, setToken] = useState<string | null>(() => Cookies.get(TOKEN_COOKIE) ?? null);
+
+  const logout = useCallback(() => {
     setUser(null);
     setToken(null);
+    Cookies.remove(USER_COOKIE);
+    Cookies.remove(TOKEN_COOKIE);
+  }, []);
 
-    Cookies.remove("user");
-    Cookies.remove("@TOKEN");
-  };
+  const login = useCallback(
+    async (tokenData: string, navigate: (path: string) => void) => {
+      Cookies.set(TOKEN_COOKIE, tokenData, {
+        expires: 1,
+        sameSite: "strict",
+      });
 
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, user, token, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+      try {
+        const response = await instance.get<AuthUser>("/users/me");
+        const authenticatedUser = response.data;
+
+        setToken(tokenData);
+        setUser(authenticatedUser);
+        Cookies.set(USER_COOKIE, JSON.stringify(authenticatedUser), {
+          expires: 1,
+          sameSite: "strict",
+        });
+
+        navigate("/home/devices");
+      } catch (error) {
+        logout();
+        showToast("Erro ao buscar dados do usuário", "error");
+        throw error;
+      }
+    },
+    [logout, showToast],
   );
-};
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
-};
+  const value = useMemo(
+    () => ({
+      isAuthenticated: Boolean(token),
+      user,
+      token,
+      login,
+      logout,
+    }),
+    [login, logout, token, user],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}

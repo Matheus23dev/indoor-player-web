@@ -1,28 +1,14 @@
-import type {
-  AuthenticatedUser,
-  User,
-  UserRole,
-} from "../types";
+import type { AuthenticatedUser, User, UserRole } from "../types";
 
-export function canAccessUsersModule(
-  role?: UserRole | null,
-) {
-  return (
-    role === "OWNER" ||
-    role === "ADMIN"
-  );
+export function canAccessUsersModule(role?: UserRole | null) {
+  return role === "OWNER" || role === "ADMIN";
 }
 
-export function canCreateUser(
-  role?: UserRole | null,
-) {
+export function canCreateUser(role?: UserRole | null) {
   return canAccessUsersModule(role);
 }
 
-export function canEditUser(
-  currentUser: AuthenticatedUser,
-  targetUser: User,
-) {
+export function canEditUser(currentUser: AuthenticatedUser, targetUser: User) {
   if (targetUser.role === "OWNER") {
     return false;
   }
@@ -32,23 +18,14 @@ export function canEditUser(
   }
 
   if (currentUser.role === "ADMIN") {
-    return (
-      targetUser.role === "OPERATOR" ||
-      targetUser.id === currentUser.id
-    );
+    return targetUser.role === "OPERATOR" || targetUser.id === currentUser.id;
   }
 
   return false;
 }
 
-export function canDeleteUser(
-  currentUser: AuthenticatedUser,
-  targetUser: User,
-) {
-  if (
-    targetUser.role === "OWNER" ||
-    targetUser.id === currentUser.id
-  ) {
+export function canDeleteUser(currentUser: AuthenticatedUser, targetUser: User) {
+  if (targetUser.role === "OWNER" || targetUser.id === currentUser.id) {
     return false;
   }
 
@@ -56,15 +33,10 @@ export function canDeleteUser(
     return true;
   }
 
-  return (
-    currentUser.role === "ADMIN" &&
-    targetUser.role === "OPERATOR"
-  );
+  return currentUser.role === "ADMIN" && targetUser.role === "OPERATOR";
 }
 
-export function getAssignableRoles(
-  requesterRole: UserRole,
-): Array<{
+export function getAssignableRoles(requesterRole: UserRole): Array<{
   value: Exclude<UserRole, "OWNER">;
   label: string;
 }> {
@@ -93,9 +65,7 @@ export function getAssignableRoles(
   return [];
 }
 
-export function getRoleLabel(
-  role: UserRole,
-) {
+export function getRoleLabel(role: UserRole) {
   switch (role) {
     case "OWNER":
       return "Proprietário";

@@ -9,4 +9,3 @@ export const signInRequest = async (email: string, password: string): Promise<st
 
   return data.token;
 };
-    

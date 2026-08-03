@@ -1,4 +1,3 @@
-
 import type { ReactNode } from "react";
 import { AppProvider } from "./app.context";
 import { AuthProvider } from "./auth.context";
@@ -9,13 +8,8 @@ interface ProvidersProps {
 
 export const Providers: React.FC<ProvidersProps> = ({ children }) => {
   return (
-  
     <AppProvider>
-        <AuthProvider>
-      {children}
-       </AuthProvider>
+      <AuthProvider>{children}</AuthProvider>
     </AppProvider>
-   
   );
 };
-

@@ -7,9 +7,4 @@ export type {
   UploadMediaOptions,
 } from "./media.types";
 
-export type {
-  Folder,
-  FolderMediaCount,
-  FolderPayload,
-  RemoveFolderResponse,
-} from "./folder.types";
+export type { Folder, FolderMediaCount, FolderPayload, RemoveFolderResponse } from "./folder.types";

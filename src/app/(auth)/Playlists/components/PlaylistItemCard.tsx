@@ -2,6 +2,8 @@ import {
   Clock3,
   GripVertical,
   ImageIcon,
+  Minus,
+  Plus,
   Save,
   Trash2,
   Video,
@@ -9,44 +11,28 @@ import {
   VolumeOff,
 } from "lucide-react";
 
-import {
-  useEffect,
-  useState,
-  type CSSProperties,
-} from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
-import {
-  useSortable,
-} from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
 
-import {
-  CSS,
-} from "@dnd-kit/utilities";
+import { CSS } from "@dnd-kit/utilities";
 
 import Swal from "sweetalert2";
 
-import type {
-  PlaylistItem,
-} from "../types";
+import type { PlaylistItem } from "../types";
+import { resolveMediaUrl } from "../../../../lib/mediaUrl";
+import { getApiErrorMessage } from "../../../../lib/apiError";
 
 interface PlaylistItemCardProps {
   item: PlaylistItem;
   index: number;
   saving: boolean;
 
-  onUpdateDuration: (
-    itemId: string,
-    duration: number,
-  ) => Promise<unknown>;
+  onUpdateDuration: (itemId: string, duration: number) => Promise<unknown>;
 
-  onUpdateMuted: (
-    itemId: string,
-    muted: boolean,
-  ) => Promise<unknown>;
+  onUpdateMuted: (itemId: string, muted: boolean) => Promise<unknown>;
 
-  onDelete: (
-    item: PlaylistItem,
-  ) => Promise<void>;
+  onDelete: (item: PlaylistItem) => Promise<void>;
 }
 
 export default function PlaylistItemCard({
@@ -57,125 +43,59 @@ export default function PlaylistItemCard({
   onUpdateMuted,
   onDelete,
 }: PlaylistItemCardProps) {
-  const isVideo =
-    item.media.type ===
-    "VIDEO";
+  const isVideo = item.media.type === "VIDEO";
 
-  const originalDuration =
-    item.duration ??
-    item.media.duration ??
-    5;
+  const originalDuration = item.duration ?? item.media.duration ?? 5;
 
-  const originalMuted =
-    item.muted ?? false;
+  const originalMuted = item.muted ?? false;
 
-  const [duration, setDuration] =
-    useState(
-      originalDuration,
-    );
+  const [duration, setDuration] = useState(originalDuration);
 
-  const [muted, setMuted] =
-    useState(
-      originalMuted,
-    );
+  const [muted, setMuted] = useState(originalMuted);
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
     disabled: saving,
   });
 
   const sortableStyle: CSSProperties = {
-    transform:
-      CSS.Transform.toString(
-        transform,
-      ),
+    transform: CSS.Transform.toString(transform),
 
     transition,
 
-    position:
-      "relative",
+    position: "relative",
 
-    zIndex:
-      isDragging
-        ? 50
-        : undefined,
+    zIndex: isDragging ? 50 : undefined,
   };
 
-  const durationChanged =
-    duration !==
-    originalDuration;
+  const durationChanged = duration !== originalDuration;
 
-  const audioChanged =
-    isVideo &&
-    muted !== originalMuted;
+  const audioChanged = isVideo && muted !== originalMuted;
 
-  const hasChanges =
-    durationChanged ||
-    audioChanged;
+  const hasChanges = durationChanged || audioChanged;
 
   useEffect(() => {
-    setDuration(
-      item.duration ??
-        item.media.duration ??
-        5,
-    );
-  }, [
-    item.duration,
-    item.media.duration,
-  ]);
+    setDuration(item.duration ?? item.media.duration ?? 5);
+  }, [item.duration, item.media.duration]);
 
   useEffect(() => {
-    setMuted(
-      item.muted ?? false,
+    setMuted(item.muted ?? false);
+  }, [item.muted]);
+
+  function adjustDuration(amount: number) {
+    setDuration((current) =>
+      Math.max(1, Math.round(Number.isFinite(current) ? current : 1) + amount),
     );
-  }, [
-    item.muted,
-  ]);
-
-  function getMediaUrl(
-    fileUrl: string,
-  ) {
-    if (
-      fileUrl.startsWith(
-        "http://",
-      ) ||
-      fileUrl.startsWith(
-        "https://",
-      )
-    ) {
-      return fileUrl;
-    }
-
-    const baseURL =
-      import.meta.env
-        .VITE_BASE_URL_API_FILES;
-
-    return `${baseURL}${fileUrl}`;
   }
 
   async function saveChanges() {
-    if (
-      !Number.isInteger(
-        duration,
-      ) ||
-      duration < 1
-    ) {
+    if (!Number.isInteger(duration) || duration < 1) {
       await Swal.fire({
-        icon:
-          "warning",
+        icon: "warning",
 
-        title:
-          "Duração inválida",
+        title: "Duração inválida",
 
-        text:
-          "Informe um número inteiro maior que zero.",
+        text: "Informe um número inteiro maior que zero.",
       });
 
       return;
@@ -187,51 +107,31 @@ export default function PlaylistItemCard({
 
     try {
       if (durationChanged) {
-        await onUpdateDuration(
-          item.id,
-          duration,
-        );
+        await onUpdateDuration(item.id, duration);
       }
 
       if (audioChanged) {
-        await onUpdateMuted(
-          item.id,
-          muted,
-        );
+        await onUpdateMuted(item.id, muted);
       }
 
       await Swal.fire({
-        icon:
-          "success",
+        icon: "success",
 
-        title:
-          "Alterações salvas",
+        title: "Alterações salvas",
 
-        timer:
-          1000,
+        timer: 1000,
 
-        showConfirmButton:
-          false,
+        showConfirmButton: false,
       });
-    } catch (error: any) {
-      const message =
-        error?.response?.data
-          ?.message ??
-        "Não foi possível salvar as alterações.";
+    } catch (error: unknown) {
+      const message = getApiErrorMessage(error, "Não foi possível salvar as alterações.");
 
       await Swal.fire({
-        icon:
-          "error",
+        icon: "error",
 
-        title:
-          "Erro ao salvar",
+        title: "Erro ao salvar",
 
-        text:
-          Array.isArray(
-            message,
-          )
-            ? message[0]
-            : message,
+        text: message,
       });
     }
   }
@@ -246,13 +146,11 @@ export default function PlaylistItemCard({
           : "border-gray-200"
       }`}
     >
-      <div className="grid gap-0 md:grid-cols-[240px_1fr]">
-        <div className="relative aspect-video bg-black md:aspect-auto md:min-h-44">
+      <div className="grid gap-0 md:grid-cols-[190px_1fr]">
+        <div className="relative aspect-[16/7] bg-black md:aspect-auto md:min-h-32">
           {isVideo ? (
             <video
-              src={getMediaUrl(
-                item.media.fileUrl,
-              )}
+              src={resolveMediaUrl(item.media.fileUrl)}
               controls
               muted={muted}
               preload="metadata"
@@ -260,47 +158,31 @@ export default function PlaylistItemCard({
             />
           ) : (
             <img
-              src={getMediaUrl(
-                item.media.fileUrl,
-              )}
-              alt={
-                item.media.name
-              }
+              src={resolveMediaUrl(item.media.fileUrl)}
+              alt={item.media.name}
               className="h-full w-full object-cover"
             />
           )}
 
-          <div className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-sm font-black text-white">
+          <div className="absolute left-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-xs font-black text-white">
             {index + 1}
           </div>
         </div>
 
-        <div className="flex flex-col justify-between gap-4 p-5">
+        <div className="flex flex-col justify-between gap-3 p-4">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
             <div className="min-w-0">
               <h3
-                title={
-                  item.media.name
-                }
-                className="truncate text-lg font-black text-gray-900"
+                title={item.media.name}
+                className="line-clamp-2 break-words text-base font-extrabold leading-5 text-gray-900"
               >
                 {item.media.name}
               </h3>
 
-              <p className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-gray-500">
-                {isVideo ? (
-                  <Video
-                    size={16}
-                  />
-                ) : (
-                  <ImageIcon
-                    size={16}
-                  />
-                )}
+              <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold text-gray-500">
+                {isVideo ? <Video size={14} /> : <ImageIcon size={14} />}
 
-                {isVideo
-                  ? "Vídeo"
-                  : "Imagem"}
+                {isVideo ? "Vídeo" : "Imagem"}
               </p>
             </div>
 
@@ -310,130 +192,97 @@ export default function PlaylistItemCard({
                 {...attributes}
                 {...listeners}
                 disabled={saving}
-                className="touch-none rounded-lg border border-blue-200 bg-blue-50 p-2 text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40 sm:cursor-grab sm:active:cursor-grabbing"
+                className="touch-none rounded-lg border border-blue-200 bg-blue-50 p-1.5 text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40 sm:cursor-grab sm:active:cursor-grabbing"
                 aria-label={`Arrastar ${item.media.name} para alterar a posição`}
                 title="Segure e arraste para reordenar"
               >
-                <GripVertical
-                  size={20}
-                />
+                <GripVertical size={18} />
               </button>
 
               <button
                 type="button"
-                onClick={() =>
-                  onDelete(item)
-                }
+                onClick={() => onDelete(item)}
                 disabled={saving}
-                className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg border border-red-200 bg-red-50 p-1.5 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Remover mídia"
                 title="Remover mídia"
               >
-                <Trash2
-                  size={18}
-                />
+                <Trash2 size={16} />
               </button>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 rounded-xl bg-gray-50 p-4 sm:flex-row sm:items-end">
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
             {isVideo && (
-              <div>
-              
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMuted(
-                      (current) =>
-                        !current,
-                    )
-                  }
-                  disabled={saving}
-                  className={`flex h-10.5 w-10.5 items-center justify-center rounded-xl border transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                    muted
-                      ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
-                      : "border-green-200 bg-green-50 text-green-600 hover:bg-green-100"
-                  }`}
-                  aria-label={
-                    muted
-                      ? "Áudio desativado"
-                      : "Áudio ativado"
-                  }
-                  title={
-                    muted
-                      ? "Áudio desativado"
-                      : "Áudio ativado"
-                  }
-                >
-                  {muted ? (
-                    <VolumeOff
-                      size={19}
-                    />
-                  ) : (
-                    <Volume2
-                      size={19}
-                    />
-                  )}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setMuted((current) => !current)}
+                disabled={saving}
+                aria-pressed={muted}
+                title="Alternar áudio do vídeo"
+                className={`inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-[10px] font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                  muted
+                    ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                    : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                }`}
+              >
+                {muted ? <VolumeOff size={14} /> : <Volume2 size={14} />}
+                {muted ? "Sem áudio" : "Com áudio"}
+              </button>
             )}
 
-            <div className="flex-1">
+            <div className="flex h-8 items-center rounded-md border border-slate-200 bg-white">
               <label
                 htmlFor={`duration-${item.id}`}
-                className="mb-2 flex items-center gap-1 text-xs font-bold text-gray-600"
+                className="flex h-full items-center gap-1.5 border-r border-slate-200 px-2 text-[10px] font-bold text-slate-500"
               >
-                <Clock3
-                  size={14}
-                />
-
-                Duração da exibição
+                <Clock3 size={13} className="text-blue-600" />
+                Exibição
               </label>
 
-              <div className="flex items-center gap-2">
-                <input
-                  id={`duration-${item.id}`}
-                  type="number"
-                 
-                  min={1}
-                  value={duration}
-                  onChange={(
-                    event,
-                  ) =>
-                    setDuration(
-                      Number(
-                        event
-                          .target
-                          .value,
-                       ),
-                    )
-                  }
-                  disabled={saving}
-                  className="w-18 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
-                />
+              <button
+                type="button"
+                onClick={() => adjustDuration(-1)}
+                disabled={saving || duration <= 1}
+                aria-label="Diminuir um segundo"
+                className="flex h-full w-7 items-center justify-center text-slate-400 transition hover:bg-slate-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <Minus size={13} />
+              </button>
 
-                <span className="text-sm font-semibold text-gray-500">
-                  segundos
-                </span>
-              </div>
+              <input
+                id={`duration-${item.id}`}
+                type="number"
+                min={1}
+                value={duration}
+                onChange={(event) => setDuration(Number(event.target.value))}
+                disabled={saving}
+                aria-label="Duração em segundos"
+                className="h-full w-9 bg-transparent text-center text-xs font-extrabold text-slate-900 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none disabled:opacity-50"
+              />
+
+              <span className="px-1 text-[9px] font-bold text-slate-400">seg</span>
+
+              <button
+                type="button"
+                onClick={() => adjustDuration(1)}
+                disabled={saving}
+                aria-label="Aumentar um segundo"
+                className="flex h-full w-7 items-center justify-center border-l border-slate-200 text-slate-400 transition hover:bg-slate-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <Plus size={13} />
+              </button>
             </div>
 
             <button
               type="button"
-              onClick={
-                saveChanges
-              }
-              disabled={
-                saving ||
-                !hasChanges
-              }
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={saveChanges}
+              disabled={saving || !hasChanges}
+              className="ml-auto inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-blue-600 px-3 text-[10px] font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+              title={hasChanges ? "Salvar alterações" : "Nenhuma alteração pendente"}
             >
-              <Save
-                size={17}
-              />
-
-              Salvar alterações
+              <Save size={14} />
+              {hasChanges ? "Salvar" : "Salvo"}
             </button>
           </div>
         </div>

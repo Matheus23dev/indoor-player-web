@@ -1,25 +1,12 @@
-import {
-  useEffect,
-  useState,
-  type FormEvent,
-} from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
-import {
-  FolderPlus,
-  Save,
-  X,
-} from "lucide-react";
+import { FolderPlus, Save, X } from "lucide-react";
 
 import Swal from "sweetalert2";
 
-import {
-  createFolder,
-  updateFolder,
-} from "../services/folders.services";
+import { createFolder, updateFolder } from "../services/folders.services";
 
-import type {
-  Folder,
-} from "../types";
+import type { Folder } from "../types";
 
 interface FolderModalProps {
   open: boolean;
@@ -28,58 +15,38 @@ interface FolderModalProps {
   onSaved: () => Promise<void> | void;
 }
 
-function getErrorMessage(
-  error: unknown,
-) {
-  const apiError =
-    error as {
-      response?: {
-        data?: {
-          message?: string | string[];
-        };
+function getErrorMessage(error: unknown) {
+  const apiError = error as {
+    response?: {
+      data?: {
+        message?: string | string[];
       };
     };
+  };
 
-  const message =
-    apiError.response?.data?.message;
+  const message = apiError.response?.data?.message;
 
   if (Array.isArray(message)) {
     return message[0];
   }
 
-  return (
-    message ??
-    "Não foi possível salvar a pasta."
-  );
+  return message ?? "Não foi possível salvar a pasta.";
 }
 
-export default function FolderModal({
-  open,
-  folder,
-  onClose,
-  onSaved,
-}: FolderModalProps) {
-  const [name, setName] =
-    useState("");
+export default function FolderModal({ open, folder, onClose, onSaved }: FolderModalProps) {
+  const [name, setName] = useState("");
 
-  const [saving, setSaving] =
-    useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const editing =
-    Boolean(folder);
+  const editing = Boolean(folder);
 
   useEffect(() => {
     if (!open) {
       return;
     }
 
-    setName(
-      folder?.name ?? "",
-    );
-  }, [
-    open,
-    folder,
-  ]);
+    setName(folder?.name ?? "");
+  }, [open, folder]);
 
   if (!open) {
     return null;
@@ -93,13 +60,10 @@ export default function FolderModal({
     onClose();
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const normalizedName =
-      name.trim();
+    const normalizedName = name.trim();
 
     if (!normalizedName) {
       await Swal.fire({
@@ -115,12 +79,9 @@ export default function FolderModal({
       setSaving(true);
 
       if (folder) {
-        await updateFolder(
-          folder.id,
-          {
-            name: normalizedName,
-          },
-        );
+        await updateFolder(folder.id, {
+          name: normalizedName,
+        });
       } else {
         await createFolder({
           name: normalizedName,
@@ -129,9 +90,7 @@ export default function FolderModal({
 
       await Swal.fire({
         icon: "success",
-        title: editing
-          ? "Pasta renomeada"
-          : "Pasta criada",
+        title: editing ? "Pasta renomeada" : "Pasta criada",
         timer: 1500,
         showConfirmButton: false,
       });
@@ -151,22 +110,15 @@ export default function FolderModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-2xl bg-white shadow-2xl"
-      >
+      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
         <header className="flex items-center justify-between border-b px-6 py-4">
           <div>
             <h2 className="text-xl font-black text-gray-900">
-              {editing
-                ? "Renomear pasta"
-                : "Nova pasta"}
+              {editing ? "Renomear pasta" : "Nova pasta"}
             </h2>
 
             <p className="text-sm text-gray-500">
-              {editing
-                ? "Altere o nome da pasta."
-                : "Crie uma pasta para organizar suas mídias."}
+              {editing ? "Altere o nome da pasta." : "Crie uma pasta para organizar suas mídias."}
             </p>
           </div>
 
@@ -182,10 +134,7 @@ export default function FolderModal({
         </header>
 
         <div className="p-6">
-          <label
-            htmlFor="folder-name"
-            className="mb-2 block text-sm font-bold text-gray-700"
-          >
+          <label htmlFor="folder-name" className="mb-2 block text-sm font-bold text-gray-700">
             Nome da pasta
           </label>
 
@@ -199,11 +148,7 @@ export default function FolderModal({
               id="folder-name"
               autoFocus
               value={name}
-              onChange={(event) =>
-                setName(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setName(event.target.value)}
               maxLength={100}
               placeholder="Ex.: Promoções"
               disabled={saving}
@@ -211,9 +156,7 @@ export default function FolderModal({
             />
           </div>
 
-          <p className="mt-2 text-right text-xs text-gray-400">
-            {name.length}/100
-          </p>
+          <p className="mt-2 text-right text-xs text-gray-400">{name.length}/100</p>
         </div>
 
         <footer className="flex justify-end gap-3 border-t px-6 py-4">
@@ -228,19 +171,12 @@ export default function FolderModal({
 
           <button
             type="submit"
-            disabled={
-              saving ||
-              !name.trim()
-            }
+            disabled={saving || !name.trim()}
             className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Save size={18} />
 
-            {saving
-              ? "Salvando..."
-              : editing
-                ? "Salvar"
-                : "Criar pasta"}
+            {saving ? "Salvando..." : editing ? "Salvar" : "Criar pasta"}
           </button>
         </footer>
       </form>

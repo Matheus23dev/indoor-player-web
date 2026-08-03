@@ -1,6 +1,4 @@
-export type DeviceStatus =
-  | "ONLINE"
-  | "OFFLINE";
+export type DeviceStatus = "ONLINE" | "OFFLINE";
 
 export interface ScheduleDevice {
   id: string;
@@ -66,8 +64,7 @@ export interface CreateSchedulePayload {
   active?: boolean;
 }
 
-export type UpdateSchedulePayload =
-  Partial<CreateSchedulePayload>;
+export type UpdateSchedulePayload = Partial<CreateSchedulePayload>;
 
 export interface DeleteScheduleResponse {
   success: boolean;

@@ -1,73 +1,66 @@
-# React + TypeScript + Vite
+# Indoor Player Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Painel administrativo React para gerenciar dispositivos, biblioteca de mídias, playlists, agendamentos e usuários do Indoor Player.
 
-Currently, two official plugins are available:
+## Requisitos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 22+
+- API Indoor Player disponível
 
-## React Compiler
+## Configuração
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Copie `.env.example` para `.env`:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_BASE_URL_API=http://localhost:3000
+VITE_BASE_URL_API_FILES=http://localhost:3000/files/indoor-player-api
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Em outro dispositivo da rede, troque `localhost` pelo IP do servidor. As URLs são incorporadas no build; gere o build novamente sempre que elas mudarem.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Execução
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```sh
+npm install
+
+# desenvolvimento
+npm run dev -- --host 0.0.0.0
+
+# produção
+npm run build
+npm run preview -- --host 0.0.0.0
+```
+
+O build é gerado em `dist/` e pode ser publicado por Nginx, Apache, CDN ou outro servidor de arquivos estáticos com fallback para `index.html`.
+
+## Qualidade
+
+```sh
+npm run validate
+```
+
+Esse comando executa TypeScript, ESLint, 15 testes Vitest e o build de produção.
+
+## Funcionalidades operacionais
+
+- layout responsivo para desktop, tablet e celular;
+- navegação recolhível e controle por perfil;
+- indicador de disponibilidade da API;
+- sessão expirada com retorno seguro ao login;
+- biblioteca com pastas, upload e validação de arquivos;
+- edição de duração e áudio dos vídeos da playlist;
+- prévia de reprodução e estado real “TV com áudio/TV sem áudio”;
+- carregamento sob demanda das telas para reduzir o JavaScript inicial.
+
+## Estrutura
+
+```text
+src/
+├── app/            páginas e regras de cada módulo
+├── components/     layout, feedback e componentes de interface
+├── contexts/       sessão e recursos globais
+├── hooks/          integrações reutilizáveis
+├── lib/            ambiente, URLs e erros da API
+├── routes/         rotas públicas e protegidas
+└── services/       cliente HTTP
 ```

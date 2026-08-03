@@ -1,27 +1,11 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type FormEvent,
-} from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
-import {
-  CalendarDays,
-  Clock3,
-  ListVideo,
-  Monitor,
-  Save,
-  X,
-} from "lucide-react";
+import { CalendarDays, Clock3, ListVideo, Monitor, Save, X } from "lucide-react";
 
 import Swal from "sweetalert2";
 
-import type {
-  CreateSchedulePayload,
-  Schedule,
-  ScheduleDevice,
-  SchedulePlaylist,
-} from "../types";
+import type { CreateSchedulePayload, Schedule, ScheduleDevice, SchedulePlaylist } from "../types";
+import { getApiErrorMessage } from "../../../../lib/apiError";
 
 interface ScheduleModalProps {
   open: boolean;
@@ -30,10 +14,7 @@ interface ScheduleModalProps {
   devices: ScheduleDevice[];
   playlists: SchedulePlaylist[];
   onClose: () => void;
-  onSubmit: (
-    data: CreateSchedulePayload,
-    scheduleId?: string,
-  ) => Promise<unknown>;
+  onSubmit: (data: CreateSchedulePayload, scheduleId?: string) => Promise<unknown>;
 }
 
 interface WeekDay {
@@ -91,49 +72,27 @@ export default function ScheduleModal({
 }: ScheduleModalProps) {
   const editing = Boolean(schedule);
 
-  const [name, setName] =
-    useState("");
+  const [name, setName] = useState("");
 
-  const [deviceId, setDeviceId] =
-    useState("");
+  const [deviceId, setDeviceId] = useState("");
 
-  const [playlistId, setPlaylistId] =
-    useState("");
+  const [playlistId, setPlaylistId] = useState("");
 
-  const [startDate, setStartDate] =
-    useState("");
+  const [startDate, setStartDate] = useState("");
 
-  const [endDate, setEndDate] =
-    useState("");
+  const [endDate, setEndDate] = useState("");
 
-  const [startTime, setStartTime] =
-    useState("08:00");
+  const [startTime, setStartTime] = useState("08:00");
 
-  const [endTime, setEndTime] =
-    useState("18:00");
+  const [endTime, setEndTime] = useState("18:00");
 
-  const [
-    selectedDays,
-    setSelectedDays,
-  ] = useState<number[]>([
-    1, 2, 3, 4, 5,
-  ]);
+  const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
 
-  const [priority, setPriority] =
-    useState(1);
+  const [priority, setPriority] = useState(1);
 
-  const [active, setActive] =
-    useState(true);
+  const [active, setActive] = useState(true);
 
-  const linkedDevices =
-    useMemo(
-      () =>
-        devices.filter(
-          (device) =>
-            device.isLinked,
-        ),
-      [devices],
-    );
+  const linkedDevices = useMemo(() => devices.filter((device) => device.isLinked), [devices]);
 
   useEffect(() => {
     if (!open) {
@@ -143,78 +102,45 @@ export default function ScheduleModal({
     if (schedule) {
       setName(schedule.name);
 
-      setDeviceId(
-        schedule.deviceId,
-      );
+      setDeviceId(schedule.deviceId);
 
-      setPlaylistId(
-        schedule.playlistId,
-      );
+      setPlaylistId(schedule.playlistId);
 
-      setStartDate(
-        formatInputDate(
-          schedule.startDate,
-        ),
-      );
+      setStartDate(formatInputDate(schedule.startDate));
 
-      setEndDate(
-        formatInputDate(
-          schedule.endDate,
-        ),
-      );
+      setEndDate(formatInputDate(schedule.endDate));
 
-      setStartTime(
-        schedule.startTime,
-      );
+      setStartTime(schedule.startTime);
 
-      setEndTime(
-        schedule.endTime,
-      );
+      setEndTime(schedule.endTime);
 
-      setSelectedDays(
-        parseDays(
-          schedule.daysOfWeek,
-        ),
-      );
+      setSelectedDays(parseDays(schedule.daysOfWeek));
 
-      setPriority(
-        schedule.priority,
-      );
+      setPriority(schedule.priority);
 
-      setActive(
-        schedule.active,
-      );
+      setActive(schedule.active);
 
       return;
     }
 
     const today = new Date();
 
-    const nextMonth =
-      new Date(today);
+    const nextMonth = new Date(today);
 
-    nextMonth.setMonth(
-      nextMonth.getMonth() + 1,
-    );
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
 
     setName("");
     setDeviceId("");
     setPlaylistId("");
 
-    setStartDate(
-      toDateInputValue(today),
-    );
+    setStartDate(toDateInputValue(today));
 
-    setEndDate(
-      toDateInputValue(nextMonth),
-    );
+    setEndDate(toDateInputValue(nextMonth));
 
     setStartTime("08:00");
     setEndTime("18:00");
 
-    setSelectedDays([
-      1, 2, 3, 4, 5,
-    ]);
+    setSelectedDays([1, 2, 3, 4, 5]);
 
     setPriority(1);
     setActive(true);
@@ -233,54 +159,33 @@ export default function ScheduleModal({
   }
 
   function toggleDay(day: number) {
-    setSelectedDays(
-      (currentDays) => {
-        if (
-          currentDays.includes(day)
-        ) {
-          return currentDays.filter(
-            (currentDay) =>
-              currentDay !== day,
-          );
-        }
+    setSelectedDays((currentDays) => {
+      if (currentDays.includes(day)) {
+        return currentDays.filter((currentDay) => currentDay !== day);
+      }
 
-        return [
-          ...currentDays,
-          day,
-        ].sort(
-          (first, second) =>
-            first - second,
-        );
-      },
-    );
+      return [...currentDays, day].sort((first, second) => first - second);
+    });
   }
 
   function selectEveryDay() {
-    setSelectedDays([
-      0, 1, 2, 3, 4, 5, 6,
-    ]);
+    setSelectedDays([0, 1, 2, 3, 4, 5, 6]);
   }
 
   function selectBusinessDays() {
-    setSelectedDays([
-      1, 2, 3, 4, 5,
-    ]);
+    setSelectedDays([1, 2, 3, 4, 5]);
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const normalizedName =
-      name.trim();
+    const normalizedName = name.trim();
 
     if (!normalizedName) {
       await Swal.fire({
         icon: "warning",
         title: "Nome obrigatório",
-        text:
-          "Informe o nome do agendamento.",
+        text: "Informe o nome do agendamento.",
       });
 
       return;
@@ -290,8 +195,7 @@ export default function ScheduleModal({
       await Swal.fire({
         icon: "warning",
         title: "Player obrigatório",
-        text:
-          "Selecione o player que receberá o agendamento.",
+        text: "Selecione o player que receberá o agendamento.",
       });
 
       return;
@@ -300,89 +204,64 @@ export default function ScheduleModal({
     if (!playlistId) {
       await Swal.fire({
         icon: "warning",
-        title:
-          "Playlist obrigatória",
-        text:
-          "Selecione uma playlist.",
+        title: "Playlist obrigatória",
+        text: "Selecione uma playlist.",
       });
 
       return;
     }
 
-    if (
-      !startDate ||
-      !endDate
-    ) {
+    if (!startDate || !endDate) {
       await Swal.fire({
         icon: "warning",
         title: "Datas obrigatórias",
-        text:
-          "Informe a data inicial e a data final.",
+        text: "Informe a data inicial e a data final.",
       });
 
       return;
     }
 
-    if (
-      endDate < startDate
-    ) {
+    if (endDate < startDate) {
       await Swal.fire({
         icon: "warning",
         title: "Período inválido",
-        text:
-          "A data final não pode ser anterior à data inicial.",
+        text: "A data final não pode ser anterior à data inicial.",
       });
 
       return;
     }
 
-    if (
-      !startTime ||
-      !endTime
-    ) {
+    if (!startTime || !endTime) {
       await Swal.fire({
         icon: "warning",
-        title:
-          "Horários obrigatórios",
-        text:
-          "Informe o horário inicial e o horário final.",
+        title: "Horários obrigatórios",
+        text: "Informe o horário inicial e o horário final.",
       });
 
       return;
     }
 
-    if (
-      selectedDays.length === 0
-    ) {
+    if (selectedDays.length === 0) {
       await Swal.fire({
         icon: "warning",
         title: "Dias obrigatórios",
-        text:
-          "Selecione pelo menos um dia da semana.",
+        text: "Selecione pelo menos um dia da semana.",
       });
 
       return;
     }
 
-    if (
-      !Number.isInteger(
-        priority,
-      ) ||
-      priority < 1
-    ) {
+    if (!Number.isInteger(priority) || priority < 1) {
       await Swal.fire({
         icon: "warning",
-        title:
-          "Prioridade inválida",
-        text:
-          "A prioridade deve ser um número inteiro maior ou igual a 1.",
+        title: "Prioridade inválida",
+        text: "A prioridade deve ser um número inteiro maior ou igual a 1.",
       });
 
       return;
     }
 
-    const payload:
-      CreateSchedulePayload = {
+    const payload: CreateSchedulePayload = {
       name: normalizedName,
       deviceId,
       playlistId,
@@ -391,47 +270,31 @@ export default function ScheduleModal({
       startTime,
       endTime,
 
-      daysOfWeek:
-        selectedDays
-          .sort(
-            (first, second) =>
-              first - second,
-          )
-          .join(","),
+      daysOfWeek: selectedDays.sort((first, second) => first - second).join(","),
 
       priority,
       active,
     };
 
     try {
-      await onSubmit(
-        payload,
-        schedule?.id,
-      );
+      await onSubmit(payload, schedule?.id);
 
       await Swal.fire({
         icon: "success",
 
-        title: editing
-          ? "Agendamento atualizado"
-          : "Agendamento criado",
+        title: editing ? "Agendamento atualizado" : "Agendamento criado",
 
         timer: 1500,
         showConfirmButton: false,
       });
 
       onClose();
-    } catch (error: any) {
-      const message =
-        getErrorMessage(
-          error,
-          "Não foi possível salvar o agendamento.",
-        );
+    } catch (error: unknown) {
+      const message = getApiErrorMessage(error, "Não foi possível salvar o agendamento.");
 
       await Swal.fire({
         icon: "error",
-        title:
-          "Erro ao salvar",
+        title: "Erro ao salvar",
         text: message,
       });
     }
@@ -446,9 +309,7 @@ export default function ScheduleModal({
         <header className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <div>
             <h2 className="text-xl font-black text-gray-900">
-              {editing
-                ? "Editar agendamento"
-                : "Novo agendamento"}
+              {editing ? "Editar agendamento" : "Novo agendamento"}
             </h2>
 
             <p className="text-sm text-gray-500">
@@ -470,21 +331,14 @@ export default function ScheduleModal({
         <div className="space-y-6 overflow-y-auto p-6">
           <section className="grid gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
-              <label
-                htmlFor="schedule-name"
-                className="mb-2 block text-sm font-bold text-gray-700"
-              >
+              <label htmlFor="schedule-name" className="mb-2 block text-sm font-bold text-gray-700">
                 Nome do agendamento
               </label>
 
               <input
                 id="schedule-name"
                 value={name}
-                onChange={(event) =>
-                  setName(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setName(event.target.value)}
                 disabled={saving}
                 maxLength={100}
                 placeholder="Ex.: Programação da recepção"
@@ -504,34 +358,20 @@ export default function ScheduleModal({
               <select
                 id="schedule-device"
                 value={deviceId}
-                onChange={(event) =>
-                  setDeviceId(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setDeviceId(event.target.value)}
                 disabled={saving}
                 className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
               >
-                <option value="">
-                  Selecione um player
-                </option>
+                <option value="">Selecione um player</option>
 
-                {linkedDevices.map(
-                  (device) => (
-                    <option
-                      key={device.id}
-                      value={device.id}
-                    >
-                      {getDeviceLabel(
-                        device,
-                      )}
-                    </option>
-                  ),
-                )}
+                {linkedDevices.map((device) => (
+                  <option key={device.id} value={device.id}>
+                    {getDeviceLabel(device)}
+                  </option>
+                ))}
               </select>
 
-              {linkedDevices.length ===
-                0 && (
+              {linkedDevices.length === 0 && (
                 <p className="mt-2 text-xs font-semibold text-red-600">
                   Nenhum player vinculado encontrado.
                 </p>
@@ -550,36 +390,20 @@ export default function ScheduleModal({
               <select
                 id="schedule-playlist"
                 value={playlistId}
-                onChange={(event) =>
-                  setPlaylistId(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setPlaylistId(event.target.value)}
                 disabled={saving}
                 className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
               >
-                <option value="">
-                  Selecione uma playlist
-                </option>
+                <option value="">Selecione uma playlist</option>
 
-                {playlists.map(
-                  (playlist) => (
-                    <option
-                      key={
-                        playlist.id
-                      }
-                      value={
-                        playlist.id
-                      }
-                    >
-                      {playlist.name}
-                    </option>
-                  ),
-                )}
+                {playlists.map((playlist) => (
+                  <option key={playlist.id} value={playlist.id}>
+                    {playlist.name}
+                  </option>
+                ))}
               </select>
 
-              {playlists.length ===
-                0 && (
+              {playlists.length === 0 && (
                 <p className="mt-2 text-xs font-semibold text-red-600">
                   Nenhuma playlist cadastrada.
                 </p>
@@ -593,9 +417,7 @@ export default function ScheduleModal({
                 htmlFor="schedule-start-date"
                 className="mb-2 flex items-center gap-2 text-sm font-bold text-gray-700"
               >
-                <CalendarDays
-                  size={16}
-                />
+                <CalendarDays size={16} />
                 Data inicial
               </label>
 
@@ -603,11 +425,7 @@ export default function ScheduleModal({
                 id="schedule-start-date"
                 type="date"
                 value={startDate}
-                onChange={(event) =>
-                  setStartDate(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setStartDate(event.target.value)}
                 disabled={saving}
                 className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
               />
@@ -618,9 +436,7 @@ export default function ScheduleModal({
                 htmlFor="schedule-end-date"
                 className="mb-2 flex items-center gap-2 text-sm font-bold text-gray-700"
               >
-                <CalendarDays
-                  size={16}
-                />
+                <CalendarDays size={16} />
                 Data final
               </label>
 
@@ -629,11 +445,7 @@ export default function ScheduleModal({
                 type="date"
                 value={endDate}
                 min={startDate}
-                onChange={(event) =>
-                  setEndDate(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setEndDate(event.target.value)}
                 disabled={saving}
                 className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
               />
@@ -652,11 +464,7 @@ export default function ScheduleModal({
                 id="schedule-start-time"
                 type="time"
                 value={startTime}
-                onChange={(event) =>
-                  setStartTime(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setStartTime(event.target.value)}
                 disabled={saving}
                 className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
               />
@@ -675,11 +483,7 @@ export default function ScheduleModal({
                 id="schedule-end-time"
                 type="time"
                 value={endTime}
-                onChange={(event) =>
-                  setEndTime(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setEndTime(event.target.value)}
                 disabled={saving}
                 className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
               />
@@ -689,9 +493,7 @@ export default function ScheduleModal({
           <section>
             <div className="mb-3 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
-                <h3 className="text-sm font-black text-gray-900">
-                  Dias da semana
-                </h3>
+                <h3 className="text-sm font-black text-gray-900">Dias da semana</h3>
 
                 <p className="text-xs text-gray-500">
                   Escolha em quais dias o agendamento será executado.
@@ -701,9 +503,7 @@ export default function ScheduleModal({
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={
-                    selectBusinessDays
-                  }
+                  onClick={selectBusinessDays}
                   disabled={saving}
                   className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
                 >
@@ -712,9 +512,7 @@ export default function ScheduleModal({
 
                 <button
                   type="button"
-                  onClick={
-                    selectEveryDay
-                  }
+                  onClick={selectEveryDay}
                   disabled={saving}
                   className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
                 >
@@ -724,37 +522,26 @@ export default function ScheduleModal({
             </div>
 
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
-              {WEEK_DAYS.map(
-                (day) => {
-                  const selected =
-                    selectedDays.includes(
-                      day.value,
-                    );
+              {WEEK_DAYS.map((day) => {
+                const selected = selectedDays.includes(day.value);
 
-                  return (
-                    <button
-                      key={day.value}
-                      type="button"
-                      title={
-                        day.fullLabel
-                      }
-                      onClick={() =>
-                        toggleDay(
-                          day.value,
-                        )
-                      }
-                      disabled={saving}
-                      className={`rounded-xl border px-3 py-3 text-sm font-black transition disabled:opacity-50 ${
-                        selected
-                          ? "border-blue-600 bg-blue-600 text-white"
-                          : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-50"
-                      }`}
-                    >
-                      {day.label}
-                    </button>
-                  );
-                },
-              )}
+                return (
+                  <button
+                    key={day.value}
+                    type="button"
+                    title={day.fullLabel}
+                    onClick={() => toggleDay(day.value)}
+                    disabled={saving}
+                    className={`rounded-xl border px-3 py-3 text-sm font-black transition disabled:opacity-50 ${
+                      selected
+                        ? "border-blue-600 bg-blue-600 text-white"
+                        : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-50"
+                    }`}
+                  >
+                    {day.label}
+                  </button>
+                );
+              })}
             </div>
           </section>
 
@@ -773,13 +560,7 @@ export default function ScheduleModal({
                 min={1}
                 step={1}
                 value={priority}
-                onChange={(event) =>
-                  setPriority(
-                    Number(
-                      event.target.value,
-                    ),
-                  )
-                }
+                onChange={(event) => setPriority(Number(event.target.value))}
                 disabled={saving}
                 className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
               />
@@ -791,40 +572,23 @@ export default function ScheduleModal({
 
             <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
               <div>
-                <p className="text-sm font-black text-gray-900">
-                  Agendamento ativo
-                </p>
+                <p className="text-sm font-black text-gray-900">Agendamento ativo</p>
 
-                <p className="text-xs text-gray-500">
-                  Desative para pausar sem excluir.
-                </p>
+                <p className="text-xs text-gray-500">Desative para pausar sem excluir.</p>
               </div>
 
               <button
                 type="button"
-                onClick={() =>
-                  setActive(
-                    (current) =>
-                      !current,
-                  )
-                }
+                onClick={() => setActive((current) => !current)}
                 disabled={saving}
-                aria-label={
-                  active
-                    ? "Desativar agendamento"
-                    : "Ativar agendamento"
-                }
+                aria-label={active ? "Desativar agendamento" : "Ativar agendamento"}
                 className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-50 ${
-                  active
-                    ? "bg-blue-600"
-                    : "bg-gray-300"
+                  active ? "bg-blue-600" : "bg-gray-300"
                 }`}
               >
                 <span
                   className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${
-                    active
-                      ? "left-6"
-                      : "left-1"
+                    active ? "left-6" : "left-1"
                   }`}
                 />
               </button>
@@ -849,11 +613,7 @@ export default function ScheduleModal({
           >
             <Save size={18} />
 
-            {saving
-              ? "Salvando..."
-              : editing
-                ? "Salvar alterações"
-                : "Criar agendamento"}
+            {saving ? "Salvando..." : editing ? "Salvar alterações" : "Criar agendamento"}
           </button>
         </footer>
       </form>
@@ -861,17 +621,10 @@ export default function ScheduleModal({
   );
 }
 
-function getDeviceLabel(
-  device: ScheduleDevice,
-) {
-  const name =
-    device.name?.trim() ||
-    `Player ${device.code}`;
+function getDeviceLabel(device: ScheduleDevice) {
+  const name = device.name?.trim() || `Player ${device.code}`;
 
-  const status =
-    device.status === "ONLINE"
-      ? "Online"
-      : "Offline";
+  const status = device.status === "ONLINE" ? "Online" : "Offline";
 
   return `${name} — ${status}`;
 }
@@ -879,33 +632,13 @@ function getDeviceLabel(
 function parseDays(value: string) {
   return value
     .split(",")
-    .map((day) =>
-      Number(day.trim()),
-    )
-    .filter(
-      (day) =>
-        Number.isInteger(day) &&
-        day >= 0 &&
-        day <= 6,
-    )
-    .filter(
-      (
-        day,
-        index,
-        array,
-      ) =>
-        array.indexOf(day) ===
-        index,
-    )
-    .sort(
-      (first, second) =>
-        first - second,
-    );
+    .map((day) => Number(day.trim()))
+    .filter((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+    .filter((day, index, array) => array.indexOf(day) === index)
+    .sort((first, second) => first - second);
 }
 
-function formatInputDate(
-  value: string,
-) {
+function formatInputDate(value: string) {
   if (!value) {
     return "";
   }
@@ -913,42 +646,12 @@ function formatInputDate(
   return value.slice(0, 10);
 }
 
-function toDateInputValue(
-  date: Date,
-) {
-  const year =
-    date.getFullYear();
+function toDateInputValue(date: Date) {
+  const year = date.getFullYear();
 
-  const month =
-    String(
-      date.getMonth() + 1,
-    ).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
 
-  const day =
-    String(
-      date.getDate(),
-    ).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
-}
-
-function getErrorMessage(
-  error: any,
-  fallback: string,
-) {
-  const message =
-    error?.response?.data
-      ?.message ??
-    fallback;
-
-  if (
-    Array.isArray(message)
-  ) {
-    return (
-      message[0] ??
-      fallback
-    );
-  }
-
-  return String(message);
 }

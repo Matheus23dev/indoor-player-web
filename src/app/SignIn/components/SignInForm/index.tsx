@@ -1,126 +1,96 @@
-import { Card, CardContent, CardHeader } from "../../../../components/ui/card";
-import { useSignIn } from "../../hooks/useSignIn";
-import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
-import logo  from "../../../../assets/images/monitor-play.svg"
+import { Eye, EyeOff, LoaderCircle, LockKeyhole, LogIn, Mail } from "lucide-react";
 import { useState } from "react";
 
+import { useSignIn } from "../../hooks/useSignIn";
 
 const SignInForm = () => {
-   const [showPassword, setShowPassword] = useState(false);
-  const {
-    email,
-    setEmail,
-    password,
-    setPassword,
-    loading,
-    handleSignIn,
-  } = useSignIn();
+  const [showPassword, setShowPassword] = useState(false);
+  const { email, setEmail, password, setPassword, loading, handleSignIn } = useSignIn();
 
   return (
-      <Card className="flex flex-col w-full max-w-md h-auto rounded-2xl bg-white/95 backdrop-blur shadow-xl border-none">
-      <CardHeader className="space-y-1">
-        <div className="flex flex-col items-center">
-          <img
-            className="w-20 m-auto"
-            src={logo}
-            alt="Logo"
-          />
-          <div className="flex flex-col items-center select-none mb-4">
-            <h1 className="text-azul-terciario text-2xl font-black tracking-tighter leading-none italic">
-              Indoor Player
-            </h1>
-            <div className="flex items-center gap-2 w-full ">
-              <div className="h-px bg-azul-terciario/30 grow"></div>
-              <span className="text-azul-terciario text-[14px] font-bold tracking-[0.3em] uppercase whitespace-nowrap">
-                ADMIN
-              </span>
-              <div className="h-px bg-azul-terciario/30 grow"></div>
-            </div>
-          </div>
-          <p className="text-cinza text-sm">
-            Identifique-se para continuar
-          </p>
-        </div>
-      </CardHeader>
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] sm:p-8">
+      <div>
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-700">
+          Portal administrativo
+        </p>
+        <h1 className="mt-2 text-3xl font-bold tracking-[-0.035em] text-slate-950">
+          Acesse sua conta
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Utilize suas credenciais corporativas para continuar.
+        </p>
+      </div>
 
-      <CardContent>
-        <form className="flex flex-col gap-5 mt-4">
-          <div className="relative group">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-cinza w-5 h-5 z-10 transition-colors group-focus-within:text-azul-primario" />
+      <form className="mt-8 space-y-5" onSubmit={handleSignIn}>
+        <div>
+          <label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-700">
+            E-mail corporativo
+          </label>
+          <div className="relative">
+            <Mail
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              size={18}
+            />
             <input
               type="email"
               id="email"
-              className="peer w-full bg-white border border-cinza/30 rounded-xl px-10 pt-6 pb-2 text-preto outline-none focus:ring-2 focus:ring-azul-primario/20 focus:border-azul-primario transition-all placeholder-transparent"
-              placeholder="exemplo@gmail.com"
+              autoComplete="email"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-11 pr-4 text-sm text-slate-900 transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+              placeholder="nome@empresa.com.br"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
               disabled={loading}
             />
-            <label
-              htmlFor="email"
-              className="absolute left-10 top-4 text-cinza transition-all duration-200
-              peer-placeholder-shown:top-4 peer-placeholder-shown:text-base
-              peer-focus:top-1 peer-focus:text-xs peer-focus:text-azul-primario
-              peer-not-placeholder-shown:top-1 peer-not-placeholder-shown:text-xs"
-            >
-              E-mail
-            </label>
           </div>
+        </div>
 
-          <div className="relative group">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-cinza w-5 h-5 z-10 transition-colors group-focus-within:text-azul-primario" />
+        <div>
+          <label htmlFor="password" className="mb-2 block text-sm font-semibold text-slate-700">
+            Senha
+          </label>
+          <div className="relative">
+            <LockKeyhole
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              size={18}
+            />
             <input
               type={showPassword ? "text" : "password"}
               id="password"
-              className="peer w-full bg-white border border-cinza/30 rounded-xl px-10 pt-6 pb-2 text-preto outline-none focus:ring-2 focus:ring-azul-primario/20 focus:border-azul-primario transition-all placeholder-transparent"
+              autoComplete="current-password"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-11 pr-11 text-sm text-slate-900 transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
               placeholder="Digite sua senha"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
               disabled={loading}
             />
-            <label
-              htmlFor="password"
-              className="absolute left-10 top-4 text-cinza transition-all duration-200 
-              peer-placeholder-shown:top-4 peer-placeholder-shown:text-base 
-              peer-focus:top-1 peer-focus:text-xs peer-focus:text-azul-primario
-              peer-[:not(:placeholder-shown)]:top-1 peer-[:not(:placeholder-shown)]:text-xs"
-            >
-              Senha
-            </label>
-
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-cinza hover:text-azul-primario transition-colors p-1"
+              onClick={() => setShowPassword((current) => !current)}
+              className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              disabled={loading}
             >
-              {showPassword ? (
-                <EyeOff className="w-5 h-5" />
-              ) : (
-                <Eye className="w-5 h-5" />
-              )}
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
+        </div>
 
-          <button
-            onClick={handleSignIn}
-            type="submit"
-            className="w-full bg-blue-700 hover:bg-blu-800 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all transform active:scale-[0.98] shadow-lg mt-2"
-          >
-            <LogIn className="w-5 h-5" />
-            {loading ? "Entrando..." : "Entrar"}
-          </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 text-sm font-semibold text-white shadow-lg shadow-blue-700/15 transition hover:bg-blue-800 focus-visible:ring-4 focus-visible:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-65"
+        >
+          {loading ? <LoaderCircle size={18} className="animate-spin" /> : <LogIn size={18} />}
+          {loading ? "Autenticando..." : "Entrar no painel"}
+        </button>
+      </form>
 
-          <div className="text-center">
-            <a
-              href="#"
-              className="text-azul-primario text-xs hover:underline"
-            >
-              Esqueceu sua senha?
-            </a>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+      <div className="mt-7 border-t border-slate-100 pt-5">
+        <p className="text-center text-xs leading-5 text-slate-400">
+          Acesso monitorado e restrito a usuários autorizados.
+        </p>
+      </div>
+    </div>
   );
 };
 

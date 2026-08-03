@@ -1,20 +1,8 @@
-import {
-  Pencil,
-  ShieldCheck,
-  Trash2,
-  UserRound,
-} from "lucide-react";
+import { Pencil, ShieldCheck, Trash2, UserRound } from "lucide-react";
 
-import type {
-  AuthenticatedUser,
-  User,
-} from "../types/index";
+import type { AuthenticatedUser, User } from "../types/index";
 
-import {
-  canDeleteUser,
-  canEditUser,
-  getRoleLabel,
-} from "../utils/permissions";
+import { canDeleteUser, canEditUser, getRoleLabel } from "../utils/permissions";
 
 interface UsersTableProps {
   users: User[];
@@ -37,82 +25,52 @@ export default function UsersTable({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <TableHeader>
-                Usuário
-              </TableHeader>
+              <TableHeader>Usuário</TableHeader>
 
-              <TableHeader>
-                Perfil
-              </TableHeader>
+              <TableHeader>Perfil</TableHeader>
 
-              <TableHeader>
-                Criado em
-              </TableHeader>
+              <TableHeader>Criado em</TableHeader>
 
-              <TableHeader align="right">
-                Ações
-              </TableHeader>
+              <TableHeader align="right">Ações</TableHeader>
             </tr>
           </thead>
 
           <tbody className="divide-y divide-gray-100 bg-white">
             {users.map((user) => {
-              const editable =
-                canEditUser(
-                  currentUser,
-                  user,
-                );
+              const editable = canEditUser(currentUser, user);
 
-              const removable =
-                canDeleteUser(
-                  currentUser,
-                  user,
-                );
+              const removable = canDeleteUser(currentUser, user);
 
               return (
-                <tr
-                  key={user.id}
-                  className="transition hover:bg-gray-50"
-                >
+                <tr key={user.id} className="transition hover:bg-gray-50">
                   <td className="whitespace-nowrap px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-                        <UserRound
-                          size={19}
-                        />
+                        <UserRound size={19} />
                       </div>
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="truncate text-sm font-black text-gray-900">
-                            {user.name}
-                          </p>
+                          <p className="truncate text-sm font-black text-gray-900">{user.name}</p>
 
-                          {user.id ===
-                            currentUser.id && (
-                              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-black uppercase text-gray-600">
-                                Você
-                              </span>
-                            )}
+                          {user.id === currentUser.id && (
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-black uppercase text-gray-600">
+                              Você
+                            </span>
+                          )}
                         </div>
 
-                        <p className="truncate text-sm text-gray-500">
-                          {user.email}
-                        </p>
+                        <p className="truncate text-sm text-gray-500">{user.email}</p>
                       </div>
                     </div>
                   </td>
 
                   <td className="whitespace-nowrap px-5 py-4">
-                    <RoleBadge
-                      role={user.role}
-                    />
+                    <RoleBadge role={user.role} />
                   </td>
 
                   <td className="whitespace-nowrap px-5 py-4 text-sm font-medium text-gray-500">
-                    {formatDate(
-                      user.createdAt,
-                    )}
+                    {formatDate(user.createdAt)}
                   </td>
 
                   <td className="whitespace-nowrap px-5 py-4">
@@ -120,9 +78,7 @@ export default function UsersTable({
                       {editable && (
                         <button
                           type="button"
-                          onClick={() =>
-                            onEdit(user)
-                          }
+                          onClick={() => onEdit(user)}
                           disabled={saving}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                         >
@@ -134,9 +90,7 @@ export default function UsersTable({
                       {removable && (
                         <button
                           type="button"
-                          onClick={() =>
-                            onDelete(user)
-                          }
+                          onClick={() => onDelete(user)}
                           disabled={saving}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-50"
                         >
@@ -145,12 +99,11 @@ export default function UsersTable({
                         </button>
                       )}
 
-                      {!editable &&
-                        !removable && (
-                          <span className="text-xs font-semibold text-gray-400">
-                            Sem ações disponíveis
-                          </span>
-                        )}
+                      {!editable && !removable && (
+                        <span className="text-xs font-semibold text-gray-400">
+                          Sem ações disponíveis
+                        </span>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -168,16 +121,11 @@ interface TableHeaderProps {
   align?: "left" | "right";
 }
 
-function TableHeader({
-  children,
-  align = "left",
-}: TableHeaderProps) {
+function TableHeader({ children, align = "left" }: TableHeaderProps) {
   return (
     <th
       className={`px-5 py-3 text-xs font-black uppercase tracking-wide text-gray-500 ${
-        align === "right"
-          ? "text-right"
-          : "text-left"
+        align === "right" ? "text-right" : "text-left"
       }`}
     >
       {children}
@@ -185,18 +133,11 @@ function TableHeader({
   );
 }
 
-function RoleBadge({
-  role,
-}: {
-  role: User["role"];
-}) {
+function RoleBadge({ role }: { role: User["role"] }) {
   const styles = {
-    OWNER:
-      "border-amber-200 bg-amber-50 text-amber-700",
-    ADMIN:
-      "border-blue-200 bg-blue-50 text-blue-700",
-    OPERATOR:
-      "border-emerald-200 bg-emerald-50 text-emerald-700",
+    OWNER: "border-amber-200 bg-amber-50 text-amber-700",
+    ADMIN: "border-blue-200 bg-blue-50 text-blue-700",
+    OPERATOR: "border-emerald-200 bg-emerald-50 text-emerald-700",
   }[role];
 
   return (
@@ -209,25 +150,16 @@ function RoleBadge({
   );
 }
 
-function formatDate(
-  value: string,
-) {
+function formatDate(value: string) {
   const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "Data inválida";
   }
 
-  return new Intl.DateTimeFormat(
-    "pt-BR",
-    {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    },
-  ).format(date);
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
 }

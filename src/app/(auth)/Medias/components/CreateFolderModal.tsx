@@ -6,24 +6,17 @@ interface CreateFolderModalProps {
   onCreate: (name: string) => Promise<void>;
 }
 
-export function CreateFolderModal({
-  open,
-  onClose,
-  onCreate,
-}: CreateFolderModalProps) {
-  const [name, setName] =
-    useState("");
+export function CreateFolderModal({ open, onClose, onCreate }: CreateFolderModalProps) {
+  const [name, setName] = useState("");
 
-  const [isLoading, setIsLoading] =
-    useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!open) {
     return null;
   }
 
   async function handleCreate() {
-    const normalizedName =
-      name.trim();
+    const normalizedName = name.trim();
 
     if (!normalizedName) {
       return;
@@ -44,19 +37,13 @@ export function CreateFolderModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="w-full max-w-md rounded-xl bg-white p-6">
-        <h2 className="mb-4 text-xl font-bold">
-          Nova Pasta
-        </h2>
+        <h2 className="mb-4 text-xl font-bold">Nova Pasta</h2>
 
         <input
           type="text"
           placeholder="Nome da pasta"
           value={name}
-          onChange={(event) =>
-            setName(
-              event.target.value,
-            )
-          }
+          onChange={(event) => setName(event.target.value)}
           className="w-full rounded-lg border p-3 outline-none focus:border-blue-600"
           autoFocus
         />
@@ -73,18 +60,13 @@ export function CreateFolderModal({
 
           <button
             type="button"
-            disabled={
-              !name.trim() ||
-              isLoading
-            }
+            disabled={!name.trim() || isLoading}
             onClick={() => {
               void handleCreate();
             }}
             className="rounded-lg bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
           >
-            {isLoading
-              ? "Criando..."
-              : "Criar"}
+            {isLoading ? "Criando..." : "Criar"}
           </button>
         </div>
       </div>

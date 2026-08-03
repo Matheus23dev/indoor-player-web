@@ -1,107 +1,59 @@
-import {
-  useCallback,
-  useState,
-} from "react";
+import { useCallback, useState } from "react";
 
-import {
-  deleteMedia,
-  getMedias,
-  uploadMedia,
-} from "../services/medias.services";
+import { deleteMedia, getMedias, uploadMedia } from "../services/medias.services";
 
-import type {
-  Media,
-} from "../types";
+import type { Media } from "../types";
 
 export function useMedias() {
-  const [medias, setMedias] =
-    useState<Media[]>([]);
+  const [medias, setMedias] = useState<Media[]>([]);
 
-  const [loadingMedias, setLoadingMedias] =
-    useState(false);
+  const [loadingMedias, setLoadingMedias] = useState(false);
 
-  const [uploadingMedia, setUploadingMedia] =
-    useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
-  const [deletingMediaId, setDeletingMediaId] =
-    useState<string | null>(
-      null,
-    );
+  const [deletingMediaId, setDeletingMediaId] = useState<string | null>(null);
 
-  const loadMedias =
-    useCallback(async () => {
-      try {
-        setLoadingMedias(true);
+  const loadMedias = useCallback(async () => {
+    try {
+      setLoadingMedias(true);
 
-        const data =
-          await getMedias();
+      const data = await getMedias();
 
-        setMedias(data);
+      setMedias(data);
 
-        return data;
-      } finally {
-        setLoadingMedias(false);
-      }
-    }, []);
+      return data;
+    } finally {
+      setLoadingMedias(false);
+    }
+  }, []);
 
-  const sendMedia =
-    useCallback(
-      async (
-        file: File,
-        folderId?: string | null,
-      ) => {
-        try {
-          setUploadingMedia(true);
+  const sendMedia = useCallback(async (file: File, folderId?: string | null) => {
+    try {
+      setUploadingMedia(true);
 
-          const media =
-            await uploadMedia(
-              file,
-              folderId,
-            );
+      const media = await uploadMedia(file, folderId);
 
-          setMedias(
-            (currentMedias) => [
-              media,
-              ...currentMedias,
-            ],
-          );
+      setMedias((currentMedias) => [media, ...currentMedias]);
 
-          return media;
-        } finally {
-          setUploadingMedia(false);
-        }
-      },
-      [],
-    );
+      return media;
+    } finally {
+      setUploadingMedia(false);
+    }
+  }, []);
 
-  const removeMedia =
-    useCallback(
-      async (
-        id: string,
-      ) => {
-        try {
-          setDeletingMediaId(id);
+  const removeMedia = useCallback(async (id: string) => {
+    try {
+      setDeletingMediaId(id);
 
-          const response =
-            await deleteMedia(id);
+      const response = await deleteMedia(id);
 
-          setMedias(
-            (currentMedias) =>
-              currentMedias.filter(
-                (media) =>
-                  media.id !== id,
-              ),
-          );
+      setMedias((currentMedias) => currentMedias.filter((media) => media.id !== id));
 
-          return response;
-        } finally {
-          setDeletingMediaId(
-            null,
-          );
-        }
-      },
-      [],
-    );
+      return response;
+    } finally {
+      setDeletingMediaId(null);
+    }
+  }, []);
 
   return {
     medias,

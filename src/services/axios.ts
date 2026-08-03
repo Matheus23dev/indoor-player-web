@@ -1,29 +1,21 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 import Swal from "sweetalert2";
+import { API_BASE_URL } from "../lib/environment";
 
-const baseURL = import.meta.env.VITE_BASE_URL_API;
+let handlingExpiredSession = false;
 
 const instance = axios.create({
-  baseURL,
+  baseURL: API_BASE_URL,
+  timeout: 30_000,
+  headers: {
+    Accept: "application/json",
+  },
 });
 
 instance.interceptors.request.use(
   (req) => {
     const token = Cookies.get("@TOKEN");
-
-    if (!token && !req.url?.endsWith("/auth/login")) {
-      Swal.fire({
-        icon: "error",
-        title: "Sua sessão expirou! Faça login novamente.",
-        showConfirmButton: true,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        timer: 2500,
-      });
-
-      return Promise.reject("Sessão expirada");
-    }
 
     if (token && req.headers) {
       req.headers.Authorization = `Bearer ${token}`;
@@ -32,6 +24,35 @@ instance.interceptors.request.use(
     return req;
   },
   (error) => Promise.reject(error),
+);
+
+instance.interceptors.response.use(
+  (response) => response,
+  async (error: unknown) => {
+    if (
+      axios.isAxiosError(error) &&
+      error.response?.status === 401 &&
+      !error.config?.url?.endsWith("/auth/login") &&
+      !handlingExpiredSession
+    ) {
+      handlingExpiredSession = true;
+      Cookies.remove("@TOKEN");
+      Cookies.remove("user");
+
+      await Swal.fire({
+        icon: "warning",
+        title: "Sessão expirada",
+        text: "Entre novamente para continuar.",
+        confirmButtonText: "Ir para o login",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+      });
+
+      window.location.assign("/");
+    }
+
+    return Promise.reject(error);
+  },
 );
 
 export default instance;

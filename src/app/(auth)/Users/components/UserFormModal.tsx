@@ -1,28 +1,12 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type FormEvent,
-} from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
-import {
-  Eye,
-  EyeOff,
-  Save,
-  ShieldCheck,
-  UserRound,
-  X,
-} from "lucide-react";
+import { Eye, EyeOff, Save, ShieldCheck, UserRound, X } from "lucide-react";
 
 import Swal from "sweetalert2";
 
-import {
-  getAssignableRoles,
-} from "../utils/permissions";
+import { getAssignableRoles } from "../utils/permissions";
 
-import {
-  getApiMessage,
-} from "../hooks/useUsers";
+import { getApiErrorMessage } from "../../../../lib/apiError";
 
 import type {
   AuthenticatedUser,
@@ -38,13 +22,8 @@ interface UserFormModalProps {
   currentUser: AuthenticatedUser;
   user?: User | null;
   onClose: () => void;
-  onCreate: (
-    data: CreateUserPayload,
-  ) => Promise<unknown>;
-  onUpdate: (
-    userId: string,
-    data: UpdateUserPayload,
-  ) => Promise<unknown>;
+  onCreate: (data: CreateUserPayload) => Promise<unknown>;
+  onUpdate: (userId: string, data: UpdateUserPayload) => Promise<unknown>;
 }
 
 export default function UserFormModal({
@@ -58,42 +37,21 @@ export default function UserFormModal({
 }: UserFormModalProps) {
   const isEditing = Boolean(user);
 
-  const [name, setName] =
-    useState("");
+  const [name, setName] = useState("");
 
-  const [email, setEmail] =
-    useState("");
+  const [email, setEmail] = useState("");
 
-  const [password, setPassword] =
-    useState("");
+  const [password, setPassword] = useState("");
 
-  const [role, setRole] =
-    useState<Exclude<
-      UserRole,
-      "OWNER"
-    >>("OPERATOR");
+  const [role, setRole] = useState<Exclude<UserRole, "OWNER">>("OPERATOR");
 
-  const [showPassword, setShowPassword] =
-    useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const assignableRoles =
-    useMemo(
-      () =>
-        getAssignableRoles(
-          currentUser.role,
-        ),
-      [currentUser.role],
-    );
+  const assignableRoles = useMemo(() => getAssignableRoles(currentUser.role), [currentUser.role]);
 
-  const editingOwnAdminAccount =
-    Boolean(
-      user &&
-        currentUser.role ===
-          "ADMIN" &&
-        user.id ===
-          currentUser.id &&
-        user.role === "ADMIN",
-    );
+  const editingOwnAdminAccount = Boolean(
+    user && currentUser.role === "ADMIN" && user.id === currentUser.id && user.role === "ADMIN",
+  );
 
   useEffect(() => {
     if (!open) {
@@ -105,139 +63,92 @@ export default function UserFormModal({
     setPassword("");
     setShowPassword(false);
 
-    if (
-      user?.role === "ADMIN" ||
-      user?.role === "OPERATOR"
-    ) {
+    if (user?.role === "ADMIN" || user?.role === "OPERATOR") {
       setRole(user.role);
       return;
     }
 
-    setRole(
-      assignableRoles[0]?.value ??
-        "OPERATOR",
-    );
-  }, [
-    open,
-    user,
-    assignableRoles,
-  ]);
+    setRole(assignableRoles[0]?.value ?? "OPERATOR");
+  }, [open, user, assignableRoles]);
 
   if (!open) {
     return null;
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const normalizedName =
-      name.trim();
+    const normalizedName = name.trim();
 
-    const normalizedEmail =
-      email.trim().toLowerCase();
+    const normalizedEmail = email.trim().toLowerCase();
 
     if (!normalizedName) {
-      await showWarning(
-        "Nome obrigatório",
-        "Informe o nome do usuário.",
-      );
+      await showWarning("Nome obrigatório", "Informe o nome do usuário.");
       return;
     }
 
     if (!normalizedEmail) {
-      await showWarning(
-        "E-mail obrigatório",
-        "Informe o e-mail do usuário.",
-      );
+      await showWarning("E-mail obrigatório", "Informe o e-mail do usuário.");
       return;
     }
 
-    if (
-      !isEditing &&
-      password.trim().length < 6
-    ) {
-      await showWarning(
-        "Senha inválida",
-        "A senha precisa ter pelo menos 6 caracteres.",
-      );
+    if (!isEditing && password.trim().length < 6) {
+      await showWarning("Senha inválida", "A senha precisa ter pelo menos 6 caracteres.");
       return;
     }
 
-    if (
-      isEditing &&
-      password &&
-      password.trim().length < 6
-    ) {
-      await showWarning(
-        "Senha inválida",
-        "A nova senha precisa ter pelo menos 6 caracteres.",
-      );
+    if (isEditing && password && password.trim().length < 6) {
+      await showWarning("Senha inválida", "A nova senha precisa ter pelo menos 6 caracteres.");
       return;
     }
 
     try {
       if (user) {
-        const payload:
-          UpdateUserPayload = {
+        const payload: UpdateUserPayload = {
           name: normalizedName,
           email: normalizedEmail,
         };
 
         if (password.trim()) {
-          payload.password =
-            password.trim();
+          payload.password = password.trim();
         }
 
         if (!editingOwnAdminAccount) {
           payload.role = role;
         }
 
-        await onUpdate(
-          user.id,
-          payload,
-        );
+        await onUpdate(user.id, payload);
 
         await Swal.fire({
           icon: "success",
-          title:
-            "Usuário atualizado",
+          title: "Usuário atualizado",
           timer: 1300,
-          showConfirmButton:
-            false,
+          showConfirmButton: false,
         });
       } else {
         await onCreate({
           name: normalizedName,
           email: normalizedEmail,
-          password:
-            password.trim(),
+          password: password.trim(),
           role,
         });
 
         await Swal.fire({
           icon: "success",
-          title:
-            "Usuário criado",
+          title: "Usuário criado",
           timer: 1300,
-          showConfirmButton:
-            false,
+          showConfirmButton: false,
         });
       }
 
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       await Swal.fire({
         icon: "error",
-        title: isEditing
-          ? "Erro ao atualizar"
-          : "Erro ao criar",
-        text: getApiMessage(
+        title: isEditing ? "Erro ao atualizar" : "Erro ao criar",
+        text: getApiErrorMessage(
           error,
-          isEditing
-            ? "Não foi possível atualizar o usuário."
-            : "Não foi possível criar o usuário.",
+          isEditing ? "Não foi possível atualizar o usuário." : "Não foi possível criar o usuário.",
         ),
       });
     }
@@ -252,9 +163,7 @@ export default function UserFormModal({
         <header className="flex items-center justify-between border-b px-6 py-4">
           <div>
             <h2 className="text-xl font-black text-gray-900">
-              {isEditing
-                ? "Editar usuário"
-                : "Novo usuário"}
+              {isEditing ? "Editar usuário" : "Novo usuário"}
             </h2>
 
             <p className="mt-1 text-sm text-gray-500">
@@ -277,10 +186,7 @@ export default function UserFormModal({
 
         <div className="space-y-5 p-6">
           <div>
-            <label
-              htmlFor="user-name"
-              className="mb-2 block text-sm font-bold text-gray-700"
-            >
+            <label htmlFor="user-name" className="mb-2 block text-sm font-bold text-gray-700">
               Nome
             </label>
 
@@ -293,11 +199,7 @@ export default function UserFormModal({
               <input
                 id="user-name"
                 value={name}
-                onChange={(event) =>
-                  setName(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setName(event.target.value)}
                 disabled={saving}
                 maxLength={100}
                 placeholder="Nome completo"
@@ -307,10 +209,7 @@ export default function UserFormModal({
           </div>
 
           <div>
-            <label
-              htmlFor="user-email"
-              className="mb-2 block text-sm font-bold text-gray-700"
-            >
+            <label htmlFor="user-email" className="mb-2 block text-sm font-bold text-gray-700">
               E-mail
             </label>
 
@@ -318,11 +217,7 @@ export default function UserFormModal({
               id="user-email"
               type="email"
               value={email}
-              onChange={(event) =>
-                setEmail(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setEmail(event.target.value)}
               disabled={saving}
               autoComplete="email"
               placeholder="usuario@empresa.com"
@@ -331,59 +226,31 @@ export default function UserFormModal({
           </div>
 
           <div>
-            <label
-              htmlFor="user-password"
-              className="mb-2 block text-sm font-bold text-gray-700"
-            >
-              {isEditing
-                ? "Nova senha (opcional)"
-                : "Senha"}
+            <label htmlFor="user-password" className="mb-2 block text-sm font-bold text-gray-700">
+              {isEditing ? "Nova senha (opcional)" : "Senha"}
             </label>
 
             <div className="relative">
               <input
                 id="user-password"
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
+                type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(event) =>
-                  setPassword(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setPassword(event.target.value)}
                 disabled={saving}
                 autoComplete="new-password"
                 placeholder={
-                  isEditing
-                    ? "Deixe vazio para manter a senha"
-                    : "Mínimo de 6 caracteres"
+                  isEditing ? "Deixe vazio para manter a senha" : "Mínimo de 6 caracteres"
                 }
                 className="w-full rounded-xl border border-gray-200 px-4 py-3 pr-12 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
               />
 
               <button
                 type="button"
-                onClick={() =>
-                  setShowPassword(
-                    (current) =>
-                      !current,
-                  )
-                }
+                onClick={() => setShowPassword((current) => !current)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                aria-label={
-                  showPassword
-                    ? "Ocultar senha"
-                    : "Mostrar senha"
-                }
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
               >
-                {showPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
@@ -405,41 +272,23 @@ export default function UserFormModal({
               <select
                 id="user-role"
                 value={role}
-                onChange={(event) =>
-                  setRole(
-                    event.target.value as Exclude<
-                      UserRole,
-                      "OWNER"
-                    >,
-                  )
-                }
-                disabled={
-                  saving ||
-                  assignableRoles.length ===
-                    1
-                }
+                onChange={(event) => setRole(event.target.value as Exclude<UserRole, "OWNER">)}
+                disabled={saving || assignableRoles.length === 1}
                 className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:bg-gray-50 disabled:opacity-70"
               >
-                {assignableRoles.map(
-                  (option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ),
-                )}
+                {assignableRoles.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             )}
 
-            {currentUser.role ===
-              "ADMIN" &&
-              !editingOwnAdminAccount && (
-                <p className="mt-2 text-xs font-medium text-gray-500">
-                  Administradores podem criar e editar apenas operadores.
-                </p>
-              )}
+            {currentUser.role === "ADMIN" && !editingOwnAdminAccount && (
+              <p className="mt-2 text-xs font-medium text-gray-500">
+                Administradores podem criar e editar apenas operadores.
+              </p>
+            )}
           </div>
         </div>
 
@@ -460,11 +309,7 @@ export default function UserFormModal({
           >
             <Save size={18} />
 
-            {saving
-              ? "Salvando..."
-              : isEditing
-                ? "Salvar alterações"
-                : "Criar usuário"}
+            {saving ? "Salvando..." : isEditing ? "Salvar alterações" : "Criar usuário"}
           </button>
         </footer>
       </form>
@@ -472,10 +317,7 @@ export default function UserFormModal({
   );
 }
 
-async function showWarning(
-  title: string,
-  text: string,
-) {
+async function showWarning(title: string, text: string) {
   await Swal.fire({
     icon: "warning",
     title,

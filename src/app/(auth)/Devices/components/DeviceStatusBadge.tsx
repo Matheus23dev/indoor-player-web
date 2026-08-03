@@ -1,17 +1,11 @@
-import type {
-  DeviceStatus,
-} from "../types/device";
+import type { DeviceStatus } from "../types/device";
 
 interface Props {
-  status:
-    DeviceStatus;
+  status: DeviceStatus;
 }
 
-export function DeviceStatusBadge({
-  status,
-}: Props) {
-  const isOnline =
-    status === "ONLINE";
+export function DeviceStatusBadge({ status }: Props) {
+  const isOnline = status === "ONLINE";
 
   return (
     <span
@@ -35,9 +29,7 @@ export function DeviceStatusBadge({
         />
       </span>
 
-      {isOnline
-        ? "Online"
-        : "Offline"}
+      {isOnline ? "Online" : "Offline"}
     </span>
   );
 }

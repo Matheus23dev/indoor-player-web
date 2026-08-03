@@ -1,1 +1,1 @@
-export { Colors } from '../constants/colors'
+export { Colors } from "../constants/colors";

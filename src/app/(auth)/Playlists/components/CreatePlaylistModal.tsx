@@ -1,24 +1,15 @@
-import {
-  useEffect,
-  useState,
-  type FormEvent,
-} from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
-import {
-  ListVideo,
-  Save,
-  X,
-} from "lucide-react";
+import { ListVideo, Save, X } from "lucide-react";
 
 import Swal from "sweetalert2";
+import { getApiErrorMessage } from "../../../../lib/apiError";
 
 interface CreatePlaylistModalProps {
   open: boolean;
   saving: boolean;
   onClose: () => void;
-  onCreate: (
-    name: string,
-  ) => Promise<unknown>;
+  onCreate: (name: string) => Promise<unknown>;
 }
 
 export default function CreatePlaylistModal({
@@ -27,8 +18,7 @@ export default function CreatePlaylistModal({
   onClose,
   onCreate,
 }: CreatePlaylistModalProps) {
-  const [name, setName] =
-    useState("");
+  const [name, setName] = useState("");
 
   useEffect(() => {
     if (!open) {
@@ -40,73 +30,52 @@ export default function CreatePlaylistModal({
     return null;
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const normalizedName =
-      name.trim();
+    const normalizedName = name.trim();
 
     if (!normalizedName) {
       await Swal.fire({
         icon: "warning",
-        title:
-          "Nome obrigatório",
-        text:
-          "Informe o nome da playlist.",
+        title: "Nome obrigatório",
+        text: "Informe o nome da playlist.",
       });
 
       return;
     }
 
     try {
-      await onCreate(
-        normalizedName,
-      );
+      await onCreate(normalizedName);
 
       await Swal.fire({
         icon: "success",
-        title:
-          "Playlist criada",
+        title: "Playlist criada",
         timer: 1500,
         showConfirmButton: false,
       });
 
       setName("");
       onClose();
-    } catch (error: any) {
-      const message =
-        error?.response?.data
-          ?.message ??
-        "Não foi possível criar a playlist.";
+    } catch (error: unknown) {
+      const message = getApiErrorMessage(error, "Não foi possível criar a playlist.");
 
       await Swal.fire({
         icon: "error",
-        title:
-          "Erro ao criar",
-        text: Array.isArray(message)
-          ? message[0]
-          : message,
+        title: "Erro ao criar",
+        text: message,
       });
     }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-2xl bg-white shadow-2xl"
-      >
+      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
         <header className="flex items-center justify-between border-b px-6 py-4">
           <div>
-            <h2 className="text-xl font-black text-gray-900">
-              Nova playlist
-            </h2>
+            <h2 className="text-xl font-black text-gray-900">Nova playlist</h2>
 
-            <p className="text-sm text-gray-500">
-              Crie uma sequência de mídias.
-            </p>
+            <p className="text-sm text-gray-500">Crie uma sequência de mídias.</p>
           </div>
 
           <button
@@ -120,10 +89,7 @@ export default function CreatePlaylistModal({
         </header>
 
         <div className="p-6">
-          <label
-            htmlFor="playlist-name"
-            className="mb-2 block text-sm font-bold text-gray-700"
-          >
+          <label htmlFor="playlist-name" className="mb-2 block text-sm font-bold text-gray-700">
             Nome da playlist
           </label>
 
@@ -137,11 +103,7 @@ export default function CreatePlaylistModal({
               id="playlist-name"
               autoFocus
               value={name}
-              onChange={(event) =>
-                setName(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setName(event.target.value)}
               maxLength={100}
               disabled={saving}
               placeholder="Ex.: Promoções da semana"
@@ -162,17 +124,12 @@ export default function CreatePlaylistModal({
 
           <button
             type="submit"
-            disabled={
-              saving ||
-              !name.trim()
-            }
+            disabled={saving || !name.trim()}
             className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
           >
             <Save size={18} />
 
-            {saving
-              ? "Criando..."
-              : "Criar playlist"}
+            {saving ? "Criando..." : "Criar playlist"}
           </button>
         </footer>
       </form>
