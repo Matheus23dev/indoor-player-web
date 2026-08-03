@@ -174,7 +174,7 @@ export default function PlaylistDetails() {
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
-              onDragEnd={(event) => {
+              onDragEnd={(event: any) => {
                 void handleDragEnd(event);
               }}
             >

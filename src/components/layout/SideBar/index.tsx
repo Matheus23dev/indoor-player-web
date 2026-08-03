@@ -6,7 +6,6 @@ import {
   Image,
   ListVideo,
   LogOut,
-  MonitorPlay,
   MonitorSmartphone,
   ShieldCheck,
   UserRoundCog,
