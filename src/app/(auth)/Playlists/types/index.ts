@@ -6,8 +6,10 @@ export type {
   Playlist,
   PlaylistCount,
   PlaylistItem,
+  PlaylistOrientation,
   PlaylistSchedule,
   ReorderPlaylistItem,
   ReorderPlaylistPayload,
   UpdatePlaylistItemPayload,
+  UpdatePlaylistPayload,
 } from "./playlist.types";

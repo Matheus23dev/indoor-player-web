@@ -1,15 +1,16 @@
 import { useEffect, useState, type FormEvent } from "react";
 
-import { ListVideo, Save, X } from "lucide-react";
+import { Check, ListVideo, Monitor, Save, Smartphone, X } from "lucide-react";
 
 import Swal from "sweetalert2";
 import { getApiErrorMessage } from "../../../../lib/apiError";
+import type { PlaylistOrientation } from "../types";
 
 interface CreatePlaylistModalProps {
   open: boolean;
   saving: boolean;
   onClose: () => void;
-  onCreate: (name: string) => Promise<unknown>;
+  onCreate: (name: string, orientation: PlaylistOrientation) => Promise<unknown>;
 }
 
 export default function CreatePlaylistModal({
@@ -19,10 +20,12 @@ export default function CreatePlaylistModal({
   onCreate,
 }: CreatePlaylistModalProps) {
   const [name, setName] = useState("");
+  const [orientation, setOrientation] = useState<PlaylistOrientation>("LANDSCAPE");
 
   useEffect(() => {
     if (!open) {
       setName("");
+      setOrientation("LANDSCAPE");
     }
   }, [open]);
 
@@ -46,7 +49,7 @@ export default function CreatePlaylistModal({
     }
 
     try {
-      await onCreate(normalizedName);
+      await onCreate(normalizedName, orientation);
 
       await Swal.fire({
         icon: "success",
@@ -56,6 +59,7 @@ export default function CreatePlaylistModal({
       });
 
       setName("");
+      setOrientation("LANDSCAPE");
       onClose();
     } catch (error: unknown) {
       const message = getApiErrorMessage(error, "Não foi possível criar a playlist.");
@@ -70,7 +74,7 @@ export default function CreatePlaylistModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+      <form onSubmit={handleSubmit} className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
         <header className="flex items-center justify-between border-b px-6 py-4">
           <div>
             <h2 className="text-xl font-black text-gray-900">Nova playlist</h2>
@@ -88,7 +92,7 @@ export default function CreatePlaylistModal({
           </button>
         </header>
 
-        <div className="p-6">
+        <div className="space-y-5 p-6">
           <label htmlFor="playlist-name" className="mb-2 block text-sm font-bold text-gray-700">
             Nome da playlist
           </label>
@@ -110,6 +114,34 @@ export default function CreatePlaylistModal({
               className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
             />
           </div>
+
+          <fieldset>
+            <legend className="text-sm font-bold text-gray-700">Orientação da tela</legend>
+            <p className="mt-1 text-xs leading-5 text-gray-500">
+              O player ajustará a tela automaticamente quando esta playlist entrar em exibição.
+            </p>
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <OrientationOption
+                orientation="LANDSCAPE"
+                selected={orientation === "LANDSCAPE"}
+                icon={<Monitor size={22} />}
+                title="Horizontal"
+                description="Formato 16:9"
+                disabled={saving}
+                onSelect={setOrientation}
+              />
+              <OrientationOption
+                orientation="PORTRAIT"
+                selected={orientation === "PORTRAIT"}
+                icon={<Smartphone size={22} />}
+                title="Vertical"
+                description="Formato 9:16"
+                disabled={saving}
+                onSelect={setOrientation}
+              />
+            </div>
+          </fieldset>
         </div>
 
         <footer className="flex justify-end gap-3 border-t px-6 py-4">
@@ -134,5 +166,56 @@ export default function CreatePlaylistModal({
         </footer>
       </form>
     </div>
+  );
+}
+
+interface OrientationOptionProps {
+  orientation: PlaylistOrientation;
+  selected: boolean;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  disabled: boolean;
+  onSelect: (orientation: PlaylistOrientation) => void;
+}
+
+function OrientationOption({
+  orientation,
+  selected,
+  icon,
+  title,
+  description,
+  disabled,
+  onSelect,
+}: OrientationOptionProps) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      disabled={disabled}
+      onClick={() => onSelect(orientation)}
+      className={`relative flex items-center gap-3 rounded-xl border p-3 text-left transition disabled:opacity-50 ${
+        selected
+          ? "border-blue-500 bg-blue-50 text-blue-800 ring-2 ring-blue-100"
+          : "border-gray-200 bg-white text-gray-700 hover:border-blue-200 hover:bg-blue-50/50"
+      }`}
+    >
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+          selected ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500"
+        }`}
+      >
+        {icon}
+      </span>
+      <span className="min-w-0">
+        <strong className="block text-sm">{title}</strong>
+        <span className="block text-[11px] text-gray-500">{description}</span>
+      </span>
+      {selected && (
+        <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-white">
+          <Check size={11} />
+        </span>
+      )}
+    </button>
   );
 }

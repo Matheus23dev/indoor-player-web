@@ -7,12 +7,13 @@ import {
   deletePlaylistItem,
   getPlaylist,
   reorderPlaylist,
+  updatePlaylist as updatePlaylistRequest,
   updatePlaylistItem,
 } from "../services/Playlists.services";
 
 import type { Media } from "../../Medias/types";
 
-import type { Playlist, PlaylistItem } from "../types";
+import type { Playlist, PlaylistItem, PlaylistOrientation } from "../types";
 import { getApiErrorMessage } from "../../../../lib/apiError";
 
 export function usePlaylistDetails(playlistId?: string) {
@@ -165,6 +166,47 @@ export function usePlaylistDetails(playlistId?: string) {
     }
   }, []);
 
+  const updateOrientation = useCallback(
+    async (orientation: PlaylistOrientation) => {
+      if (!playlistId || playlist?.orientation === orientation) {
+        return playlist;
+      }
+
+      try {
+        setSaving(true);
+
+        const updatedPlaylist = await updatePlaylistRequest(playlistId, {
+          orientation,
+        });
+
+        setPlaylist((current) =>
+          current
+            ? {
+                ...current,
+                orientation: updatedPlaylist.orientation,
+                updatedAt: updatedPlaylist.updatedAt ?? new Date().toISOString(),
+              }
+            : current,
+        );
+
+        return updatedPlaylist;
+      } catch (error: unknown) {
+        const message = getApiErrorMessage(error, "Não foi possível atualizar a orientação.");
+
+        await Swal.fire({
+          icon: "error",
+          title: "Erro ao atualizar orientação",
+          text: message,
+        });
+
+        throw error;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [playlist, playlistId],
+  );
+
   const removeItem = useCallback(async (item: PlaylistItem) => {
     const result = await Swal.fire({
       icon: "warning",
@@ -315,6 +357,7 @@ export function usePlaylistDetails(playlistId?: string) {
     addMedia,
     updateDuration,
     updateMuted,
+    updateOrientation,
     removeItem,
     reorderItems,
   };

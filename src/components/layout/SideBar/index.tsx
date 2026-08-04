@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Image,
+  LayoutDashboard,
   ListVideo,
   LogOut,
   MonitorSmartphone,
@@ -15,7 +16,7 @@ import { NavLink } from "react-router-dom";
 
 import type { UserRole } from "../../../contexts/auth-context";
 import { useAuth } from "../../../contexts/useAuth";
-import indoorPlayerLogo from "../../../assets/images/monitor-tijuca.png"
+import indoorPlayerLogo from "../../../assets/images/monitor-tijuca.png";
 
 interface MenuItem {
   title: string;
@@ -31,6 +32,12 @@ interface AppSidebarProps {
 }
 
 const menuItems: MenuItem[] = [
+  {
+    title: "Visão geral",
+    description: "Resumo da operação",
+    icon: LayoutDashboard,
+    url: "/home/dashboard",
+  },
   {
     title: "Dispositivos",
     description: "Players e operação ao vivo",
@@ -121,16 +128,15 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
       <div className="relative flex min-h-24 items-center border-b border-white/10 px-5">
         <div className={`flex items-center gap-3 ${isExpanded ? "" : "lg:mx-auto"}`}>
           <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
-          <img
-  src={indoorPlayerLogo}
-  alt="Logo Indoor Player"
-  className="h-12 w-12 rounded-xl object-contain "
-/>
+            <img
+              src={indoorPlayerLogo}
+              alt="Logo Indoor Player"
+              className="h-12 w-12 rounded-xl object-contain "
+            />
           </div>
 
           <div className={`min-w-0 ${isExpanded ? "lg:block" : "lg:hidden"}`}>
             <h1 className="truncate text-lg font-bold tracking-tight text-white">Indoor Player</h1>
-          
           </div>
         </div>
       </div>

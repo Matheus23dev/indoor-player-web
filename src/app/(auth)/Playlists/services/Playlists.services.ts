@@ -9,6 +9,7 @@ import type {
   PlaylistItem,
   ReorderPlaylistPayload,
   UpdatePlaylistItemPayload,
+  UpdatePlaylistPayload,
 } from "../types";
 
 export async function getPlaylists(): Promise<Playlist[]> {
@@ -27,6 +28,12 @@ export async function getPlaylist(id: string): Promise<Playlist> {
 
 export async function createPlaylist(data: CreatePlaylistPayload): Promise<Playlist> {
   const response = await api.post<Playlist>("/playlists", data);
+
+  return response.data;
+}
+
+export async function updatePlaylist(id: string, data: UpdatePlaylistPayload): Promise<Playlist> {
+  const response = await api.patch<Playlist>(`/playlists/${id}`, data);
 
   return response.data;
 }

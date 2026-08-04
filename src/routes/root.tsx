@@ -6,6 +6,7 @@ import SignIn from "../app/SignIn";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
 const Home = lazy(() => import("@/app/(auth)/Home"));
+const Dashboard = lazy(() => import("@/app/(auth)/Dashboard"));
 const Devices = lazy(() => import("@/app/(auth)/Devices"));
 const Playlists = lazy(() => import("@/app/(auth)/Playlists"));
 const MediasPage = lazy(() => import("@/app/(auth)/Medias"));
@@ -42,7 +43,12 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="devices" replace />,
+        element: <Navigate to="dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: lazyPage(<Dashboard />),
+        errorElement,
       },
       {
         path: "devices",

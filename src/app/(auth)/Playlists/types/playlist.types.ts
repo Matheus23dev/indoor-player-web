@@ -1,5 +1,7 @@
 import type { Media } from "../../Medias/types";
 
+export type PlaylistOrientation = "LANDSCAPE" | "PORTRAIT";
+
 export interface PlaylistItem {
   id: string;
   playlistId: string;
@@ -35,6 +37,7 @@ export interface PlaylistCount {
 export interface Playlist {
   id: string;
   name: string;
+  orientation: PlaylistOrientation;
   companyId: string;
   createdAt: string;
   updatedAt: string;
@@ -47,6 +50,11 @@ export interface Playlist {
 
 export interface CreatePlaylistPayload {
   name: string;
+  orientation: PlaylistOrientation;
+}
+
+export interface UpdatePlaylistPayload {
+  orientation: PlaylistOrientation;
 }
 
 export interface AddPlaylistItemPayload {

@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 
 import { createPlaylist, deletePlaylist, getPlaylists } from "../services/Playlists.services";
 
-import type { Playlist } from "../types";
+import type { Playlist, PlaylistOrientation } from "../types";
 import { getApiErrorMessage } from "../../../../lib/apiError";
 
 export function usePlaylists() {
@@ -38,12 +38,13 @@ export function usePlaylists() {
     }
   }, []);
 
-  const addPlaylist = useCallback(async (name: string) => {
+  const addPlaylist = useCallback(async (name: string, orientation: PlaylistOrientation) => {
     try {
       setSaving(true);
 
       const playlist = await createPlaylist({
         name,
+        orientation,
       });
 
       setPlaylists((current) => [playlist, ...current]);

@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           sameSite: "strict",
         });
 
-        navigate("/home/devices");
+        navigate("/home/dashboard");
       } catch (error) {
         logout();
         showToast("Erro ao buscar dados do usuário", "error");

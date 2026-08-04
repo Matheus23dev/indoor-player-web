@@ -15,7 +15,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
-import { ArrowLeft, Clock3, Images, Loader2, Plus } from "lucide-react";
+import { ArrowLeft, Clock3, Images, Loader2, Monitor, Plus, Smartphone } from "lucide-react";
 
 import { useState } from "react";
 
@@ -68,6 +68,7 @@ export default function PlaylistDetails() {
     removeItem,
     reorderItems,
     updateMuted,
+    updateOrientation,
   } = usePlaylistDetails(id);
 
   async function handleDragEnd(event: DragEndEvent) {
@@ -131,15 +132,37 @@ export default function PlaylistDetails() {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setAddMediaModalOpen(true)}
-            disabled={saving}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Plus size={19} />
-            Adicionar mídia
-          </button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div
+              className="flex h-10 items-center rounded-xl border border-slate-200 bg-slate-50 p-1"
+              aria-label="Orientação da playlist"
+            >
+              <OrientationButton
+                label="Horizontal"
+                active={playlist.orientation === "LANDSCAPE"}
+                disabled={saving}
+                icon={<Monitor size={15} />}
+                onClick={() => void updateOrientation("LANDSCAPE")}
+              />
+              <OrientationButton
+                label="Vertical"
+                active={playlist.orientation === "PORTRAIT"}
+                disabled={saving}
+                icon={<Smartphone size={15} />}
+                onClick={() => void updateOrientation("PORTRAIT")}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setAddMediaModalOpen(true)}
+              disabled={saving}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Plus size={19} />
+              Adicionar mídia
+            </button>
+          </div>
         </header>
 
         <div className="grid gap-3 sm:grid-cols-3">
@@ -174,7 +197,7 @@ export default function PlaylistDetails() {
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
-              onDragEnd={(event: any) => {
+              onDragEnd={(event: DragEndEvent) => {
                 void handleDragEnd(event);
               }}
             >
@@ -233,6 +256,31 @@ export default function PlaylistDetails() {
         }}
       />
     </>
+  );
+}
+
+interface OrientationButtonProps {
+  label: string;
+  active: boolean;
+  disabled: boolean;
+  icon: React.ReactNode;
+  onClick: () => void;
+}
+
+function OrientationButton({ label, active, disabled, icon, onClick }: OrientationButtonProps) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      disabled={disabled}
+      onClick={onClick}
+      className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold transition disabled:opacity-50 ${
+        active ? "bg-white text-blue-700 shadow-sm ring-1 ring-slate-200" : "text-slate-500"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
 

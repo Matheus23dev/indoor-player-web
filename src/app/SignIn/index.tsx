@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 
 import SignInForm from "./components/SignInForm";
 import { useSignIn } from "./hooks/useSignIn";
-import indoorPlayerLogo from "../../assets/images/monitor-tijuca.png"
+import indoorPlayerLogo from "../../assets/images/monitor-tijuca.png";
 
 const capabilities = [
   {
@@ -38,16 +38,15 @@ const SignIn = () => {
 
         <div className="relative flex items-center gap-3">
           <div className="relative flex h-12 w-12 items-center justify-center rounded-xl">
-          <img
-  src={indoorPlayerLogo}
-  alt="Logo Indoor Player"
-  className="h-12 w-12 rounded-xl object-contain shadow-xl shadow-blue-950/30"
-/>
+            <img
+              src={indoorPlayerLogo}
+              alt="Logo Indoor Player"
+              className="h-12 w-12 rounded-xl object-contain shadow-xl shadow-blue-950/30"
+            />
           </div>
 
           <div>
             <p className="text-lg font-bold tracking-tight">Indoor Player</p>
-         
           </div>
         </div>
 

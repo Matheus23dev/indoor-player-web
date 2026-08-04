@@ -1,6 +1,15 @@
 import type { ReactNode } from "react";
 
-import { ArrowRight, CalendarClock, Clock3, Images, ListVideo, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarClock,
+  Clock3,
+  Images,
+  ListVideo,
+  Monitor,
+  Smartphone,
+  Trash2,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import type { Playlist } from "../types";
@@ -50,6 +59,15 @@ export default function PlaylistCard({ playlist, onDelete }: PlaylistCardProps) 
             <p className="mt-0.5 truncate text-[11px] text-slate-500">
               Atualizada em {formatDate(playlist.updatedAt)}
             </p>
+
+            <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+              {playlist.orientation === "PORTRAIT" ? (
+                <Smartphone size={11} />
+              ) : (
+                <Monitor size={11} />
+              )}
+              {playlist.orientation === "PORTRAIT" ? "Vertical" : "Horizontal"}
+            </span>
           </div>
 
           <button
