@@ -40,12 +40,8 @@ export function OverlayBarPreview({
 
   const barStyle: React.CSSProperties = {
     position: "absolute",
-    display: "flex",
-    flexDirection: isHorizontal ? "row" : "column",
-    alignItems: "center",
-    justifyContent: toJustifyContent(bar.contentPosition),
-    gap: `${Math.max(0, bar.contentGap / 3)}px`,
-    padding: `${Math.max(0, bar.contentPadding / 3)}px`,
+    boxSizing: "border-box",
+    overflow: "hidden",
     backgroundColor: toRgba(bar.backgroundColor, bar.opacity),
     ...(isHorizontal
       ? {
@@ -61,6 +57,17 @@ export function OverlayBarPreview({
           [bar.position === "LEFT" ? "left" : "right"]: 0,
         }),
   };
+  const contentStyle: React.CSSProperties = {
+    width: "100%",
+    height: "100%",
+    boxSizing: "border-box",
+    display: "flex",
+    flexDirection: isHorizontal ? "row" : "column",
+    alignItems: "center",
+    justifyContent: toJustifyContent(bar.contentPosition),
+    gap: `${Math.max(0, bar.contentGap / 3)}px`,
+    padding: `${Math.max(0, bar.contentPadding / 3)}px`,
+  };
 
   return (
     <div
@@ -72,61 +79,82 @@ export function OverlayBarPreview({
         Conteúdo da playlist
       </div>
 
-      <div style={barStyle} className="z-10 overflow-hidden">
-        {imageUrl && (
-          <img
-            src={imageUrl}
-            alt={bar.media?.name ?? "Imagem da barra"}
-            style={{
-              objectFit: fitToObjectFit(bar.fit),
-              flex: "0 0 auto",
-              ...(isHorizontal
-                ? {
-                    height: `${bar.imageSizePercent}%`,
-                    aspectRatio: "1 / 1",
-                    maxWidth: "42%",
-                  }
-                : {
-                    width: `${bar.imageSizePercent}%`,
-                    aspectRatio: "1 / 1",
-                    maxHeight: "42%",
-                  }),
-            }}
-          />
-        )}
-
-        {!imageUrl &&
-          contentItems.length === 0 &&
-          !dynamicText &&
-          !widgetText &&
-          showEmptyState && (
-            <div className="flex items-center justify-center text-white/60">
-              <ImageIcon size={isHorizontal ? 16 : 13} />
-            </div>
+      <div data-testid="overlay-bar-preview-bar" style={barStyle} className="z-10">
+        <div data-testid="overlay-bar-preview-content" style={contentStyle}>
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt={bar.media?.name ?? "Imagem da barra"}
+              style={{
+                objectFit: fitToObjectFit(bar.fit),
+                flex: "0 0 auto",
+                ...(isHorizontal
+                  ? {
+                      height: `${bar.imageSizePercent}%`,
+                      aspectRatio: "1 / 1",
+                      maxWidth: "42%",
+                    }
+                  : {
+                      width: `${bar.imageSizePercent}%`,
+                      aspectRatio: "1 / 1",
+                      maxHeight: "42%",
+                    }),
+              }}
+            />
           )}
 
-        {contentItems.map((item) =>
-          item.type === "SPACER" ? (
+          {!imageUrl &&
+            contentItems.length === 0 &&
+            !dynamicText &&
+            !widgetText &&
+            showEmptyState && (
+              <div className="flex items-center justify-center text-white/60">
+                <ImageIcon size={isHorizontal ? 16 : 13} />
+              </div>
+            )}
+
+          {contentItems.map((item) =>
+            item.type === "SPACER" ? (
+              <span
+                key={item.id}
+                aria-hidden="true"
+                style={
+                  isHorizontal
+                    ? { flex: `0 0 ${Math.max(0, item.spacerSize / 3)}px`, height: 1 }
+                    : { flex: `0 0 ${Math.max(0, item.spacerSize / 3)}px`, width: 1 }
+                }
+              />
+            ) : (
+              <span
+                key={item.id}
+                className="min-w-0 overflow-hidden leading-tight"
+                style={{
+                  color: item.textColor,
+                  fontSize: `${Math.min(18, Math.max(7, item.fontSize / 3))}px`,
+                  fontWeight: toFontWeight(item.fontWeight),
+                  fontFamily: toFontFamily(item.fontFamily),
+                  fontStyle: item.italic ? "italic" : "normal",
+                  backgroundColor: item.backgroundColor,
+                  padding: `${Math.max(0, item.padding / 3)}px`,
+                  borderRadius: `${Math.max(0, item.borderRadius / 3)}px`,
+                  writingMode: "horizontal-tb",
+                  whiteSpace: isHorizontal ? "nowrap" : "normal",
+                  overflowWrap: "anywhere",
+                  textAlign: "center",
+                  maxWidth: "100%",
+                }}
+              >
+                {resolveContentItemPreview(item, bar.weatherLocation)}
+              </span>
+            ),
+          )}
+
+          {contentItems.length === 0 && (dynamicText || widgetText) && (
             <span
-              key={item.id}
-              aria-hidden="true"
-              style={
-                isHorizontal
-                  ? { flex: `0 0 ${Math.max(0, item.spacerSize / 3)}px`, height: 1 }
-                  : { flex: `0 0 ${Math.max(0, item.spacerSize / 3)}px`, width: 1 }
-              }
-            />
-          ) : (
-            <span
-              key={item.id}
-              className="min-w-0 overflow-hidden leading-tight"
+              className="min-w-0 overflow-hidden font-bold leading-tight"
               style={{
-                color: item.textColor,
-                fontSize: `${Math.min(18, Math.max(7, item.fontSize / 3))}px`,
-                fontWeight: toFontWeight(item.fontWeight),
-                backgroundColor: item.backgroundColor,
-                padding: `${Math.max(0, item.padding / 3)}px`,
-                borderRadius: `${Math.max(0, item.borderRadius / 3)}px`,
+                color: bar.textColor,
+                fontSize: `${Math.min(18, Math.max(7, bar.fontSize / 3))}px`,
                 writingMode: "horizontal-tb",
                 whiteSpace: isHorizontal ? "nowrap" : "normal",
                 overflowWrap: "anywhere",
@@ -134,30 +162,23 @@ export function OverlayBarPreview({
                 maxWidth: "100%",
               }}
             >
-              {resolveContentItemPreview(item, bar.weatherLocation)}
+              {[dynamicText, widgetText].filter(Boolean).join(" · ")}
             </span>
-          ),
-        )}
-
-        {contentItems.length === 0 && (dynamicText || widgetText) && (
-          <span
-            className="min-w-0 overflow-hidden font-bold leading-tight"
-            style={{
-              color: bar.textColor,
-              fontSize: `${Math.min(18, Math.max(7, bar.fontSize / 3))}px`,
-              writingMode: "horizontal-tb",
-              whiteSpace: isHorizontal ? "nowrap" : "normal",
-              overflowWrap: "anywhere",
-              textAlign: "center",
-              maxWidth: "100%",
-            }}
-          >
-            {[dynamicText, widgetText].filter(Boolean).join(" · ")}
-          </span>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
+}
+
+function toFontFamily(
+  family: OverlayBarContentItem["fontFamily"],
+): React.CSSProperties["fontFamily"] {
+  if (family === "SANS_SERIF") return "Arial, sans-serif";
+  if (family === "SANS_SERIF_CONDENSED") return "'Arial Narrow', sans-serif";
+  if (family === "SERIF") return "Georgia, serif";
+  if (family === "MONOSPACE") return "monospace";
+  return "inherit";
 }
 
 function resolveContentItemPreview(item: OverlayBarContentItem, weatherLocation?: string | null) {

@@ -1,6 +1,11 @@
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 
-import type { OverlayBarContentItem, OverlayBarContentType, OverlayBarFontWeight } from "../types";
+import type {
+  OverlayBarContentItem,
+  OverlayBarContentType,
+  OverlayBarFontFamily,
+  OverlayBarFontWeight,
+} from "../types";
 
 interface OverlayBarContentEditorProps {
   items: OverlayBarContentItem[];
@@ -177,6 +182,35 @@ export function OverlayBarContentEditor({
                     <option value="BOLD">Negrito</option>
                   </select>
                 </label>
+                <label>
+                  <span className="text-xs font-bold text-slate-600">Fonte</span>
+                  <select
+                    value={item.fontFamily ?? "SYSTEM"}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      updateItem(item.id, {
+                        fontFamily: event.target.value as OverlayBarFontFamily,
+                      })
+                    }
+                    className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs outline-none"
+                  >
+                    <option value="SYSTEM">Padrão do aparelho</option>
+                    <option value="SANS_SERIF">Sem serifa</option>
+                    <option value="SANS_SERIF_CONDENSED">Sem serifa condensada</option>
+                    <option value="SERIF">Com serifa</option>
+                    <option value="MONOSPACE">Monoespaçada</option>
+                  </select>
+                </label>
+                <label className="flex min-h-9 items-center gap-2 self-end rounded-lg border border-slate-200 bg-white px-3 py-2">
+                  <input
+                    type="checkbox"
+                    checked={item.italic ?? false}
+                    disabled={disabled}
+                    onChange={(event) => updateItem(item.id, { italic: event.target.checked })}
+                    className="size-4 accent-blue-700"
+                  />
+                  <span className="text-xs font-bold text-slate-600">Itálico</span>
+                </label>
                 <ColorField
                   label="Fundo do bloco"
                   value={item.backgroundColor ?? ""}
@@ -250,6 +284,8 @@ function createContentItem(type: OverlayBarContentType): OverlayBarContentItem {
     textColor: "#FFFFFF",
     fontSize: 28,
     fontWeight: "BOLD",
+    fontFamily: "SYSTEM",
+    italic: false,
     padding: 0,
     borderRadius: 0,
     spacerSize: 24,

@@ -141,6 +141,8 @@ export function OverlayBarFormModal({
       ...item,
       text: item.text?.trim() || undefined,
       textColor: item.textColor.toUpperCase(),
+      fontFamily: item.fontFamily ?? "SYSTEM",
+      italic: item.italic ?? false,
       backgroundColor: item.backgroundColor?.toUpperCase() || undefined,
     }));
     const firstText = contentItems.find((item) => item.type === "TEXT");
@@ -201,8 +203,14 @@ export function OverlayBarFormModal({
           </button>
         </header>
 
-        <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="space-y-5 p-5 sm:p-6">
+        <div
+          data-testid="overlay-bar-modal-body"
+          className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] overflow-hidden lg:grid-cols-[1.15fr_0.85fr] lg:grid-rows-1"
+        >
+          <div
+            data-testid="overlay-bar-editor-scroll"
+            className="min-h-0 space-y-5 overflow-y-auto p-5 sm:p-6"
+          >
             <label className="block">
               <span className="text-sm font-bold text-slate-700">Nome da barra</span>
               <input
@@ -603,7 +611,10 @@ export function OverlayBarFormModal({
             </div>
           </div>
 
-          <aside className="border-t border-slate-200 bg-slate-50 p-5 lg:border-l lg:border-t-0 sm:p-6">
+          <aside
+            data-testid="overlay-bar-preview-panel"
+            className="min-h-0 overflow-hidden border-t border-slate-200 bg-slate-50 p-5 lg:border-l lg:border-t-0 sm:p-6"
+          >
             <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
               <ImageIcon size={17} className="text-blue-700" />
               Prévia na tela
@@ -654,6 +665,8 @@ function createLegacyContentItems(bar: OverlayBar): OverlayBarContentItem[] {
     textColor: bar.textColor ?? "#FFFFFF",
     fontSize: bar.fontSize ?? 28,
     fontWeight: "BOLD" as const,
+    fontFamily: "SYSTEM" as const,
+    italic: false,
     padding: 0,
     borderRadius: 0,
     spacerSize: 24,

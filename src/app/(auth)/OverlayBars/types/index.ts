@@ -4,6 +4,7 @@ export type {
   OverlayBarContentItem,
   OverlayBarContentType,
   OverlayBarFit,
+  OverlayBarFontFamily,
   OverlayBarContentPosition,
   OverlayBarFontWeight,
   OverlayBarPayload,
