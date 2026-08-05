@@ -9,6 +9,7 @@ const Home = lazy(() => import("@/app/(auth)/Home"));
 const Dashboard = lazy(() => import("@/app/(auth)/Dashboard"));
 const Devices = lazy(() => import("@/app/(auth)/Devices"));
 const Playlists = lazy(() => import("@/app/(auth)/Playlists"));
+const OverlayBars = lazy(() => import("@/app/(auth)/OverlayBars"));
 const MediasPage = lazy(() => import("@/app/(auth)/Medias"));
 const Schedules = lazy(() => import("@/app/(auth)/Schedules"));
 const PlaylistDetails = lazy(() => import("@/app/(auth)/Playlists/details"));
@@ -58,6 +59,11 @@ export const router = createBrowserRouter([
       {
         path: "playlists",
         element: lazyPage(<Playlists />),
+        errorElement,
+      },
+      {
+        path: "overlay-bars",
+        element: lazyPage(<OverlayBars />),
         errorElement,
       },
       {

@@ -15,7 +15,16 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
-import { ArrowLeft, Clock3, Images, Loader2, Monitor, Plus, Smartphone } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock3,
+  Images,
+  Layers3,
+  Loader2,
+  Monitor,
+  Plus,
+  Smartphone,
+} from "lucide-react";
 
 import { useState } from "react";
 
@@ -24,6 +33,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { PageContainer, PageScrollArea } from "../../../../components/layout/Page";
 
 import AddMediaModal from "../components/AddMediaModal";
+import { PlaylistBarsModal } from "../components/PlaylistBarsModal";
 import PlaylistItemCard from "../components/PlaylistItemCard";
 
 import { usePlaylistDetails } from "../hooks/usePlaylistDetails";
@@ -36,6 +46,7 @@ export default function PlaylistDetails() {
   const navigate = useNavigate();
 
   const [addMediaModalOpen, setAddMediaModalOpen] = useState(false);
+  const [barsModalOpen, setBarsModalOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -69,6 +80,8 @@ export default function PlaylistDetails() {
     reorderItems,
     updateMuted,
     updateOrientation,
+    attachOverlayBar,
+    detachOverlayBar,
   } = usePlaylistDetails(id);
 
   async function handleDragEnd(event: DragEndEvent) {
@@ -155,6 +168,16 @@ export default function PlaylistDetails() {
 
             <button
               type="button"
+              onClick={() => setBarsModalOpen(true)}
+              disabled={saving}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-700 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Layers3 size={18} />
+              Barras ({playlist.overlayBars?.length ?? 0})
+            </button>
+
+            <button
+              type="button"
               onClick={() => setAddMediaModalOpen(true)}
               disabled={saving}
               className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
@@ -165,7 +188,7 @@ export default function PlaylistDetails() {
           </div>
         </header>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
             icon={<Images size={21} />}
             label="Mídias"
@@ -182,6 +205,12 @@ export default function PlaylistDetails() {
             icon={<Clock3 size={21} />}
             label="Agendamentos"
             value={String(playlist.schedules?.length ?? 0)}
+          />
+
+          <SummaryCard
+            icon={<Layers3 size={21} />}
+            label="Barras fixas"
+            value={String(playlist.overlayBars?.length ?? 0)}
           />
         </div>
 
@@ -254,6 +283,15 @@ export default function PlaylistDetails() {
 
           await loadPlaylist();
         }}
+      />
+
+      <PlaylistBarsModal
+        open={barsModalOpen}
+        saving={saving}
+        currentBars={playlist.overlayBars ?? []}
+        onClose={() => setBarsModalOpen(false)}
+        onAttach={attachOverlayBar}
+        onDetach={detachOverlayBar}
       />
     </>
   );

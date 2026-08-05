@@ -8,6 +8,7 @@ import {
   ListVideo,
   LogOut,
   MonitorSmartphone,
+  PanelsTopLeft,
   ShieldCheck,
   UserRoundCog,
   X,
@@ -55,6 +56,12 @@ const menuItems: MenuItem[] = [
     description: "Sequências de conteúdo",
     icon: ListVideo,
     url: "/home/playlists",
+  },
+  {
+    title: "Barras fixas",
+    description: "Faixas, imagens e logos",
+    icon: PanelsTopLeft,
+    url: "/home/overlay-bars",
   },
   {
     title: "Agendamentos",

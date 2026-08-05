@@ -10,6 +10,10 @@ import {
   updatePlaylist as updatePlaylistRequest,
   updatePlaylistItem,
 } from "../services/Playlists.services";
+import {
+  attachOverlayBar as attachOverlayBarRequest,
+  detachOverlayBar as detachOverlayBarRequest,
+} from "../../OverlayBars/services/overlay-bars.service";
 
 import type { Media } from "../../Medias/types";
 
@@ -207,6 +211,79 @@ export function usePlaylistDetails(playlistId?: string) {
     [playlist, playlistId],
   );
 
+  const attachOverlayBar = useCallback(
+    async (overlayBarId: string) => {
+      if (!playlistId) return;
+
+      try {
+        setSaving(true);
+        const relation = await attachOverlayBarRequest(overlayBarId, playlistId);
+
+        setPlaylist((current) => {
+          if (!current) return current;
+          const overlayBars = current.overlayBars ?? [];
+
+          if (overlayBars.some((item) => item.overlayBarId === overlayBarId)) {
+            return current;
+          }
+
+          return {
+            ...current,
+            overlayBars: [...overlayBars, relation].sort(
+              (first, second) => first.order - second.order,
+            ),
+            updatedAt: new Date().toISOString(),
+          };
+        });
+
+        return relation;
+      } catch (error: unknown) {
+        await Swal.fire({
+          icon: "error",
+          title: "Erro ao adicionar barra",
+          text: getApiErrorMessage(error, "Não foi possível adicionar a barra à playlist."),
+        });
+        throw error;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [playlistId],
+  );
+
+  const detachOverlayBar = useCallback(
+    async (overlayBarId: string) => {
+      if (!playlistId) return;
+
+      try {
+        setSaving(true);
+        await detachOverlayBarRequest(overlayBarId, playlistId);
+
+        setPlaylist((current) =>
+          current
+            ? {
+                ...current,
+                overlayBars: (current.overlayBars ?? [])
+                  .filter((item) => item.overlayBarId !== overlayBarId)
+                  .map((item, index) => ({ ...item, order: index + 1 })),
+                updatedAt: new Date().toISOString(),
+              }
+            : current,
+        );
+      } catch (error: unknown) {
+        await Swal.fire({
+          icon: "error",
+          title: "Erro ao remover barra",
+          text: getApiErrorMessage(error, "Não foi possível remover a barra da playlist."),
+        });
+        throw error;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [playlistId],
+  );
+
   const removeItem = useCallback(async (item: PlaylistItem) => {
     const result = await Swal.fire({
       icon: "warning",
@@ -358,6 +435,8 @@ export function usePlaylistDetails(playlistId?: string) {
     updateDuration,
     updateMuted,
     updateOrientation,
+    attachOverlayBar,
+    detachOverlayBar,
     removeItem,
     reorderItems,
   };

@@ -1,4 +1,5 @@
 import type { Media } from "../../Medias/types";
+import type { PlaylistOverlayBar } from "../../OverlayBars/types";
 
 export type PlaylistOrientation = "LANDSCAPE" | "PORTRAIT";
 
@@ -31,6 +32,7 @@ export interface PlaylistSchedule {
 
 export interface PlaylistCount {
   items: number;
+  overlayBars?: number;
   schedules: number;
 }
 
@@ -43,6 +45,7 @@ export interface Playlist {
   updatedAt: string;
 
   items: PlaylistItem[];
+  overlayBars?: PlaylistOverlayBar[];
   schedules?: PlaylistSchedule[];
 
   _count?: PlaylistCount;
