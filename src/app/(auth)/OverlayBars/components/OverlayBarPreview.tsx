@@ -9,6 +9,7 @@ const REFERENCE_PLAYER_WIDTH = 960;
 const REFERENCE_PLAYER_HEIGHT = 540;
 const FALLBACK_PREVIEW_SCALE = 1 / 3;
 const REFERENCE_TV_SAFE_INSET = 16;
+const REFERENCE_TV_LATERAL_SAFE_INSET = 12;
 const MAX_BLOCK_CROSS_PADDING_SHARE = 0.15;
 
 export type OverlayBarPreviewData = Pick<
@@ -149,7 +150,7 @@ function PreviewBar({ bar, images, insets, previewScale, showEmptyState }: Previ
           paddingTop: `${scalePreviewValue(bar.contentPadding, previewScale)}px`,
           paddingBottom: `${scalePreviewValue(bar.contentPadding, previewScale)}px`,
         }),
-    ...getTvSafeContentStyle(bar.position, previewScale, bar.contentAlignment),
+    ...getTvSafeContentStyle(bar.position, previewScale),
   };
 
   return (
@@ -400,17 +401,21 @@ function getOverlayBarStyle(bar: OverlayBarPreviewData, insets: OverlayBarInsets
 function getTvSafeContentStyle(
   position: OverlayBar["position"],
   previewScale: number,
-  contentAlignment: OverlayBar["contentAlignment"],
 ): CSSProperties {
   const safeInset = `${scalePreviewValue(REFERENCE_TV_SAFE_INSET, previewScale)}px`;
 
   if (position === "TOP") return { paddingTop: safeInset };
   if (position === "BOTTOM") return { paddingBottom: safeInset };
-  if (position === "LEFT") {
-    return contentAlignment === "START" ? { paddingLeft: safeInset } : {};
-  }
 
-  return contentAlignment === "END" ? { paddingRight: safeInset } : {};
+  const lateralSafeInset = `${scalePreviewValue(
+    REFERENCE_TV_LATERAL_SAFE_INSET,
+    previewScale,
+  )}px`;
+
+  return {
+    paddingLeft: lateralSafeInset,
+    paddingRight: lateralSafeInset,
+  };
 }
 
 function getTextBlockPadding(

@@ -90,9 +90,9 @@ describe("layout das barras", () => {
     expect(content).toHaveStyle({
       paddingTop: "4px",
       paddingBottom: "4px",
+      paddingLeft: "4px",
+      paddingRight: "4px",
     });
-    expect(content.style.paddingLeft).toBe("");
-    expect(content.style.paddingRight).toBe("");
   });
 
   it("protege a lateral quando o conteudo aponta para a borda externa", () => {
@@ -103,7 +103,8 @@ describe("layout das barras", () => {
     );
 
     expect(getByTestId("overlay-bar-preview-content")).toHaveStyle({
-      paddingLeft: "5.333px",
+      paddingLeft: "4px",
+      paddingRight: "4px",
     });
   });
 
