@@ -27,7 +27,7 @@ const SignIn = () => {
   const { isAuthenticated } = useSignIn();
 
   if (isAuthenticated) {
-    return <Navigate to="/home/devices" replace />;
+    return <Navigate to="/home/dashboard" replace />;
   }
 
   return (

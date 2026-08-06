@@ -343,7 +343,7 @@ export function OverlayBarFormModal({
             <div className="grid gap-4 sm:grid-cols-2">
               <label>
                 <span className="flex items-center justify-between text-sm font-bold text-slate-700">
-                  Distância das bordas
+                  Recuo nas extremidades
                   <strong className="text-blue-700">{form.contentPadding}px</strong>
                 </span>
                 <input
@@ -361,7 +361,8 @@ export function OverlayBarFormModal({
                   className="mt-3 w-full accent-blue-700"
                 />
                 <span className="mt-1 block text-[11px] text-slate-500">
-                  Cria um respiro entre o conteúdo e as bordas da barra.
+                  Nas barras horizontais afasta das laterais; nas barras laterais afasta do topo e
+                  do rodapé.
                 </span>
               </label>
 

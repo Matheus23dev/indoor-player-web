@@ -1,9 +1,11 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { OverlayBar } from "../types";
 import { OverlayBarFormModal } from "./OverlayBarFormModal";
 import { OverlayBarPreview } from "./OverlayBarPreview";
+
+afterEach(cleanup);
 
 const previewBar: OverlayBar = {
   id: "bar-1",
@@ -45,21 +47,38 @@ const previewBar: OverlayBar = {
 };
 
 describe("layout das barras", () => {
-  it("mantém a espessura externa e aplica o padding somente no conteúdo", () => {
-    render(<OverlayBarPreview bar={previewBar} />);
+  it("mantém a espessura e aplica o recuo somente nas extremidades horizontais", () => {
+    const { getByTestId, getByText } = render(<OverlayBarPreview bar={previewBar} />);
 
-    expect(screen.getByTestId("overlay-bar-preview-bar")).toHaveStyle({
+    expect(getByTestId("overlay-bar-preview-bar")).toHaveStyle({
       height: "12%",
       boxSizing: "border-box",
     });
-    expect(screen.getByTestId("overlay-bar-preview-content")).toHaveStyle({
+    const content = getByTestId("overlay-bar-preview-content");
+    expect(content).toHaveStyle({
       height: "100%",
-      padding: "4px",
+      paddingLeft: "4px",
+      paddingRight: "4px",
     });
-    expect(screen.getByText("Mensagem")).toHaveStyle({
+    expect(content.style.paddingTop).toBe("");
+    expect(content.style.paddingBottom).toBe("");
+    expect(getByText("Mensagem")).toHaveStyle({
+      fontSize: "10px",
       fontFamily: "monospace",
       fontStyle: "italic",
     });
+  });
+
+  it("aplica o recuo no topo e rodapé quando a barra é lateral", () => {
+    const { getByTestId } = render(<OverlayBarPreview bar={{ ...previewBar, position: "LEFT" }} />);
+
+    const content = getByTestId("overlay-bar-preview-content");
+    expect(content).toHaveStyle({
+      paddingTop: "4px",
+      paddingBottom: "4px",
+    });
+    expect(content.style.paddingLeft).toBe("");
+    expect(content.style.paddingRight).toBe("");
   });
 
   it("mantém a prévia fixa e o scroll apenas no editor esquerdo", () => {

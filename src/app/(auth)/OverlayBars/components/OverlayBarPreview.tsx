@@ -3,6 +3,8 @@ import { ImageIcon } from "lucide-react";
 import { resolveMediaUrl } from "../../../../lib/mediaUrl";
 import type { OverlayBar, OverlayBarContentItem } from "../types";
 
+const PREVIEW_SCALE = 1 / 3;
+
 interface OverlayBarPreviewProps {
   bar: Pick<
     OverlayBar,
@@ -65,8 +67,16 @@ export function OverlayBarPreview({
     flexDirection: isHorizontal ? "row" : "column",
     alignItems: "center",
     justifyContent: toJustifyContent(bar.contentPosition),
-    gap: `${Math.max(0, bar.contentGap / 3)}px`,
-    padding: `${Math.max(0, bar.contentPadding / 3)}px`,
+    gap: `${scalePreviewValue(bar.contentGap)}px`,
+    ...(isHorizontal
+      ? {
+          paddingLeft: `${scalePreviewValue(bar.contentPadding)}px`,
+          paddingRight: `${scalePreviewValue(bar.contentPadding)}px`,
+        }
+      : {
+          paddingTop: `${scalePreviewValue(bar.contentPadding)}px`,
+          paddingBottom: `${scalePreviewValue(bar.contentPadding)}px`,
+        }),
   };
 
   return (
@@ -92,12 +102,12 @@ export function OverlayBarPreview({
                   ? {
                       height: `${bar.imageSizePercent}%`,
                       aspectRatio: "1 / 1",
-                      maxWidth: "42%",
+                      maxWidth: "100%",
                     }
                   : {
                       width: `${bar.imageSizePercent}%`,
                       aspectRatio: "1 / 1",
-                      maxHeight: "42%",
+                      maxHeight: "100%",
                     }),
               }}
             />
@@ -130,18 +140,24 @@ export function OverlayBarPreview({
                 className="min-w-0 overflow-hidden leading-tight"
                 style={{
                   color: item.textColor,
-                  fontSize: `${Math.min(18, Math.max(7, item.fontSize / 3))}px`,
+                  fontSize: `${scalePreviewValue(item.fontSize)}px`,
+                  lineHeight: 1.2,
                   fontWeight: toFontWeight(item.fontWeight),
                   fontFamily: toFontFamily(item.fontFamily),
                   fontStyle: item.italic ? "italic" : "normal",
                   backgroundColor: item.backgroundColor,
-                  padding: `${Math.max(0, item.padding / 3)}px`,
-                  borderRadius: `${Math.max(0, item.borderRadius / 3)}px`,
+                  padding: `${scalePreviewValue(item.padding)}px`,
+                  borderRadius: `${scalePreviewValue(item.borderRadius)}px`,
                   writingMode: "horizontal-tb",
-                  whiteSpace: isHorizontal ? "nowrap" : "normal",
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  WebkitLineClamp: isHorizontal ? 2 : 6,
+                  whiteSpace: "normal",
                   overflowWrap: "anywhere",
                   textAlign: "center",
+                  flexShrink: 1,
                   maxWidth: "100%",
+                  maxHeight: "100%",
                 }}
               >
                 {resolveContentItemPreview(item, bar.weatherLocation)}
@@ -154,12 +170,18 @@ export function OverlayBarPreview({
               className="min-w-0 overflow-hidden font-bold leading-tight"
               style={{
                 color: bar.textColor,
-                fontSize: `${Math.min(18, Math.max(7, bar.fontSize / 3))}px`,
+                fontSize: `${scalePreviewValue(bar.fontSize)}px`,
+                lineHeight: 1.2,
                 writingMode: "horizontal-tb",
-                whiteSpace: isHorizontal ? "nowrap" : "normal",
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: isHorizontal ? 2 : 6,
+                whiteSpace: "normal",
                 overflowWrap: "anywhere",
                 textAlign: "center",
+                flexShrink: 1,
                 maxWidth: "100%",
+                maxHeight: "100%",
               }}
             >
               {[dynamicText, widgetText].filter(Boolean).join(" · ")}
@@ -186,7 +208,7 @@ function resolveContentItemPreview(item: OverlayBarContentItem, weatherLocation?
   if (item.type === "CLOCK") return "09:41";
   if (item.type === "DATE") return "05/08/2026";
   if (item.type === "WEATHER") {
-    return `24°C · Ensolarado${weatherLocation ? ` · ${weatherLocation}` : ""}`;
+    return `24°C · Ensolarado${weatherLocation ? ` · ${weatherLocation}` : ""} · Dados: Open-Meteo`;
   }
   return "";
 }
@@ -209,7 +231,7 @@ function getWidgetPreview(widgetType: OverlayBar["widgetType"], weatherLocation?
   if (widgetType === "CLOCK") return "09:41";
   if (widgetType === "DATE") return "05/08/2026";
   if (widgetType === "WEATHER") {
-    return `24°C · Ensolarado${weatherLocation ? ` · ${weatherLocation}` : ""}`;
+    return `24°C · Ensolarado${weatherLocation ? ` · ${weatherLocation}` : ""} · Dados: Open-Meteo`;
   }
   return "";
 }
@@ -228,6 +250,10 @@ function fitToObjectFit(fit: OverlayBar["fit"]): React.CSSProperties["objectFit"
   if (fit === "COVER") return "cover";
   if (fit === "FILL") return "fill";
   return "contain";
+}
+
+function scalePreviewValue(value: number) {
+  return Math.max(0, value * PREVIEW_SCALE);
 }
 
 function toRgba(hex: string, opacity: number) {
