@@ -25,6 +25,7 @@ export interface OverlayBarContentItem {
   borderRadius: number;
   spacerSize: number;
   mediaId?: string | null;
+  media?: Media | null;
   imageSizePercent?: number;
   fit?: OverlayBarFit;
   offsetX?: number;

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ImageOff, Play, Radio, Volume2, VolumeX, WifiOff } from "lucide-react";
 
+import { OverlayBarsPreview } from "../../OverlayBars/components/OverlayBarPreview";
 import { resolveMediaUrl } from "../services/devices.services";
 
 import type { DevicePreview as DevicePreviewData, DeviceStatus } from "../types/device";
@@ -18,6 +19,22 @@ export function DevicePreview({ preview, status }: Props) {
   const media = preview.media;
 
   const mediaUrl = media ? resolveMediaUrl(media.fileUrl) : null;
+
+  const bars = useMemo(() => preview.playlist?.bars ?? [], [preview.playlist?.bars]);
+
+  const contentImages = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          bars.flatMap((bar) =>
+            (bar.contentItems ?? []).flatMap((item) =>
+              item.media ? [[item.media.id, item.media] as const] : [],
+            ),
+          ),
+        ).values(),
+      ),
+    [bars],
+  );
 
   const [liveCurrentTime, setLiveCurrentTime] = useState(preview.playback.currentTime);
 
@@ -87,33 +104,40 @@ export function DevicePreview({ preview, status }: Props) {
 
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-950">
-      <div className="relative aspect-[16/7] overflow-hidden bg-black">
-        {media && mediaUrl ? (
-          media.type === "IMAGE" ? (
-            <img src={mediaUrl} alt={media.name} className="h-full w-full object-contain" />
-          ) : (
-            <video
-              ref={videoRef}
-              src={mediaUrl}
-              muted
-              autoPlay
-              loop
-              playsInline
-              preload="metadata"
-              className="h-full w-full object-contain"
-            />
-          )
-        ) : (
-          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-            <ImageOff size={30} className="text-slate-500" />
+      <div className="relative overflow-hidden bg-black">
+        <OverlayBarsPreview
+          bars={bars}
+          images={contentImages}
+          className="rounded-none"
+          mediaContent={
+            media && mediaUrl ? (
+              media.type === "IMAGE" ? (
+                <img src={mediaUrl} alt={media.name} className="h-full w-full object-contain" />
+              ) : (
+                <video
+                  ref={videoRef}
+                  src={mediaUrl}
+                  muted
+                  autoPlay
+                  loop
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full object-contain"
+                />
+              )
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+                <ImageOff size={30} className="text-slate-500" />
 
-            <p className="mt-3 text-sm font-bold text-slate-300">Nenhuma mídia em reprodução</p>
+                <p className="mt-3 text-sm font-bold text-slate-300">Nenhuma mídia em reprodução</p>
 
-            <p className="mt-1 text-xs text-slate-500">
-              O conteúdo aparecerá quando o player iniciar uma playlist.
-            </p>
-          </div>
-        )}
+                <p className="mt-1 text-xs text-slate-500">
+                  O conteúdo aparecerá quando o player iniciar uma playlist.
+                </p>
+              </div>
+            )
+          }
+        />
 
         <div className="absolute left-2.5 top-2.5">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur">

@@ -1,3 +1,5 @@
+import type { OverlayBar } from "../../OverlayBars/types";
+
 export type DeviceStatus = "ONLINE" | "OFFLINE";
 
 export type MediaType = "IMAGE" | "VIDEO";
@@ -13,6 +15,8 @@ export interface DevicePreviewSchedule {
 export interface DevicePreviewPlaylist {
   id: string;
   name: string;
+  orientation: "LANDSCAPE" | "PORTRAIT";
+  bars: OverlayBar[];
 }
 
 export interface DevicePreviewItem {

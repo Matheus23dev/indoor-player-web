@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ImageIcon } from "lucide-react";
 
 import { resolveMediaUrl } from "../../../../lib/mediaUrl";
@@ -9,8 +9,10 @@ const REFERENCE_PLAYER_WIDTH = 960;
 const REFERENCE_PLAYER_HEIGHT = 540;
 const FALLBACK_PREVIEW_SCALE = 1 / 3;
 const REFERENCE_TV_SAFE_INSET = 16;
-const REFERENCE_TV_LATERAL_SAFE_INSET = 12;
+const REFERENCE_TV_LATERAL_SAFE_INSET = 24;
+const REFERENCE_LATERAL_INNER_INSET = 4;
 const MAX_BLOCK_CROSS_PADDING_SHARE = 0.15;
+const PREVIEW_DATE = "05/\u200B08/\u200B2026";
 
 export type OverlayBarPreviewData = Pick<
   OverlayBar,
@@ -45,6 +47,7 @@ interface OverlayBarsPreviewProps {
   images?: Media[];
   className?: string;
   showEmptyState?: boolean;
+  mediaContent?: ReactNode;
 }
 
 export interface OverlayBarInsets {
@@ -75,6 +78,7 @@ export function OverlayBarsPreview({
   images = [],
   className = "",
   showEmptyState = false,
+  mediaContent,
 }: OverlayBarsPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
   const previewScale = usePreviewScale(previewRef);
@@ -92,10 +96,14 @@ export function OverlayBarsPreview({
         className="absolute overflow-hidden bg-slate-950"
         style={getMediaFrameStyle(mediaInsets)}
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#334155_0,_#0f172a_66%)]" />
-        <div className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-          Conteúdo da playlist
-        </div>
+        {mediaContent ?? (
+          <>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#334155_0,_#0f172a_66%)]" />
+            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Conteúdo da playlist
+            </div>
+          </>
+        )}
       </div>
 
       {bars.map((bar, index) => (
@@ -262,7 +270,7 @@ function PreviewContentItem({
   const transform = `translate(${scaleSignedPreviewValue(item.offsetX ?? 0, previewScale)}px, ${scaleSignedPreviewValue(item.offsetY ?? 0, previewScale)}px)`;
 
   if (item.type === "IMAGE") {
-    const media = images.find((image) => image.id === item.mediaId);
+    const media = item.media ?? images.find((image) => image.id === item.mediaId);
 
     if (!media) {
       return null;
@@ -324,8 +332,11 @@ function PreviewContentItem({
         WebkitLineClamp: isHorizontal ? 2 : 6,
         whiteSpace: "normal",
         overflowWrap: "anywhere",
+        wordBreak: "normal",
+        hyphens: "none",
         textAlign: "center",
-        flexShrink: 1,
+        width: isHorizontal ? undefined : "100%",
+        flexShrink: isHorizontal ? 1 : 0,
         maxWidth: "100%",
         maxHeight: "100%",
       }}
@@ -407,15 +418,14 @@ function getTvSafeContentStyle(
   if (position === "TOP") return { paddingTop: safeInset };
   if (position === "BOTTOM") return { paddingBottom: safeInset };
 
-  const lateralSafeInset = `${scalePreviewValue(
-    REFERENCE_TV_LATERAL_SAFE_INSET,
-    previewScale,
-  )}px`;
+  const lateralSafeInset = `${scalePreviewValue(REFERENCE_TV_LATERAL_SAFE_INSET, previewScale)}px`;
+  const innerInset = `${scalePreviewValue(REFERENCE_LATERAL_INNER_INSET, previewScale)}px`;
 
-  return {
-    paddingLeft: lateralSafeInset,
-    paddingRight: lateralSafeInset,
-  };
+  if (position === "LEFT") {
+    return { paddingLeft: lateralSafeInset, paddingRight: innerInset };
+  }
+
+  return { paddingLeft: innerInset, paddingRight: lateralSafeInset };
 }
 
 function getTextBlockPadding(
@@ -486,7 +496,7 @@ function toFontFamily(family: OverlayBarContentItem["fontFamily"]): CSSPropertie
 function resolveContentItemPreview(item: OverlayBarContentItem, weatherLocation?: string | null) {
   if (item.type === "TEXT") return resolvePreviewText(item.text ?? "", weatherLocation);
   if (item.type === "CLOCK") return "09:41";
-  if (item.type === "DATE") return "05/08/2026";
+  if (item.type === "DATE") return PREVIEW_DATE;
   if (item.type === "WEATHER") {
     return `24°C · Ensolarado${weatherLocation ? ` · ${weatherLocation}` : ""} · Dados: Open-Meteo`;
   }
@@ -515,7 +525,7 @@ function toAlignItems(position: OverlayBar["contentAlignment"]): CSSProperties["
 
 function getWidgetPreview(widgetType: OverlayBar["widgetType"], weatherLocation?: string | null) {
   if (widgetType === "CLOCK") return "09:41";
-  if (widgetType === "DATE") return "05/08/2026";
+  if (widgetType === "DATE") return PREVIEW_DATE;
   if (widgetType === "WEATHER") {
     return `24°C · Ensolarado${weatherLocation ? ` · ${weatherLocation}` : ""} · Dados: Open-Meteo`;
   }
@@ -525,7 +535,7 @@ function getWidgetPreview(widgetType: OverlayBar["widgetType"], weatherLocation?
 function resolvePreviewText(template: string, weatherLocation?: string | null) {
   return template
     .replace(/{{hora}}/g, "09:41")
-    .replace(/{{data}}/g, "05/08/2026")
+    .replace(/{{data}}/g, PREVIEW_DATE)
     .replace(/{{dia_semana}}/g, "quarta-feira")
     .replace(/{{temperatura}}/g, "24°C")
     .replace(/{{clima}}/g, "Ensolarado")

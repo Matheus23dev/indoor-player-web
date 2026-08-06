@@ -90,21 +90,19 @@ describe("layout das barras", () => {
     expect(content).toHaveStyle({
       paddingTop: "4px",
       paddingBottom: "4px",
-      paddingLeft: "4px",
-      paddingRight: "4px",
+      paddingLeft: "8px",
+      paddingRight: "1.333px",
     });
   });
 
   it("protege a lateral quando o conteudo aponta para a borda externa", () => {
     const { getByTestId } = render(
-      <OverlayBarPreview
-        bar={{ ...previewBar, position: "LEFT", contentAlignment: "START" }}
-      />,
+      <OverlayBarPreview bar={{ ...previewBar, position: "LEFT", contentAlignment: "START" }} />,
     );
 
     expect(getByTestId("overlay-bar-preview-content")).toHaveStyle({
-      paddingLeft: "4px",
-      paddingRight: "4px",
+      paddingLeft: "8px",
+      paddingRight: "1.333px",
     });
   });
 
@@ -192,6 +190,19 @@ describe("layout das barras", () => {
       right: "0%",
       bottom: "12%",
     });
+  });
+
+  it("usa a mídia informada dentro da composição das barras", () => {
+    const { getByTestId } = render(
+      <OverlayBarsPreview
+        bars={[]}
+        mediaContent={<div data-testid="current-device-media">Mídia atual</div>}
+      />,
+    );
+
+    expect(getByTestId("overlay-bars-preview-media")).toContainElement(
+      getByTestId("current-device-media"),
+    );
   });
 
   it("mantém a prévia fixa e o scroll apenas no editor esquerdo", () => {
