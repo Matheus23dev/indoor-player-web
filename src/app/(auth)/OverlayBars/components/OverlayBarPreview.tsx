@@ -77,7 +77,8 @@ export function OverlayBarsPreview({
 }: OverlayBarsPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
   const previewScale = usePreviewScale(previewRef);
-  const insets = getOverlayBarInsets(bars);
+  const barInsets = getOverlayBarInsets(bars);
+  const mediaInsets = getMediaFrameInsets(bars);
 
   return (
     <div
@@ -88,7 +89,7 @@ export function OverlayBarsPreview({
       <div
         data-testid="overlay-bars-preview-media"
         className="absolute overflow-hidden bg-slate-950"
-        style={getMediaFrameStyle(insets)}
+        style={getMediaFrameStyle(mediaInsets)}
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#334155_0,_#0f172a_66%)]" />
         <div className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -101,7 +102,7 @@ export function OverlayBarsPreview({
           key={`${bar.position}-${index}`}
           bar={bar}
           images={images}
-          insets={insets}
+          insets={barInsets}
           previewScale={previewScale}
           showEmptyState={showEmptyState}
         />
@@ -148,7 +149,7 @@ function PreviewBar({ bar, images, insets, previewScale, showEmptyState }: Previ
           paddingTop: `${scalePreviewValue(bar.contentPadding, previewScale)}px`,
           paddingBottom: `${scalePreviewValue(bar.contentPadding, previewScale)}px`,
         }),
-    ...getTvSafeContentStyle(bar.position, previewScale),
+    ...getTvSafeContentStyle(bar.position, previewScale, bar.contentAlignment),
   };
 
   return (
@@ -161,15 +162,14 @@ function PreviewBar({ bar, images, insets, previewScale, showEmptyState }: Previ
             style={{
               objectFit: fitToObjectFit(bar.fit),
               flex: "0 0 auto",
+              aspectRatio: getPreviewImageAspectRatio(bar.fit),
               ...(isHorizontal
                 ? {
                     height: `${bar.imageSizePercent}%`,
-                    aspectRatio: "1 / 1",
                     maxWidth: "100%",
                   }
                 : {
                     width: `${bar.imageSizePercent}%`,
-                    aspectRatio: "1 / 1",
                     maxHeight: "100%",
                   }),
             }}
@@ -275,7 +275,7 @@ function PreviewContentItem({
         style={{
           objectFit: fitToObjectFit(item.fit ?? "CONTAIN"),
           flex: "0 0 auto",
-          aspectRatio: "1 / 1",
+          aspectRatio: getPreviewImageAspectRatio(item.fit ?? "CONTAIN"),
           transform,
           ...(isHorizontal
             ? {
@@ -349,6 +349,25 @@ function getOverlayBarInsets(bars: OverlayBarPreviewData[]): OverlayBarInsets {
   );
 }
 
+function getMediaFrameInsets(bars: OverlayBarPreviewData[]): OverlayBarInsets {
+  if (bars.length !== 2) {
+    return createEmptyInsets();
+  }
+
+  const horizontalBar = bars.find(isHorizontalBar);
+  const verticalBar = bars.find((bar) => !isHorizontalBar(bar));
+
+  if (
+    !horizontalBar ||
+    !verticalBar ||
+    Math.abs(horizontalBar.sizePercent - verticalBar.sizePercent) > 0.01
+  ) {
+    return createEmptyInsets();
+  }
+
+  return getOverlayBarInsets(bars);
+}
+
 function getMediaFrameStyle(insets: OverlayBarInsets): CSSProperties {
   return {
     top: `${insets.top}%`,
@@ -381,13 +400,17 @@ function getOverlayBarStyle(bar: OverlayBarPreviewData, insets: OverlayBarInsets
 function getTvSafeContentStyle(
   position: OverlayBar["position"],
   previewScale: number,
+  contentAlignment: OverlayBar["contentAlignment"],
 ): CSSProperties {
   const safeInset = `${scalePreviewValue(REFERENCE_TV_SAFE_INSET, previewScale)}px`;
 
   if (position === "TOP") return { paddingTop: safeInset };
   if (position === "BOTTOM") return { paddingBottom: safeInset };
-  if (position === "LEFT") return { paddingLeft: safeInset };
-  return { paddingRight: safeInset };
+  if (position === "LEFT") {
+    return contentAlignment === "START" ? { paddingLeft: safeInset } : {};
+  }
+
+  return contentAlignment === "END" ? { paddingRight: safeInset } : {};
 }
 
 function getTextBlockPadding(
@@ -510,6 +533,10 @@ function fitToObjectFit(fit: OverlayBar["fit"]): CSSProperties["objectFit"] {
   return "contain";
 }
 
+function getPreviewImageAspectRatio(fit: OverlayBar["fit"]) {
+  return fit === "CONTAIN" ? "auto" : "1 / 1";
+}
+
 function scalePreviewValue(value: number, previewScale: number) {
   return Math.round(Math.max(0, value * previewScale) * 1000) / 1000;
 }
@@ -527,4 +554,12 @@ function toRgba(hex: string, opacity: number) {
   const alpha = Math.min(100, Math.max(0, opacity)) / 100;
 
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function isHorizontalBar(bar: Pick<OverlayBarPreviewData, "position">) {
+  return bar.position === "TOP" || bar.position === "BOTTOM";
+}
+
+function createEmptyInsets(): OverlayBarInsets {
+  return { top: 0, right: 0, bottom: 0, left: 0 };
 }

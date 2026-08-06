@@ -57,6 +57,12 @@ describe("layout das barras", () => {
       height: "12%",
       boxSizing: "border-box",
     });
+    expect(getByTestId("overlay-bars-preview-media")).toHaveStyle({
+      top: "0%",
+      right: "0%",
+      bottom: "0%",
+      left: "0%",
+    });
     const content = getByTestId("overlay-bar-preview-content");
     expect(content).toHaveStyle({
       height: "100%",
@@ -84,9 +90,21 @@ describe("layout das barras", () => {
     expect(content).toHaveStyle({
       paddingTop: "4px",
       paddingBottom: "4px",
+    });
+    expect(content.style.paddingLeft).toBe("");
+    expect(content.style.paddingRight).toBe("");
+  });
+
+  it("protege a lateral quando o conteudo aponta para a borda externa", () => {
+    const { getByTestId } = render(
+      <OverlayBarPreview
+        bar={{ ...previewBar, position: "LEFT", contentAlignment: "START" }}
+      />,
+    );
+
+    expect(getByTestId("overlay-bar-preview-content")).toHaveStyle({
       paddingLeft: "5.333px",
     });
-    expect(content.style.paddingRight).toBe("");
   });
 
   it("limita padding vertical excessivo e permite mover o bloco para cima", () => {
@@ -139,18 +157,19 @@ describe("layout das barras", () => {
     expect(getAllByTestId("overlay-bar-preview-content-image")[0]).toHaveStyle({
       height: "72%",
       objectFit: "contain",
+      aspectRatio: "auto",
       transform: "translate(4px, -2px)",
     });
   });
 
-  it("reserva o vídeo e impede sobreposição entre barra superior e lateral", () => {
+  it("sobrepõe barras diferentes ao vídeo e impede conflito entre elas", () => {
     const topBar = { ...previewBar, position: "TOP" as const, sizePercent: 12 };
     const leftBar = { ...previewBar, position: "LEFT" as const, sizePercent: 20 };
     const { getByTestId, getAllByTestId } = render(<OverlayBarsPreview bars={[topBar, leftBar]} />);
 
     expect(getByTestId("overlay-bars-preview-media")).toHaveStyle({
-      top: "12%",
-      left: "20%",
+      top: "0%",
+      left: "0%",
       right: "0%",
       bottom: "0%",
     });
@@ -158,6 +177,19 @@ describe("layout das barras", () => {
       top: "12%",
       bottom: "0%",
       width: "20%",
+    });
+  });
+
+  it("reserva o centro para duas barras perpendiculares com a mesma espessura", () => {
+    const bottomBar = { ...previewBar, position: "BOTTOM" as const, sizePercent: 12 };
+    const leftBar = { ...previewBar, position: "LEFT" as const, sizePercent: 12 };
+    const { getByTestId } = render(<OverlayBarsPreview bars={[bottomBar, leftBar]} />);
+
+    expect(getByTestId("overlay-bars-preview-media")).toHaveStyle({
+      top: "0%",
+      left: "12%",
+      right: "0%",
+      bottom: "12%",
     });
   });
 
