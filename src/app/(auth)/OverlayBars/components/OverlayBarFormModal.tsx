@@ -37,6 +37,7 @@ const defaultPayload: OverlayBarPayload = {
   opacity: 100,
   fit: "CONTAIN",
   contentPosition: "CENTER",
+  contentAlignment: "CENTER",
   imageSizePercent: 80,
   contentPadding: 6,
   contentGap: 8,
@@ -92,12 +93,13 @@ export function OverlayBarFormModal({
             opacity: initialBar.opacity,
             fit: initialBar.fit,
             contentPosition: initialBar.contentPosition ?? "CENTER",
+            contentAlignment: initialBar.contentAlignment ?? "CENTER",
             imageSizePercent: initialBar.imageSizePercent ?? 80,
             contentPadding: initialBar.contentPadding ?? 6,
             contentGap: initialBar.contentGap ?? 8,
             contentItems:
               (initialBar.contentItems?.length ?? 0) > 0
-                ? [...(initialBar.contentItems ?? [])]
+                ? normalizeContentItemsForForm(initialBar.contentItems ?? [])
                 : createLegacyContentItems(initialBar),
             textContent: initialBar.textContent ?? null,
             textColor: initialBar.textColor ?? "#FFFFFF",
@@ -119,6 +121,7 @@ export function OverlayBarFormModal({
     ...form,
     media: selectedMedia,
   };
+  const isHorizontalBar = form.position === "TOP" || form.position === "BOTTOM";
   const needsWeather = form.contentItems.some(
     (item) => item.type === "WEATHER" || /{{(?:temperatura|clima|cidade)}}/.test(item.text ?? ""),
   );
@@ -300,7 +303,9 @@ export function OverlayBarFormModal({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label>
-                <span className="text-sm font-bold text-slate-700">Posição do conteúdo</span>
+                <span className="text-sm font-bold text-slate-700">
+                  {isHorizontalBar ? "Alinhamento horizontal" : "Alinhamento vertical"}
+                </span>
                 <select
                   value={form.contentPosition}
                   disabled={saving}
@@ -312,9 +317,30 @@ export function OverlayBarFormModal({
                   }
                   className="mt-2 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 >
-                  <option value="START">Início (esquerda/topo)</option>
+                  <option value="START">{isHorizontalBar ? "Esquerda" : "Topo"}</option>
                   <option value="CENTER">Centro</option>
-                  <option value="END">Final (direita/rodapé)</option>
+                  <option value="END">{isHorizontalBar ? "Direita" : "Base"}</option>
+                </select>
+              </label>
+
+              <label>
+                <span className="text-sm font-bold text-slate-700">
+                  {isHorizontalBar ? "Alinhamento vertical" : "Alinhamento horizontal"}
+                </span>
+                <select
+                  value={form.contentAlignment}
+                  disabled={saving}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      contentAlignment: event.target.value as OverlayBarContentPosition,
+                    }))
+                  }
+                  className="mt-2 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                >
+                  <option value="START">{isHorizontalBar ? "Topo" : "Esquerda"}</option>
+                  <option value="CENTER">Centro</option>
+                  <option value="END">{isHorizontalBar ? "Base" : "Direita"}</option>
                 </select>
               </label>
 
@@ -669,6 +695,8 @@ function createLegacyContentItems(bar: OverlayBar): OverlayBarContentItem[] {
     fontFamily: "SYSTEM" as const,
     italic: false,
     padding: 0,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     borderRadius: 0,
     spacerSize: 24,
   };
@@ -691,4 +719,12 @@ function createLegacyContentItems(bar: OverlayBar): OverlayBarContentItem[] {
   }
 
   return items;
+}
+
+function normalizeContentItemsForForm(items: OverlayBarContentItem[]): OverlayBarContentItem[] {
+  return items.map((item) => ({
+    ...item,
+    paddingHorizontal: item.paddingHorizontal ?? item.padding ?? 0,
+    paddingVertical: item.paddingVertical ?? 0,
+  }));
 }

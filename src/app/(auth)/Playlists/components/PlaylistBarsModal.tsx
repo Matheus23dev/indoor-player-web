@@ -3,7 +3,10 @@ import { Check, Layers3, Loader2, Plus, X } from "lucide-react";
 
 import { getOverlayBars } from "../../OverlayBars/services/overlay-bars.service";
 import type { OverlayBar, PlaylistOverlayBar } from "../../OverlayBars/types";
-import { OverlayBarPreview } from "../../OverlayBars/components/OverlayBarPreview";
+import {
+  OverlayBarPreview,
+  OverlayBarsPreview,
+} from "../../OverlayBars/components/OverlayBarPreview";
 
 interface PlaylistBarsModalProps {
   open: boolean;
@@ -39,6 +42,13 @@ export function PlaylistBarsModal({
     () => new Set(currentBars.map((item) => item.overlayBarId)),
     [currentBars],
   );
+  const selectedBars = useMemo(
+    () =>
+      [...currentBars]
+        .sort((first, second) => first.order - second.order)
+        .map((item) => item.overlayBar),
+    [currentBars],
+  );
 
   if (!open) return null;
 
@@ -67,6 +77,18 @@ export function PlaylistBarsModal({
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+          {selectedBars.length > 0 && (
+            <div className="mb-5 rounded-2xl border border-blue-100 bg-blue-50 p-3">
+              <div className="mb-2 flex items-center justify-between gap-3 px-1">
+                <strong className="text-xs text-blue-950">Prévia conjunta da playlist</strong>
+                <span className="text-[10px] font-semibold text-blue-700">
+                  O vídeo ocupa somente a área livre
+                </span>
+              </div>
+              <OverlayBarsPreview bars={selectedBars} className="shadow-sm" />
+            </div>
+          )}
+
           {loading && (
             <div className="flex min-h-48 items-center justify-center">
               <Loader2 size={32} className="animate-spin text-blue-700" />

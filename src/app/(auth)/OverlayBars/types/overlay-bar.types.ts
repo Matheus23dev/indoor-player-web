@@ -20,6 +20,8 @@ export interface OverlayBarContentItem {
   italic?: boolean;
   backgroundColor?: string;
   padding: number;
+  paddingHorizontal?: number;
+  paddingVertical?: number;
   borderRadius: number;
   spacerSize: number;
 }
@@ -44,6 +46,7 @@ export interface OverlayBar {
   opacity: number;
   fit: OverlayBarFit;
   contentPosition: OverlayBarContentPosition;
+  contentAlignment: OverlayBarContentPosition;
   imageSizePercent: number;
   contentPadding: number;
   contentGap: number;
@@ -72,6 +75,7 @@ export interface OverlayBarPayload {
   opacity: number;
   fit: OverlayBarFit;
   contentPosition: OverlayBarContentPosition;
+  contentAlignment: OverlayBarContentPosition;
   imageSizePercent: number;
   contentPadding: number;
   contentGap: number;

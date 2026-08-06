@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { OverlayBar } from "../types";
 import { OverlayBarFormModal } from "./OverlayBarFormModal";
-import { OverlayBarPreview } from "./OverlayBarPreview";
+import { OverlayBarPreview, OverlayBarsPreview } from "./OverlayBarPreview";
 
 afterEach(cleanup);
 
@@ -16,6 +16,7 @@ const previewBar: OverlayBar = {
   opacity: 100,
   fit: "CONTAIN",
   contentPosition: "CENTER",
+  contentAlignment: "END",
   imageSizePercent: 80,
   contentPadding: 12,
   contentGap: 9,
@@ -30,6 +31,8 @@ const previewBar: OverlayBar = {
       fontFamily: "MONOSPACE",
       italic: true,
       padding: 0,
+      paddingHorizontal: 18,
+      paddingVertical: 6,
       borderRadius: 0,
       spacerSize: 0,
     },
@@ -57,6 +60,7 @@ describe("layout das barras", () => {
     const content = getByTestId("overlay-bar-preview-content");
     expect(content).toHaveStyle({
       height: "100%",
+      alignItems: "flex-end",
       paddingLeft: "4px",
       paddingRight: "4px",
     });
@@ -66,6 +70,10 @@ describe("layout das barras", () => {
       fontSize: "10px",
       fontFamily: "monospace",
       fontStyle: "italic",
+      paddingLeft: "6px",
+      paddingRight: "6px",
+      paddingTop: "2px",
+      paddingBottom: "2px",
     });
   });
 
@@ -79,6 +87,24 @@ describe("layout das barras", () => {
     });
     expect(content.style.paddingLeft).toBe("");
     expect(content.style.paddingRight).toBe("");
+  });
+
+  it("reserva o vídeo e impede sobreposição entre barra superior e lateral", () => {
+    const topBar = { ...previewBar, position: "TOP" as const, sizePercent: 12 };
+    const leftBar = { ...previewBar, position: "LEFT" as const, sizePercent: 20 };
+    const { getByTestId, getAllByTestId } = render(<OverlayBarsPreview bars={[topBar, leftBar]} />);
+
+    expect(getByTestId("overlay-bars-preview-media")).toHaveStyle({
+      top: "12%",
+      left: "20%",
+      right: "0%",
+      bottom: "0%",
+    });
+    expect(getAllByTestId("overlay-bar-preview-bar")[1]).toHaveStyle({
+      top: "12%",
+      bottom: "0%",
+      width: "20%",
+    });
   });
 
   it("mantém a prévia fixa e o scroll apenas no editor esquerdo", () => {

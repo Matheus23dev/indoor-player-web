@@ -221,11 +221,18 @@ export function OverlayBarContentEditor({
                   }
                 />
                 <RangeField
-                  label="Padding do bloco"
-                  value={item.padding}
+                  label="Padding horizontal"
+                  value={item.paddingHorizontal ?? item.padding}
                   max={60}
                   disabled={disabled}
-                  onChange={(padding) => updateItem(item.id, { padding })}
+                  onChange={(paddingHorizontal) => updateItem(item.id, { paddingHorizontal })}
+                />
+                <RangeField
+                  label="Padding vertical"
+                  value={item.paddingVertical ?? 0}
+                  max={60}
+                  disabled={disabled}
+                  onChange={(paddingVertical) => updateItem(item.id, { paddingVertical })}
                 />
                 <RangeField
                   label="Arredondamento"
@@ -287,6 +294,8 @@ function createContentItem(type: OverlayBarContentType): OverlayBarContentItem {
     fontFamily: "SYSTEM",
     italic: false,
     padding: 0,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     borderRadius: 0,
     spacerSize: 24,
   };
