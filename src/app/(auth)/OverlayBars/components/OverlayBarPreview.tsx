@@ -2,10 +2,14 @@ import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { ImageIcon } from "lucide-react";
 
 import { resolveMediaUrl } from "../../../../lib/mediaUrl";
+import type { Media } from "../../Medias/types";
 import type { OverlayBar, OverlayBarContentItem } from "../types";
 
 const REFERENCE_PLAYER_WIDTH = 960;
+const REFERENCE_PLAYER_HEIGHT = 540;
 const FALLBACK_PREVIEW_SCALE = 1 / 3;
+const REFERENCE_TV_SAFE_INSET = 16;
+const MAX_BLOCK_CROSS_PADDING_SHARE = 0.15;
 
 export type OverlayBarPreviewData = Pick<
   OverlayBar,
@@ -30,12 +34,14 @@ export type OverlayBarPreviewData = Pick<
 
 interface OverlayBarPreviewProps {
   bar: OverlayBarPreviewData;
+  images?: Media[];
   className?: string;
   showEmptyState?: boolean;
 }
 
 interface OverlayBarsPreviewProps {
   bars: OverlayBarPreviewData[];
+  images?: Media[];
   className?: string;
   showEmptyState?: boolean;
 }
@@ -49,14 +55,23 @@ export interface OverlayBarInsets {
 
 export function OverlayBarPreview({
   bar,
+  images = [],
   className = "",
   showEmptyState = false,
 }: OverlayBarPreviewProps) {
-  return <OverlayBarsPreview bars={[bar]} className={className} showEmptyState={showEmptyState} />;
+  return (
+    <OverlayBarsPreview
+      bars={[bar]}
+      images={images}
+      className={className}
+      showEmptyState={showEmptyState}
+    />
+  );
 }
 
 export function OverlayBarsPreview({
   bars,
+  images = [],
   className = "",
   showEmptyState = false,
 }: OverlayBarsPreviewProps) {
@@ -85,6 +100,7 @@ export function OverlayBarsPreview({
         <PreviewBar
           key={`${bar.position}-${index}`}
           bar={bar}
+          images={images}
           insets={insets}
           previewScale={previewScale}
           showEmptyState={showEmptyState}
@@ -96,12 +112,13 @@ export function OverlayBarsPreview({
 
 interface PreviewBarProps {
   bar: OverlayBarPreviewData;
+  images: Media[];
   insets: OverlayBarInsets;
   previewScale: number;
   showEmptyState: boolean;
 }
 
-function PreviewBar({ bar, insets, previewScale, showEmptyState }: PreviewBarProps) {
+function PreviewBar({ bar, images, insets, previewScale, showEmptyState }: PreviewBarProps) {
   const isHorizontal = bar.position === "TOP" || bar.position === "BOTTOM";
   const imageUrl = bar.media?.fileUrl ? resolveMediaUrl(bar.media.fileUrl) : "";
   const dynamicText = resolvePreviewText(bar.textContent ?? "", bar.weatherLocation);
@@ -131,6 +148,7 @@ function PreviewBar({ bar, insets, previewScale, showEmptyState }: PreviewBarPro
           paddingTop: `${scalePreviewValue(bar.contentPadding, previewScale)}px`,
           paddingBottom: `${scalePreviewValue(bar.contentPadding, previewScale)}px`,
         }),
+    ...getTvSafeContentStyle(bar.position, previewScale),
   };
 
   return (
@@ -168,63 +186,16 @@ function PreviewBar({ bar, insets, previewScale, showEmptyState }: PreviewBarPro
             </div>
           )}
 
-        {contentItems.map((item) =>
-          item.type === "SPACER" ? (
-            <span
-              key={item.id}
-              aria-hidden="true"
-              style={
-                isHorizontal
-                  ? {
-                      flex: `0 0 ${scalePreviewValue(item.spacerSize, previewScale)}px`,
-                      height: 1,
-                    }
-                  : {
-                      flex: `0 0 ${scalePreviewValue(item.spacerSize, previewScale)}px`,
-                      width: 1,
-                    }
-              }
-            />
-          ) : (
-            <span
-              key={item.id}
-              className="min-w-0 overflow-hidden leading-tight"
-              style={{
-                boxSizing: "border-box",
-                color: item.textColor,
-                fontSize: `${scalePreviewValue(item.fontSize, previewScale)}px`,
-                lineHeight: 1.2,
-                fontWeight: toFontWeight(item.fontWeight),
-                fontFamily: toFontFamily(item.fontFamily),
-                fontStyle: item.italic ? "italic" : "normal",
-                backgroundColor: item.backgroundColor,
-                paddingLeft: `${scalePreviewValue(
-                  item.paddingHorizontal ?? item.padding,
-                  previewScale,
-                )}px`,
-                paddingRight: `${scalePreviewValue(
-                  item.paddingHorizontal ?? item.padding,
-                  previewScale,
-                )}px`,
-                paddingTop: `${scalePreviewValue(item.paddingVertical ?? 0, previewScale)}px`,
-                paddingBottom: `${scalePreviewValue(item.paddingVertical ?? 0, previewScale)}px`,
-                borderRadius: `${scalePreviewValue(item.borderRadius, previewScale)}px`,
-                writingMode: "horizontal-tb",
-                display: "-webkit-box",
-                WebkitBoxOrient: "vertical",
-                WebkitLineClamp: isHorizontal ? 2 : 6,
-                whiteSpace: "normal",
-                overflowWrap: "anywhere",
-                textAlign: "center",
-                flexShrink: 1,
-                maxWidth: "100%",
-                maxHeight: "100%",
-              }}
-            >
-              {resolveContentItemPreview(item, bar.weatherLocation)}
-            </span>
-          ),
-        )}
+        {contentItems.map((item) => (
+          <PreviewContentItem
+            key={item.id}
+            item={item}
+            bar={bar}
+            images={images}
+            isHorizontal={isHorizontal}
+            previewScale={previewScale}
+          />
+        ))}
 
         {contentItems.length === 0 && (dynamicText || widgetText) && (
           <span
@@ -250,6 +221,116 @@ function PreviewBar({ bar, insets, previewScale, showEmptyState }: PreviewBarPro
         )}
       </div>
     </div>
+  );
+}
+
+interface PreviewContentItemProps {
+  item: OverlayBarContentItem;
+  bar: OverlayBarPreviewData;
+  images: Media[];
+  isHorizontal: boolean;
+  previewScale: number;
+}
+
+function PreviewContentItem({
+  item,
+  bar,
+  images,
+  isHorizontal,
+  previewScale,
+}: PreviewContentItemProps) {
+  if (item.type === "SPACER") {
+    return (
+      <span
+        aria-hidden="true"
+        style={
+          isHorizontal
+            ? {
+                flex: `0 0 ${scalePreviewValue(item.spacerSize, previewScale)}px`,
+                height: 1,
+              }
+            : {
+                flex: `0 0 ${scalePreviewValue(item.spacerSize, previewScale)}px`,
+                width: 1,
+              }
+        }
+      />
+    );
+  }
+
+  const transform = `translate(${scaleSignedPreviewValue(item.offsetX ?? 0, previewScale)}px, ${scaleSignedPreviewValue(item.offsetY ?? 0, previewScale)}px)`;
+
+  if (item.type === "IMAGE") {
+    const media = images.find((image) => image.id === item.mediaId);
+
+    if (!media) {
+      return null;
+    }
+
+    return (
+      <img
+        src={resolveMediaUrl(media.fileUrl)}
+        alt={media.name}
+        data-testid="overlay-bar-preview-content-image"
+        style={{
+          objectFit: fitToObjectFit(item.fit ?? "CONTAIN"),
+          flex: "0 0 auto",
+          aspectRatio: "1 / 1",
+          transform,
+          ...(isHorizontal
+            ? {
+                height: `${item.imageSizePercent ?? 80}%`,
+                maxWidth: "100%",
+              }
+            : {
+                width: `${item.imageSizePercent ?? 80}%`,
+                maxHeight: "100%",
+              }),
+        }}
+      />
+    );
+  }
+
+  const blockPadding = getTextBlockPadding(
+    bar.position,
+    bar.sizePercent,
+    item.paddingHorizontal ?? item.padding,
+    item.paddingVertical ?? 0,
+    previewScale,
+  );
+
+  return (
+    <span
+      className="min-w-0 overflow-hidden leading-tight"
+      style={{
+        boxSizing: "border-box",
+        color: item.textColor,
+        fontSize: `${scalePreviewValue(item.fontSize, previewScale)}px`,
+        lineHeight: 1.2,
+        fontWeight: toFontWeight(item.fontWeight),
+        fontFamily: toFontFamily(item.fontFamily),
+        fontStyle: item.italic ? "italic" : "normal",
+        backgroundColor: item.backgroundColor,
+        paddingLeft: `${blockPadding.paddingHorizontal}px`,
+        paddingRight: `${blockPadding.paddingHorizontal}px`,
+        paddingTop: `${blockPadding.paddingVertical}px`,
+        paddingBottom: `${blockPadding.paddingVertical}px`,
+        borderRadius: `${scalePreviewValue(item.borderRadius, previewScale)}px`,
+        transform,
+        writingMode: "horizontal-tb",
+        display: "-webkit-box",
+        WebkitBoxOrient: "vertical",
+        WebkitLineClamp: isHorizontal ? 2 : 6,
+        whiteSpace: "normal",
+        overflowWrap: "anywhere",
+        textAlign: "center",
+        flexShrink: 1,
+        maxWidth: "100%",
+        maxHeight: "100%",
+      }}
+    >
+      {resolveContentItemPreview(item, bar.weatherLocation)}
+    </span>
   );
 }
 
@@ -294,6 +375,48 @@ function getOverlayBarStyle(bar: OverlayBarPreviewData, insets: OverlayBarInsets
     bottom: `${insets.bottom}%`,
     width: `${bar.sizePercent}%`,
     [bar.position === "LEFT" ? "left" : "right"]: 0,
+  };
+}
+
+function getTvSafeContentStyle(
+  position: OverlayBar["position"],
+  previewScale: number,
+): CSSProperties {
+  const safeInset = `${scalePreviewValue(REFERENCE_TV_SAFE_INSET, previewScale)}px`;
+
+  if (position === "TOP") return { paddingTop: safeInset };
+  if (position === "BOTTOM") return { paddingBottom: safeInset };
+  if (position === "LEFT") return { paddingLeft: safeInset };
+  return { paddingRight: safeInset };
+}
+
+function getTextBlockPadding(
+  position: OverlayBar["position"],
+  sizePercent: number,
+  paddingHorizontal: number,
+  paddingVertical: number,
+  previewScale: number,
+) {
+  const isHorizontal = position === "TOP" || position === "BOTTOM";
+  const referenceThickness =
+    (isHorizontal ? REFERENCE_PLAYER_HEIGHT : REFERENCE_PLAYER_WIDTH) *
+    (Math.min(40, Math.max(0, sizePercent)) / 100);
+  const maximumCrossAxisPadding = Math.max(
+    0,
+    (referenceThickness - REFERENCE_TV_SAFE_INSET) * MAX_BLOCK_CROSS_PADDING_SHARE,
+  );
+  const safeHorizontal = Math.max(0, paddingHorizontal);
+  const safeVertical = Math.max(0, paddingVertical);
+
+  return {
+    paddingHorizontal: scalePreviewValue(
+      isHorizontal ? safeHorizontal : Math.min(safeHorizontal, maximumCrossAxisPadding),
+      previewScale,
+    ),
+    paddingVertical: scalePreviewValue(
+      isHorizontal ? Math.min(safeVertical, maximumCrossAxisPadding) : safeVertical,
+      previewScale,
+    ),
   };
 }
 
@@ -388,7 +511,11 @@ function fitToObjectFit(fit: OverlayBar["fit"]): CSSProperties["objectFit"] {
 }
 
 function scalePreviewValue(value: number, previewScale: number) {
-  return Math.max(0, value * previewScale);
+  return Math.round(Math.max(0, value * previewScale) * 1000) / 1000;
+}
+
+function scaleSignedPreviewValue(value: number, previewScale: number) {
+  return Math.round(value * previewScale * 1000) / 1000;
 }
 
 function toRgba(hex: string, opacity: number) {

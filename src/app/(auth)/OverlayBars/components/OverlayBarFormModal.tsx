@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   AlignHorizontalSpaceAround,
   AlignVerticalSpaceAround,
@@ -12,7 +12,6 @@ import type {
   OverlayBar,
   OverlayBarContentItem,
   OverlayBarContentPosition,
-  OverlayBarFit,
   OverlayBarPayload,
   OverlayBarPosition,
   OverlayBarWidgetType,
@@ -97,29 +96,26 @@ export function OverlayBarFormModal({
             imageSizePercent: initialBar.imageSizePercent ?? 80,
             contentPadding: initialBar.contentPadding ?? 6,
             contentGap: initialBar.contentGap ?? 8,
-            contentItems:
+            contentItems: normalizeContentItemsForForm(
               (initialBar.contentItems?.length ?? 0) > 0
-                ? normalizeContentItemsForForm(initialBar.contentItems ?? [])
+                ? (initialBar.contentItems ?? [])
                 : createLegacyContentItems(initialBar),
+              initialBar,
+            ),
             textContent: initialBar.textContent ?? null,
             textColor: initialBar.textColor ?? "#FFFFFF",
             fontSize: initialBar.fontSize ?? 28,
             widgetType: initialBar.widgetType ?? "NONE",
             weatherLocation: initialBar.weatherLocation ?? null,
-            mediaId: initialBar.mediaId ?? null,
+            mediaId: null,
           }
         : defaultPayload,
     );
   }, [initialBar, open]);
 
-  const selectedMedia = useMemo(
-    () => images.find((media) => media.id === form.mediaId) ?? null,
-    [form.mediaId, images],
-  );
-
   const previewBar = {
     ...form,
-    media: selectedMedia,
+    media: null,
   };
   const isHorizontalBar = form.position === "TOP" || form.position === "BOTTOM";
   const needsWeather = form.contentItems.some(
@@ -128,6 +124,7 @@ export function OverlayBarFormModal({
   const hasInvalidContent = form.contentItems.some(
     (item) =>
       (item.type === "TEXT" && !item.text?.trim()) ||
+      (item.type === "IMAGE" && !item.mediaId) ||
       !/^#[0-9a-fA-F]{6}$/.test(item.textColor) ||
       Boolean(item.backgroundColor && !/^#[0-9a-fA-F]{6}$/.test(item.backgroundColor)),
   );
@@ -147,6 +144,11 @@ export function OverlayBarFormModal({
       fontFamily: item.fontFamily ?? "SYSTEM",
       italic: item.italic ?? false,
       backgroundColor: item.backgroundColor?.toUpperCase() || undefined,
+      mediaId: item.mediaId ?? null,
+      imageSizePercent: item.imageSizePercent ?? 80,
+      fit: item.fit ?? "CONTAIN",
+      offsetX: item.offsetX ?? 0,
+      offsetY: item.offsetY ?? 0,
     }));
     const firstText = contentItems.find((item) => item.type === "TEXT");
     const firstWidget = contentItems.find((item) =>
@@ -173,6 +175,7 @@ export function OverlayBarFormModal({
       textContent: firstText?.text ?? null,
       widgetType: (firstWidget?.type as OverlayBarWidgetType | undefined) ?? "NONE",
       weatherLocation: form.weatherLocation?.trim() || null,
+      mediaId: null,
     });
   }
 
@@ -342,27 +345,6 @@ export function OverlayBarFormModal({
                   <option value="CENTER">Centro</option>
                   <option value="END">{isHorizontalBar ? "Base" : "Direita"}</option>
                 </select>
-              </label>
-
-              <label>
-                <span className="flex items-center justify-between text-sm font-bold text-slate-700">
-                  Tamanho da imagem
-                  <strong className="text-blue-700">{form.imageSizePercent}%</strong>
-                </span>
-                <input
-                  type="range"
-                  min={10}
-                  max={100}
-                  value={form.imageSizePercent}
-                  disabled={saving || !form.mediaId}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      imageSizePercent: Number(event.target.value),
-                    }))
-                  }
-                  className="mt-3 w-full accent-blue-700 disabled:opacity-40"
-                />
               </label>
             </div>
 
@@ -556,6 +538,7 @@ export function OverlayBarFormModal({
 
             <OverlayBarContentEditor
               items={form.contentItems}
+              images={images}
               disabled={saving}
               weatherLocation={form.weatherLocation}
               onChange={(contentItems) => setForm((current) => ({ ...current, contentItems }))}
@@ -593,49 +576,6 @@ export function OverlayBarFormModal({
                 />
               </div>
             </label>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label>
-                <span className="text-sm font-bold text-slate-700">Imagem ou logo</span>
-                <select
-                  value={form.mediaId ?? ""}
-                  disabled={saving}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      mediaId: event.target.value || null,
-                    }))
-                  }
-                  className="mt-2 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                >
-                  <option value="">Somente cor de fundo</option>
-                  {images.map((image) => (
-                    <option key={image.id} value={image.id}>
-                      {image.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label>
-                <span className="text-sm font-bold text-slate-700">Ajuste da imagem</span>
-                <select
-                  value={form.fit}
-                  disabled={saving || !form.mediaId}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      fit: event.target.value as OverlayBarFit,
-                    }))
-                  }
-                  className="mt-2 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none disabled:bg-slate-50 disabled:text-slate-400"
-                >
-                  <option value="CONTAIN">Conter sem cortar</option>
-                  <option value="COVER">Preencher e recortar</option>
-                  <option value="FILL">Esticar para preencher</option>
-                </select>
-              </label>
-            </div>
           </div>
 
           <aside
@@ -649,7 +589,12 @@ export function OverlayBarFormModal({
             <p className="mt-1 text-xs leading-5 text-slate-500">
               A barra ficará fixa sobre o conteúdo durante toda a playlist.
             </p>
-            <OverlayBarPreview bar={previewBar} className="mt-4 shadow-lg" showEmptyState />
+            <OverlayBarPreview
+              bar={previewBar}
+              images={images}
+              className="mt-4 shadow-lg"
+              showEmptyState
+            />
             <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-3 text-xs leading-5 text-blue-800">
               Esta barra poderá ser vinculada a várias playlists sem precisar ser recriada.
             </div>
@@ -699,7 +644,20 @@ function createLegacyContentItems(bar: OverlayBar): OverlayBarContentItem[] {
     paddingVertical: 0,
     borderRadius: 0,
     spacerSize: 24,
+    offsetX: 0,
+    offsetY: 0,
   };
+
+  if (bar.mediaId) {
+    items.push({
+      id: "legacy-image",
+      type: "IMAGE",
+      mediaId: bar.mediaId,
+      imageSizePercent: bar.imageSizePercent ?? 80,
+      fit: bar.fit ?? "CONTAIN",
+      ...baseStyle,
+    });
+  }
 
   if (bar.textContent?.trim()) {
     items.push({
@@ -721,10 +679,28 @@ function createLegacyContentItems(bar: OverlayBar): OverlayBarContentItem[] {
   return items;
 }
 
-function normalizeContentItemsForForm(items: OverlayBarContentItem[]): OverlayBarContentItem[] {
-  return items.map((item) => ({
+function normalizeContentItemsForForm(
+  items: OverlayBarContentItem[],
+  legacyBar?: OverlayBar,
+): OverlayBarContentItem[] {
+  const normalized: OverlayBarContentItem[] = items.map((item) => ({
     ...item,
     paddingHorizontal: item.paddingHorizontal ?? item.padding ?? 0,
     paddingVertical: item.paddingVertical ?? 0,
+    imageSizePercent: item.imageSizePercent ?? 80,
+    fit: item.fit ?? "CONTAIN",
+    offsetX: item.offsetX ?? 0,
+    offsetY: item.offsetY ?? 0,
   }));
+
+  if (
+    legacyBar?.mediaId &&
+    !normalized.some((item) => item.type === "IMAGE" && item.mediaId === legacyBar.mediaId)
+  ) {
+    normalized.unshift(
+      ...createLegacyContentItems({ ...legacyBar, textContent: null, widgetType: "NONE" }),
+    );
+  }
+
+  return normalized;
 }

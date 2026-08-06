@@ -63,9 +63,9 @@ describe("layout das barras", () => {
       alignItems: "flex-end",
       paddingLeft: "4px",
       paddingRight: "4px",
+      paddingBottom: "5.333px",
     });
     expect(content.style.paddingTop).toBe("");
-    expect(content.style.paddingBottom).toBe("");
     expect(getByText("Mensagem")).toHaveStyle({
       fontSize: "10px",
       fontFamily: "monospace",
@@ -84,9 +84,63 @@ describe("layout das barras", () => {
     expect(content).toHaveStyle({
       paddingTop: "4px",
       paddingBottom: "4px",
+      paddingLeft: "5.333px",
     });
-    expect(content.style.paddingLeft).toBe("");
     expect(content.style.paddingRight).toBe("");
+  });
+
+  it("limita padding vertical excessivo e permite mover o bloco para cima", () => {
+    const adjustedBar: OverlayBar = {
+      ...previewBar,
+      contentItems: [
+        {
+          ...previewBar.contentItems![0],
+          paddingVertical: 60,
+          offsetY: -30,
+        },
+      ],
+    };
+    const { getByText } = render(<OverlayBarPreview bar={adjustedBar} />);
+
+    expect(getByText("Mensagem")).toHaveStyle({
+      paddingTop: "2.44px",
+      paddingBottom: "2.44px",
+      transform: "translate(0px, -10px)",
+    });
+  });
+
+  it("renderiza várias imagens como conteúdos ajustáveis", () => {
+    const image = {
+      id: "image-1",
+      name: "Logo",
+      type: "IMAGE" as const,
+      fileUrl: "/files/logo.png",
+      createdAt: "2026-08-06T12:00:00.000Z",
+      updatedAt: "2026-08-06T12:00:00.000Z",
+    };
+    const imageContent = {
+      ...previewBar.contentItems![0],
+      id: "content-image",
+      type: "IMAGE" as const,
+      mediaId: image.id,
+      imageSizePercent: 72,
+      fit: "CONTAIN" as const,
+      offsetX: 12,
+      offsetY: -6,
+    };
+    const { getAllByTestId } = render(
+      <OverlayBarPreview
+        bar={{ ...previewBar, contentItems: [imageContent, { ...imageContent, id: "second" }] }}
+        images={[image]}
+      />,
+    );
+
+    expect(getAllByTestId("overlay-bar-preview-content-image")).toHaveLength(2);
+    expect(getAllByTestId("overlay-bar-preview-content-image")[0]).toHaveStyle({
+      height: "72%",
+      objectFit: "contain",
+      transform: "translate(4px, -2px)",
+    });
   });
 
   it("reserva o vídeo e impede sobreposição entre barra superior e lateral", () => {

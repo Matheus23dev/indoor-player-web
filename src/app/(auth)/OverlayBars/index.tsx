@@ -124,6 +124,7 @@ export default function OverlayBars() {
                 <OverlayBarCard
                   key={bar.id}
                   bar={bar}
+                  images={images}
                   disabled={saving}
                   onEdit={openEdit}
                   onDelete={(item) => void removeBar(item)}

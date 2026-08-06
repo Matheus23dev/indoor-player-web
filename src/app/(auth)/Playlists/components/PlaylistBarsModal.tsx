@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, Layers3, Loader2, Plus, X } from "lucide-react";
 
+import { getMedias } from "../../Medias/services/medias.services";
+import type { Media } from "../../Medias/types";
 import { getOverlayBars } from "../../OverlayBars/services/overlay-bars.service";
 import type { OverlayBar, PlaylistOverlayBar } from "../../OverlayBars/types";
 import {
@@ -26,15 +28,22 @@ export function PlaylistBarsModal({
   onDetach,
 }: PlaylistBarsModalProps) {
   const [bars, setBars] = useState<OverlayBar[]>([]);
+  const [images, setImages] = useState<Media[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!open) return;
 
     setLoading(true);
-    getOverlayBars()
-      .then(setBars)
-      .catch(() => setBars([]))
+    Promise.all([getOverlayBars(), getMedias()])
+      .then(([availableBars, medias]) => {
+        setBars(availableBars);
+        setImages(medias.filter((media) => media.type === "IMAGE"));
+      })
+      .catch(() => {
+        setBars([]);
+        setImages([]);
+      })
       .finally(() => setLoading(false));
   }, [open]);
 
@@ -85,7 +94,7 @@ export function PlaylistBarsModal({
                   O vídeo ocupa somente a área livre
                 </span>
               </div>
-              <OverlayBarsPreview bars={selectedBars} className="shadow-sm" />
+              <OverlayBarsPreview bars={selectedBars} images={images} className="shadow-sm" />
             </div>
           )}
 
@@ -113,7 +122,7 @@ export function PlaylistBarsModal({
                         : "border-slate-200 bg-white hover:border-blue-200"
                     }`}
                   >
-                    <OverlayBarPreview bar={bar} />
+                    <OverlayBarPreview bar={bar} images={images} />
                     <div className="flex items-center justify-between gap-3 px-2 pb-1 pt-2.5">
                       <div className="min-w-0">
                         <strong className="block truncate text-sm text-slate-900">

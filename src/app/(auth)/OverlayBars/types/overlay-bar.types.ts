@@ -4,7 +4,7 @@ export type OverlayBarPosition = "TOP" | "BOTTOM" | "LEFT" | "RIGHT";
 export type OverlayBarFit = "CONTAIN" | "COVER" | "FILL";
 export type OverlayBarContentPosition = "START" | "CENTER" | "END";
 export type OverlayBarWidgetType = "NONE" | "CLOCK" | "DATE" | "WEATHER";
-export type OverlayBarContentType = "TEXT" | "CLOCK" | "DATE" | "WEATHER" | "SPACER";
+export type OverlayBarContentType = "TEXT" | "CLOCK" | "DATE" | "WEATHER" | "IMAGE" | "SPACER";
 export type OverlayBarFontWeight = "NORMAL" | "SEMIBOLD" | "BOLD";
 export type OverlayBarFontFamily =
   "SYSTEM" | "SANS_SERIF" | "SANS_SERIF_CONDENSED" | "SERIF" | "MONOSPACE";
@@ -24,6 +24,11 @@ export interface OverlayBarContentItem {
   paddingVertical?: number;
   borderRadius: number;
   spacerSize: number;
+  mediaId?: string | null;
+  imageSizePercent?: number;
+  fit?: OverlayBarFit;
+  offsetX?: number;
+  offsetY?: number;
 }
 
 export interface OverlayBarPlaylistSummary {

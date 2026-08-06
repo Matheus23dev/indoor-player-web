@@ -1,14 +1,17 @@
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 
+import type { Media } from "../../Medias/types";
 import type {
   OverlayBarContentItem,
   OverlayBarContentType,
+  OverlayBarFit,
   OverlayBarFontFamily,
   OverlayBarFontWeight,
 } from "../types";
 
 interface OverlayBarContentEditorProps {
   items: OverlayBarContentItem[];
+  images: Media[];
   disabled: boolean;
   weatherLocation: string | null;
   onChange: (items: OverlayBarContentItem[]) => void;
@@ -29,11 +32,13 @@ const contentTypes: Array<{ value: OverlayBarContentType; label: string }> = [
   { value: "CLOCK", label: "Relógio" },
   { value: "DATE", label: "Data" },
   { value: "WEATHER", label: "Clima" },
+  { value: "IMAGE", label: "Imagem / logo" },
   { value: "SPACER", label: "Espaçador" },
 ];
 
 export function OverlayBarContentEditor({
   items,
+  images,
   disabled,
   weatherLocation,
   onChange,
@@ -149,6 +154,66 @@ export function OverlayBarContentEditor({
                 disabled={disabled}
                 onChange={(spacerSize) => updateItem(item.id, { spacerSize })}
               />
+            ) : item.type === "IMAGE" ? (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <label>
+                  <span className="text-xs font-bold text-slate-600">Imagem da biblioteca</span>
+                  <select
+                    value={item.mediaId ?? ""}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      updateItem(item.id, { mediaId: event.target.value || null })
+                    }
+                    className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs outline-none"
+                  >
+                    <option value="">Selecione uma imagem</option>
+                    {images.map((image) => (
+                      <option key={image.id} value={image.id}>
+                        {image.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <RangeField
+                  label="Tamanho da imagem"
+                  value={item.imageSizePercent ?? 80}
+                  min={10}
+                  max={100}
+                  disabled={disabled}
+                  onChange={(imageSizePercent) => updateItem(item.id, { imageSizePercent })}
+                />
+                <label>
+                  <span className="text-xs font-bold text-slate-600">Ajuste da imagem</span>
+                  <select
+                    value={item.fit ?? "CONTAIN"}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      updateItem(item.id, { fit: event.target.value as OverlayBarFit })
+                    }
+                    className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs outline-none"
+                  >
+                    <option value="CONTAIN">Conter sem cortar</option>
+                    <option value="COVER">Preencher e recortar</option>
+                    <option value="FILL">Esticar para preencher</option>
+                  </select>
+                </label>
+                <RangeField
+                  label="Deslocamento horizontal (- esquerda / + direita)"
+                  value={item.offsetX ?? 0}
+                  min={-120}
+                  max={120}
+                  disabled={disabled}
+                  onChange={(offsetX) => updateItem(item.id, { offsetX })}
+                />
+                <RangeField
+                  label="Deslocamento vertical (- sobe / + desce)"
+                  value={item.offsetY ?? 0}
+                  min={-120}
+                  max={120}
+                  disabled={disabled}
+                  onChange={(offsetY) => updateItem(item.id, { offsetY })}
+                />
+              </div>
             ) : (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <ColorField
@@ -221,18 +286,34 @@ export function OverlayBarContentEditor({
                   }
                 />
                 <RangeField
-                  label="Padding horizontal"
+                  label="Espaço interno horizontal"
                   value={item.paddingHorizontal ?? item.padding}
                   max={60}
                   disabled={disabled}
                   onChange={(paddingHorizontal) => updateItem(item.id, { paddingHorizontal })}
                 />
                 <RangeField
-                  label="Padding vertical"
+                  label="Espaço interno vertical"
                   value={item.paddingVertical ?? 0}
                   max={60}
                   disabled={disabled}
                   onChange={(paddingVertical) => updateItem(item.id, { paddingVertical })}
+                />
+                <RangeField
+                  label="Deslocamento horizontal (- esquerda / + direita)"
+                  value={item.offsetX ?? 0}
+                  min={-120}
+                  max={120}
+                  disabled={disabled}
+                  onChange={(offsetX) => updateItem(item.id, { offsetX })}
+                />
+                <RangeField
+                  label="Deslocamento vertical (- sobe / + desce)"
+                  value={item.offsetY ?? 0}
+                  min={-120}
+                  max={120}
+                  disabled={disabled}
+                  onChange={(offsetY) => updateItem(item.id, { offsetY })}
                 />
                 <RangeField
                   label="Arredondamento"
@@ -298,6 +379,11 @@ function createContentItem(type: OverlayBarContentType): OverlayBarContentItem {
     paddingVertical: 0,
     borderRadius: 0,
     spacerSize: 24,
+    mediaId: null,
+    imageSizePercent: 80,
+    fit: "CONTAIN",
+    offsetX: 0,
+    offsetY: 0,
   };
 }
 

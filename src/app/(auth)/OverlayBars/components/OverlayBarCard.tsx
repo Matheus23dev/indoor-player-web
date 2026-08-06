@@ -1,10 +1,12 @@
 import { ImageIcon, Layers3, Pencil, Trash2 } from "lucide-react";
 
+import type { Media } from "../../Medias/types";
 import type { OverlayBar } from "../types";
 import { OverlayBarPreview } from "./OverlayBarPreview";
 
 interface OverlayBarCardProps {
   bar: OverlayBar;
+  images: Media[];
   disabled: boolean;
   onEdit: (bar: OverlayBar) => void;
   onDelete: (bar: OverlayBar) => void;
@@ -17,13 +19,15 @@ const positionLabels: Record<OverlayBar["position"], string> = {
   RIGHT: "Vertical · direita",
 };
 
-export function OverlayBarCard({ bar, disabled, onEdit, onDelete }: OverlayBarCardProps) {
+export function OverlayBarCard({ bar, images, disabled, onEdit, onDelete }: OverlayBarCardProps) {
   const playlistsCount = bar._count?.playlists ?? bar.playlists?.length ?? 0;
+  const imagesCount =
+    (bar.contentItems?.filter((item) => item.type === "IMAGE").length ?? 0) + (bar.media ? 1 : 0);
 
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
       <div className="p-3">
-        <OverlayBarPreview bar={bar} />
+        <OverlayBarPreview bar={bar} images={images} />
       </div>
 
       <div className="border-t border-slate-100 px-4 py-3.5">
@@ -50,7 +54,11 @@ export function OverlayBarCard({ bar, disabled, onEdit, onDelete }: OverlayBarCa
           </span>
           <span className="inline-flex min-w-0 items-center gap-1 rounded-lg bg-slate-100 px-2 py-1">
             <ImageIcon size={13} />
-            <span className="max-w-36 truncate">{bar.media?.name ?? "Somente cor"}</span>
+            <span className="max-w-36 truncate">
+              {imagesCount > 0
+                ? `${imagesCount} ${imagesCount === 1 ? "imagem" : "imagens"}`
+                : "Somente cor"}
+            </span>
           </span>
         </div>
 
