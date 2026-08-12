@@ -18,6 +18,7 @@ import {
   PageHeader,
   PageScrollArea,
 } from "../../../components/layout/Page";
+import { useAuth } from "../../../contexts/useAuth";
 
 import { DeviceCard } from "./components/DeviceCard";
 
@@ -30,6 +31,8 @@ import { useDevices } from "./hooks/useDevices";
 import { getApiErrorMessage, pairDevice } from "./services/devices.services";
 
 export default function Devices() {
+  const { user } = useAuth();
+  const canViewLogs = user?.role === "OWNER" || user?.role === "ADMIN";
   const {
     devices,
     loading,
@@ -212,7 +215,7 @@ export default function Devices() {
                 <DeviceCard
                   key={device.id}
                   device={device}
-                  onLogs={setSelectedDevice}
+                  onLogs={canViewLogs ? setSelectedDevice : undefined}
                   onUnlink={handleUnlinkDevice}
                 />
               ))}
@@ -228,7 +231,9 @@ export default function Devices() {
         onConfirm={handlePair}
       />
 
-      <DeviceLogsModal device={selectedDevice} onClose={() => setSelectedDevice(null)} />
+      {canViewLogs && (
+        <DeviceLogsModal device={selectedDevice} onClose={() => setSelectedDevice(null)} />
+      )}
     </>
   );
 }

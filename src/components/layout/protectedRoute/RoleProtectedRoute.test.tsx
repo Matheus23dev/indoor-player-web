@@ -13,7 +13,7 @@ function renderRoute(role: "OWNER" | "ADMIN" | "OPERATOR") {
     token: "token",
     user: {
       id: "user-1",
-      name: "UsuÃ¡rio",
+      name: "Usuário",
       email: "user@example.com",
       role,
     },

@@ -19,7 +19,7 @@ import { DevicePreview } from "./DevicePreview";
 interface Props {
   device: Device;
 
-  onLogs: (device: Device) => void;
+  onLogs?: (device: Device) => void;
 
   onUnlink: (device: Device) => Promise<void>;
 }
@@ -139,27 +139,35 @@ export function DeviceCard({ device, onLogs, onUnlink }: Props) {
             </span>
           </header>
 
-          <div className={device.isLinked ? "mt-2 grid grid-cols-2 gap-2" : "mt-2 grid gap-2"}>
-            <button
-              type="button"
-              onClick={() => onLogs(device)}
-              className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+          {(onLogs || device.isLinked) && (
+            <div
+              className={
+                onLogs && device.isLinked ? "mt-2 grid grid-cols-2 gap-2" : "mt-2 grid gap-2"
+              }
             >
-              <FileText size={15} />
-              Logs
-            </button>
+              {onLogs && (
+                <button
+                  type="button"
+                  onClick={() => onLogs(device)}
+                  className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                >
+                  <FileText size={15} />
+                  Logs
+                </button>
+              )}
 
-            {device.isLinked && (
-              <button
-                type="button"
-                onClick={handleOpenUnlinkModal}
-                className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-700 transition hover:border-amber-300 hover:bg-amber-100"
-              >
-                <Unlink2 size={15} />
-                Desvincular
-              </button>
-            )}
-          </div>
+              {device.isLinked && (
+                <button
+                  type="button"
+                  onClick={handleOpenUnlinkModal}
+                  className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-700 transition hover:border-amber-300 hover:bg-amber-100"
+                >
+                  <Unlink2 size={15} />
+                  Desvincular
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </article>
 

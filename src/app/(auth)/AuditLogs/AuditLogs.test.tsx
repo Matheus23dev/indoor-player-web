@@ -29,7 +29,7 @@ describe("AuditLogs", () => {
           createdAt: "2026-08-12T12:00:01.000Z",
           device: {
             id: "11111111-1111-4111-8111-111111111111",
-            name: "TV RecepÃ§Ã£o",
+            name: "TV Recepção",
             code: "ABC123",
           },
         },
@@ -39,7 +39,7 @@ describe("AuditLogs", () => {
         devices: [
           {
             id: "11111111-1111-4111-8111-111111111111",
-            name: "TV RecepÃ§Ã£o",
+            name: "TV Recepção",
             code: "ABC123",
           },
         ],
@@ -54,14 +54,14 @@ describe("AuditLogs", () => {
       await screen.findByText("Maria atualizou a playlist Institucional."),
     ).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Data e hora" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "UsuÃ¡rio" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Usuário" })).toBeInTheDocument();
     expect(screen.getByLabelText("Buscar nos logs")).toBeInTheDocument();
     expect(screen.getByLabelText("Origem")).toBeInTheDocument();
     expect(screen.getByLabelText("Dispositivo")).toBeInTheDocument();
     expect(screen.getByLabelText("Data inicial")).toBeInTheDocument();
     expect(screen.getByLabelText("Data final")).toBeInTheDocument();
     expect(screen.getByText("Maria")).toBeInTheDocument();
-    expect(screen.getByText("TV RecepÃ§Ã£o")).toBeInTheDocument();
+    expect(screen.getByText("TV Recepção")).toBeInTheDocument();
   });
 
   it("envia o filtro de origem para a API", async () => {

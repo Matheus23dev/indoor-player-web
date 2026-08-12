@@ -169,7 +169,7 @@ export default function MediasPage() {
           </div>
         </div>
 
-        <PageScrollArea ariaLabel="ConteÃºdo da biblioteca" className="space-y-4">
+        <PageScrollArea ariaLabel="Conteúdo da biblioteca" className="space-y-4">
           {loading && (
             <div className="flex min-h-80 items-center justify-center rounded-2xl border border-gray-200 bg-white">
               <div className="flex flex-col items-center gap-3 text-gray-500">

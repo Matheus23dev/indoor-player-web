@@ -76,7 +76,7 @@ export default function AuditLogs() {
         }
       } catch {
         if (active) {
-          setError("NÃ£o foi possÃ­vel carregar o histÃ³rico de auditoria.");
+          setError("Não foi possível carregar o histórico de auditoria.");
         }
       } finally {
         if (active) {
@@ -118,7 +118,7 @@ export default function AuditLogs() {
   return (
     <PageContainer width="wide" scrollable>
       <PageHeader
-        eyebrow="SeguranÃ§a e governanÃ§a"
+        eyebrow="Segurança e governança"
         title="Auditoria geral"
         description="Consulte as atividades administrativas e operacionais registradas nos players."
         icon={ShieldCheck}
@@ -162,7 +162,7 @@ export default function AuditLogs() {
           >
             <option value="ALL">Todas as origens</option>
             <option value="ADMINISTRATION">Painel administrativo</option>
-            <option value="SYSTEM">Sistema e conexÃ£o</option>
+            <option value="SYSTEM">Sistema e conexão</option>
             <option value="PLAYER">Player</option>
           </FilterSelect>
 
@@ -177,7 +177,7 @@ export default function AuditLogs() {
             <option value="">Todos os players</option>
             {data.filters.devices.map((device) => (
               <option key={device.id} value={device.id}>
-                {device.name || "Sem nome"} Â· {device.code}
+                {device.name || "Sem nome"} · {device.code}
               </option>
             ))}
           </FilterSelect>
@@ -227,7 +227,7 @@ export default function AuditLogs() {
                   <TableHeader className="w-44">Data e hora</TableHeader>
                   <TableHeader>Evento</TableHeader>
                   <TableHeader className="w-44">Origem</TableHeader>
-                  <TableHeader className="w-52">UsuÃ¡rio</TableHeader>
+                  <TableHeader className="w-52">Usuário</TableHeader>
                   <TableHeader className="w-56">Dispositivo</TableHeader>
                 </tr>
               </thead>
@@ -262,7 +262,7 @@ export default function AuditLogs() {
           <footer className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3 text-xs font-medium text-slate-500">
               <span>
-                PÃ¡gina {data.pagination.page} de {data.pagination.totalPages}
+                Página {data.pagination.page} de {data.pagination.totalPages}
               </span>
               <label className="flex items-center gap-2">
                 Exibir
@@ -279,13 +279,13 @@ export default function AuditLogs() {
                   <option value={50}>50</option>
                   <option value={100}>100</option>
                 </select>
-                por pÃ¡gina
+                por página
               </label>
             </div>
 
             <div className="flex items-center gap-2">
               <PaginationButton
-                label="PÃ¡gina anterior"
+                label="Página anterior"
                 disabled={page <= 1 || loading}
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
               >
@@ -293,11 +293,11 @@ export default function AuditLogs() {
                 Anterior
               </PaginationButton>
               <PaginationButton
-                label="PrÃ³xima pÃ¡gina"
+                label="Próxima página"
                 disabled={page >= data.pagination.totalPages || loading}
                 onClick={() => setPage((current) => current + 1)}
               >
-                PrÃ³xima
+                Próxima
                 <ChevronRight size={16} />
               </PaginationButton>
             </div>
@@ -335,7 +335,7 @@ function AuditTableRow({ entry, parsed }: { entry: AuditLogEntry; parsed: Parsed
           {parsed.actor?.name ?? getAutomatedActor(parsed)}
         </p>
         <span className="mt-0.5 block text-xs text-slate-400">
-          {parsed.actor ? "UsuÃ¡rio autenticado" : "Evento automÃ¡tico"}
+          {parsed.actor ? "Usuário autenticado" : "Evento automático"}
         </span>
       </td>
       <td className="px-4 py-3.5">
@@ -465,8 +465,8 @@ function getAutomatedActor(parsed: ParsedDeviceLog) {
 
 function formatEvent(event: string) {
   const labels: Record<string, string> = {
-    PLAYER_CONNECTION_LOST: "ConexÃ£o perdida",
-    PLAYER_CONNECTION_RESTORED: "ConexÃ£o restabelecida",
+    PLAYER_CONNECTION_LOST: "Conexão perdida",
+    PLAYER_CONNECTION_RESTORED: "Conexão restabelecida",
     PLAYLIST_PLAYBACK_STARTED: "Playlist iniciada",
     PLAYLIST_PLAYBACK_FINISHED: "Playlist finalizada",
   };

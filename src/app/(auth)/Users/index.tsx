@@ -148,7 +148,7 @@ export default function Users() {
           </div>
         </div>
 
-        <PageScrollArea ariaLabel="Lista de usuÃ¡rios">
+        <PageScrollArea ariaLabel="Lista de usuários">
           {loading && (
             <div className="flex min-h-80 items-center justify-center rounded-2xl border bg-white">
               <Loader2 size={38} className="animate-spin text-blue-600" />

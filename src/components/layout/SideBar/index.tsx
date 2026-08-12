@@ -79,7 +79,7 @@ const menuItems: MenuItem[] = [
   },
   {
     title: "Auditoria",
-    description: "HistÃ³rico geral de atividades",
+    description: "Histórico geral de atividades",
     icon: ScrollText,
     url: "/home/audit-logs",
     allowedRoles: ["OWNER", "ADMIN"],
