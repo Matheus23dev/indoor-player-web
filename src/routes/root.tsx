@@ -2,6 +2,7 @@ import { lazy, Suspense, type JSX } from "react";
 import ErrorPage from "../app/404";
 import { Providers } from "../contexts";
 import { ProtectedRoute } from "../components/layout/protectedRoute";
+import { RoleProtectedRoute } from "../components/layout/protectedRoute/RoleProtectedRoute";
 import SignIn from "../app/SignIn";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
@@ -14,6 +15,7 @@ const MediasPage = lazy(() => import("@/app/(auth)/Medias"));
 const Schedules = lazy(() => import("@/app/(auth)/Schedules"));
 const PlaylistDetails = lazy(() => import("@/app/(auth)/Playlists/details"));
 const Users = lazy(() => import("@/app/(auth)/Users"));
+const AuditLogs = lazy(() => import("@/app/(auth)/AuditLogs"));
 
 const errorElement = <ErrorPage />;
 
@@ -69,6 +71,15 @@ export const router = createBrowserRouter([
       {
         path: "users",
         element: lazyPage(<Users />),
+        errorElement,
+      },
+      {
+        path: "audit-logs",
+        element: lazyPage(
+          <RoleProtectedRoute allowedRoles={["OWNER", "ADMIN"]}>
+            <AuditLogs />
+          </RoleProtectedRoute>,
+        ),
         errorElement,
       },
       {

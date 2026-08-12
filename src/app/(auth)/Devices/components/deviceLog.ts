@@ -23,6 +23,8 @@ export interface ParsedDeviceLog extends DeviceLog {
   metadata: Record<string, string | number | boolean | null>;
   occurredAt: string;
   source: "PLAYER" | "SERVER" | "SYSTEM" | "ADMINISTRATION";
+  actor: { id: string; name: string } | null;
+  entity: { type: string; id: string } | null;
 }
 
 interface StoredPlayerLog {
@@ -40,6 +42,8 @@ interface StoredAdminLog {
   message?: unknown;
   metadata?: unknown;
   occurredAt?: unknown;
+  actor?: unknown;
+  entity?: unknown;
 }
 
 const PLAYER_LOG_PREFIX = "@PLAYER_EVENT:";
@@ -95,6 +99,8 @@ export function parseDeviceLog(log: DeviceLog): ParsedDeviceLog {
       metadata: normalizeMetadata(payload.metadata),
       occurredAt: isValidDate(payload.occurredAt) ? String(payload.occurredAt) : log.createdAt,
       source: payload.source === "SERVER" ? "SERVER" : "PLAYER",
+      actor: null,
+      entity: null,
     };
   } catch {
     return createAdministrativeLog(log);
@@ -118,6 +124,8 @@ function parseStructuredSystemLog(log: DeviceLog): ParsedDeviceLog {
       metadata: normalizeMetadata(payload.metadata),
       occurredAt: isValidDate(payload.occurredAt) ? String(payload.occurredAt) : log.createdAt,
       source: "SYSTEM",
+      actor: null,
+      entity: null,
     };
   } catch {
     return createAdministrativeLog(log);
@@ -140,6 +148,8 @@ function parseStructuredAdminLog(log: DeviceLog): ParsedDeviceLog {
       metadata: normalizeMetadata(payload.metadata),
       occurredAt: isValidDate(payload.occurredAt) ? String(payload.occurredAt) : log.createdAt,
       source: "ADMINISTRATION",
+      actor: normalizeActor(payload.actor),
+      entity: normalizeEntity(payload.entity),
     };
   } catch {
     return createAdministrativeLog(log);
@@ -156,7 +166,33 @@ function createAdministrativeLog(log: DeviceLog): ParsedDeviceLog {
     metadata: {},
     occurredAt: log.createdAt,
     source: "ADMINISTRATION",
+    actor: null,
+    entity: null,
   };
+}
+
+function normalizeActor(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const actor = value as Record<string, unknown>;
+
+  return typeof actor.id === "string" && typeof actor.name === "string"
+    ? { id: actor.id, name: actor.name }
+    : null;
+}
+
+function normalizeEntity(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const entity = value as Record<string, unknown>;
+
+  return typeof entity.id === "string" && typeof entity.type === "string"
+    ? { id: entity.id, type: entity.type }
+    : null;
 }
 
 function normalizeMetadata(value: unknown) {

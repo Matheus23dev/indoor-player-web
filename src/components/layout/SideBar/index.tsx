@@ -10,6 +10,7 @@ import {
   MonitorSmartphone,
   PanelsTopLeft,
   ShieldCheck,
+  ScrollText,
   UserRoundCog,
   X,
 } from "lucide-react";
@@ -74,6 +75,13 @@ const menuItems: MenuItem[] = [
     description: "Acessos e permissões",
     icon: UserRoundCog,
     url: "/home/users",
+    allowedRoles: ["OWNER", "ADMIN"],
+  },
+  {
+    title: "Auditoria",
+    description: "HistÃ³rico geral de atividades",
+    icon: ScrollText,
+    url: "/home/audit-logs",
     allowedRoles: ["OWNER", "ADMIN"],
   },
 ];
