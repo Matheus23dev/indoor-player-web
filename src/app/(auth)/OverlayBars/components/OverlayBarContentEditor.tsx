@@ -178,7 +178,7 @@ export function OverlayBarContentEditor({
                   label="Tamanho da imagem"
                   value={item.imageSizePercent ?? 80}
                   min={10}
-                  max={100}
+                  max={300}
                   disabled={disabled}
                   onChange={(imageSizePercent) => updateItem(item.id, { imageSizePercent })}
                 />

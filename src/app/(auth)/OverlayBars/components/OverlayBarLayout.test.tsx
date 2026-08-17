@@ -90,8 +90,8 @@ describe("layout das barras", () => {
     expect(content).toHaveStyle({
       paddingTop: "4px",
       paddingBottom: "4px",
-      paddingLeft: "8px",
-      paddingRight: "1.333px",
+      paddingLeft: "5.333px",
+      paddingRight: "5.333px",
     });
   });
 
@@ -101,8 +101,8 @@ describe("layout das barras", () => {
     );
 
     expect(getByTestId("overlay-bar-preview-content")).toHaveStyle({
-      paddingLeft: "8px",
-      paddingRight: "1.333px",
+      paddingLeft: "5.333px",
+      paddingRight: "5.333px",
     });
   });
 
@@ -158,6 +158,35 @@ describe("layout das barras", () => {
       objectFit: "contain",
       aspectRatio: "auto",
       transform: "translate(4px, -2px)",
+    });
+  });
+
+  it("permite ampliar uma imagem lateral acima de cem por cento", () => {
+    const image = {
+      id: "image-1",
+      name: "Logo",
+      type: "IMAGE" as const,
+      fileUrl: "/files/logo.png",
+      createdAt: "2026-08-06T12:00:00.000Z",
+      updatedAt: "2026-08-06T12:00:00.000Z",
+    };
+    const imageContent = {
+      ...previewBar.contentItems![0],
+      id: "content-image",
+      type: "IMAGE" as const,
+      mediaId: image.id,
+      imageSizePercent: 300,
+      fit: "CONTAIN" as const,
+    };
+    const { getByTestId } = render(
+      <OverlayBarPreview
+        bar={{ ...previewBar, position: "LEFT", contentItems: [imageContent] }}
+        images={[image]}
+      />,
+    );
+
+    expect(getByTestId("overlay-bar-preview-content-image")).toHaveStyle({
+      width: "300%",
     });
   });
 

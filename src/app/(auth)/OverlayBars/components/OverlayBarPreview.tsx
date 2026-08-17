@@ -9,8 +9,7 @@ const REFERENCE_PLAYER_WIDTH = 960;
 const REFERENCE_PLAYER_HEIGHT = 540;
 const FALLBACK_PREVIEW_SCALE = 1 / 3;
 const REFERENCE_TV_SAFE_INSET = 16;
-const REFERENCE_TV_LATERAL_SAFE_INSET = 24;
-const REFERENCE_LATERAL_INNER_INSET = 4;
+const REFERENCE_TV_LATERAL_SAFE_INSET = 16;
 const MAX_BLOCK_CROSS_PADDING_SHARE = 0.15;
 const PREVIEW_DATE = "05/\u200B08/\u200B2026";
 
@@ -419,13 +418,8 @@ function getTvSafeContentStyle(
   if (position === "BOTTOM") return { paddingBottom: safeInset };
 
   const lateralSafeInset = `${scalePreviewValue(REFERENCE_TV_LATERAL_SAFE_INSET, previewScale)}px`;
-  const innerInset = `${scalePreviewValue(REFERENCE_LATERAL_INNER_INSET, previewScale)}px`;
 
-  if (position === "LEFT") {
-    return { paddingLeft: lateralSafeInset, paddingRight: innerInset };
-  }
-
-  return { paddingLeft: innerInset, paddingRight: lateralSafeInset };
+  return { paddingLeft: lateralSafeInset, paddingRight: lateralSafeInset };
 }
 
 function getTextBlockPadding(
