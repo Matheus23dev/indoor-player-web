@@ -178,7 +178,8 @@ export function OverlayBarContentEditor({
                   label="Tamanho da imagem"
                   value={item.imageSizePercent ?? 80}
                   min={10}
-                  max={300}
+                  max={600}
+                  unit="%"
                   disabled={disabled}
                   onChange={(imageSizePercent) => updateItem(item.id, { imageSizePercent })}
                 />
@@ -392,15 +393,28 @@ interface RangeFieldProps {
   value: number;
   min?: number;
   max: number;
+  unit?: string;
   disabled: boolean;
   onChange: (value: number) => void;
 }
 
-function RangeField({ label, value, min = 0, max, disabled, onChange }: RangeFieldProps) {
+function RangeField({
+  label,
+  value,
+  min = 0,
+  max,
+  unit = "px",
+  disabled,
+  onChange,
+}: RangeFieldProps) {
   return (
     <label className="mt-3 block">
       <span className="flex justify-between text-xs font-bold text-slate-600">
-        {label} <strong className="text-blue-700">{value}px</strong>
+        {label}{" "}
+        <strong className="text-blue-700">
+          {value}
+          {unit}
+        </strong>
       </span>
       <input
         type="range"

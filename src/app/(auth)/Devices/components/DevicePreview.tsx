@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ImageOff, Play, Radio, Volume2, VolumeX, WifiOff } from "lucide-react";
 
 import { OverlayBarsPreview } from "../../OverlayBars/components/OverlayBarPreview";
+import { getOverlayBarInsets } from "../../OverlayBars/components/overlayBarPreviewLayout";
 import { resolveMediaUrl } from "../services/devices.services";
 
 import type { DevicePreview as DevicePreviewData, DeviceStatus } from "../types/device";
@@ -21,6 +22,8 @@ export function DevicePreview({ preview, status }: Props) {
   const mediaUrl = media ? resolveMediaUrl(media.fileUrl) : null;
 
   const bars = useMemo(() => preview.playlist?.bars ?? [], [preview.playlist?.bars]);
+
+  const barInsets = useMemo(() => getOverlayBarInsets(bars), [bars]);
 
   const contentImages = useMemo(
     () =>
@@ -139,7 +142,14 @@ export function DevicePreview({ preview, status }: Props) {
           }
         />
 
-        <div className="absolute left-2.5 top-2.5">
+        <div
+          data-testid="device-preview-live-status"
+          className="absolute z-20"
+          style={{
+            left: `calc(${barInsets.left}% + 10px)`,
+            top: `calc(${barInsets.top}% + 10px)`,
+          }}
+        >
           <span className="inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur">
             {status === "ONLINE" ? (
               <>
@@ -157,9 +167,13 @@ export function DevicePreview({ preview, status }: Props) {
 
         {media?.type === "VIDEO" && preview.playback.muted !== null && (
           <span
-            className={`absolute right-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 text-[10px] font-bold backdrop-blur ${
+            className={`absolute z-20 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 text-[10px] font-bold backdrop-blur ${
               preview.playback.muted ? "text-red-300" : "text-emerald-300"
             }`}
+            style={{
+              right: `calc(${barInsets.right}% + 10px)`,
+              top: `calc(${barInsets.top}% + 10px)`,
+            }}
           >
             {preview.playback.muted ? <VolumeX size={12} /> : <Volume2 size={12} />}
             {preview.playback.muted ? "Sem áudio" : "Com áudio"}
@@ -167,7 +181,13 @@ export function DevicePreview({ preview, status }: Props) {
         )}
 
         {media?.type === "VIDEO" && (
-          <div className="absolute bottom-2.5 right-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/65 text-white backdrop-blur">
+          <div
+            className="absolute z-20 flex h-7 w-7 items-center justify-center rounded-full bg-black/65 text-white backdrop-blur"
+            style={{
+              right: `calc(${barInsets.right}% + 10px)`,
+              bottom: `calc(${barInsets.bottom}% + 10px)`,
+            }}
+          >
             <Play size={14} />
           </div>
         )}

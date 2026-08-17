@@ -4,6 +4,11 @@ import { ImageIcon } from "lucide-react";
 import { resolveMediaUrl } from "../../../../lib/mediaUrl";
 import type { Media } from "../../Medias/types";
 import type { OverlayBar, OverlayBarContentItem } from "../types";
+import {
+  getOverlayBarInsets,
+  shouldAllowLateralImageOverflow,
+  type OverlayBarInsets,
+} from "./overlayBarPreviewLayout";
 
 const REFERENCE_PLAYER_WIDTH = 960;
 const REFERENCE_PLAYER_HEIGHT = 540;
@@ -47,13 +52,6 @@ interface OverlayBarsPreviewProps {
   className?: string;
   showEmptyState?: boolean;
   mediaContent?: ReactNode;
-}
-
-export interface OverlayBarInsets {
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
 }
 
 export function OverlayBarPreview({
@@ -133,10 +131,26 @@ function PreviewBar({ bar, images, insets, previewScale, showEmptyState }: Previ
   const dynamicText = resolvePreviewText(bar.textContent ?? "", bar.weatherLocation);
   const widgetText = getWidgetPreview(bar.widgetType, bar.weatherLocation);
   const contentItems = bar.contentItems ?? [];
+  const imageSafeOffsetX = getLateralImageSafeOffsetX(
+    bar.position,
+    bar.contentAlignment,
+    previewScale,
+  );
+  const allowLateralImageOverflow =
+    shouldAllowLateralImageOverflow(bar.position, bar.fit, bar.imageSizePercent) ||
+    contentItems.some(
+      (item) =>
+        item.type === "IMAGE" &&
+        shouldAllowLateralImageOverflow(
+          bar.position,
+          item.fit ?? "CONTAIN",
+          item.imageSizePercent ?? 80,
+        ),
+    );
   const barStyle: CSSProperties = {
     ...getOverlayBarStyle(bar, insets),
     boxSizing: "border-box",
-    overflow: "hidden",
+    overflow: allowLateralImageOverflow ? "visible" : "hidden",
     backgroundColor: toRgba(bar.backgroundColor, bar.opacity),
   };
   const contentStyle: CSSProperties = {
@@ -171,14 +185,17 @@ function PreviewBar({ bar, images, insets, previewScale, showEmptyState }: Previ
               objectFit: fitToObjectFit(bar.fit),
               flex: "0 0 auto",
               aspectRatio: getPreviewImageAspectRatio(bar.fit),
+              transform: `translateX(${imageSafeOffsetX}px)`,
               ...(isHorizontal
                 ? {
                     height: `${bar.imageSizePercent}%`,
-                    maxWidth: "100%",
+                    maxWidth: "none",
+                    maxHeight: "none",
                   }
                 : {
-                    width: `${bar.imageSizePercent}%`,
-                    maxHeight: "100%",
+                    width: getLateralImageWidth(bar.imageSizePercent, previewScale),
+                    maxWidth: "none",
+                    maxHeight: "none",
                   }),
             }}
           />
@@ -275,6 +292,15 @@ function PreviewContentItem({
       return null;
     }
 
+    const imageSafeOffsetX = getLateralImageSafeOffsetX(
+      bar.position,
+      bar.contentAlignment,
+      previewScale,
+    );
+    const imageTransform = `translate(${
+      scaleSignedPreviewValue(item.offsetX ?? 0, previewScale) + imageSafeOffsetX
+    }px, ${scaleSignedPreviewValue(item.offsetY ?? 0, previewScale)}px)`;
+
     return (
       <img
         src={resolveMediaUrl(media.fileUrl)}
@@ -284,15 +310,17 @@ function PreviewContentItem({
           objectFit: fitToObjectFit(item.fit ?? "CONTAIN"),
           flex: "0 0 auto",
           aspectRatio: getPreviewImageAspectRatio(item.fit ?? "CONTAIN"),
-          transform,
+          transform: imageTransform,
           ...(isHorizontal
             ? {
                 height: `${item.imageSizePercent ?? 80}%`,
-                maxWidth: "100%",
+                maxWidth: "none",
+                maxHeight: "none",
               }
             : {
-                width: `${item.imageSizePercent ?? 80}%`,
-                maxHeight: "100%",
+                width: getLateralImageWidth(item.imageSizePercent ?? 80, previewScale),
+                maxWidth: "none",
+                maxHeight: "none",
               }),
         }}
       />
@@ -342,21 +370,6 @@ function PreviewContentItem({
     >
       {resolveContentItemPreview(item, bar.weatherLocation)}
     </span>
-  );
-}
-
-function getOverlayBarInsets(bars: OverlayBarPreviewData[]): OverlayBarInsets {
-  return bars.reduce<OverlayBarInsets>(
-    (insets, bar) => {
-      const size = Math.min(40, Math.max(0, bar.sizePercent));
-      const edge = bar.position.toLowerCase() as keyof OverlayBarInsets;
-
-      return {
-        ...insets,
-        [edge]: Math.max(insets[edge], size),
-      };
-    },
-    { top: 0, right: 0, bottom: 0, left: 0 },
   );
 }
 
@@ -552,6 +565,30 @@ function scalePreviewValue(value: number, previewScale: number) {
 
 function scaleSignedPreviewValue(value: number, previewScale: number) {
   return Math.round(value * previewScale * 1000) / 1000;
+}
+
+function getLateralImageSafeOffsetX(
+  position: OverlayBar["position"],
+  alignment: OverlayBar["contentAlignment"],
+  previewScale: number,
+) {
+  if (alignment !== "CENTER") return 0;
+  if (position === "LEFT") {
+    return scaleSignedPreviewValue(REFERENCE_TV_LATERAL_SAFE_INSET, previewScale);
+  }
+  if (position === "RIGHT") {
+    return scaleSignedPreviewValue(-REFERENCE_TV_LATERAL_SAFE_INSET, previewScale);
+  }
+  return 0;
+}
+
+function getLateralImageWidth(sizePercent: number, previewScale: number) {
+  const safeInsetsWidth = scaleSignedPreviewValue(
+    (REFERENCE_TV_LATERAL_SAFE_INSET * 2 * sizePercent) / 100,
+    previewScale,
+  );
+
+  return `calc(${sizePercent}% + ${safeInsetsWidth}px)`;
 }
 
 function toRgba(hex: string, opacity: number) {

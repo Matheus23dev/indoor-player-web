@@ -180,13 +180,24 @@ describe("layout das barras", () => {
     };
     const { getByTestId } = render(
       <OverlayBarPreview
-        bar={{ ...previewBar, position: "LEFT", contentItems: [imageContent] }}
+        bar={{
+          ...previewBar,
+          position: "LEFT",
+          contentAlignment: "CENTER",
+          contentItems: [imageContent],
+        }}
         images={[image]}
       />,
     );
 
     expect(getByTestId("overlay-bar-preview-content-image")).toHaveStyle({
-      width: "300%",
+      width: "calc(300% + 32px)",
+      maxWidth: "none",
+      maxHeight: "none",
+      transform: "translate(5.333px, 0px)",
+    });
+    expect(getByTestId("overlay-bar-preview-bar")).toHaveStyle({
+      overflow: "visible",
     });
   });
 

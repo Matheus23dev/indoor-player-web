@@ -84,12 +84,17 @@ const preview: DevicePreviewData = {
 
 describe("DevicePreview", () => {
   it("mostra a mídia atual junto com as barras da playlist", () => {
-    const { getByAltText, getAllByTestId } = render(
+    const { getByAltText, getAllByTestId, getByTestId } = render(
       <DevicePreview preview={preview} status="ONLINE" />,
     );
 
     expect(getByAltText("Campanha")).toBeInTheDocument();
     expect(getAllByTestId("overlay-bar-preview-bar")).toHaveLength(1);
     expect(getByAltText("Logo da barra")).toBeInTheDocument();
+    expect(getByTestId("device-preview-live-status")).toHaveStyle({
+      left: "calc(14% + 10px)",
+      top: "calc(0% + 10px)",
+    });
+    expect(getByTestId("device-preview-live-status")).toHaveClass("z-20");
   });
 });
