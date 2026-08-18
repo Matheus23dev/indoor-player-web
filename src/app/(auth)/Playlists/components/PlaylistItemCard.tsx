@@ -44,10 +44,11 @@ export default function PlaylistItemCard({
   onDelete,
 }: PlaylistItemCardProps) {
   const isVideo = item.media.type === "VIDEO";
+  const hasNoAudioTrack = isVideo && item.media.hasAudio === false;
 
   const originalDuration = item.duration ?? item.media.duration ?? 5;
 
-  const originalMuted = item.muted ?? false;
+  const originalMuted = hasNoAudioTrack || (item.muted ?? false);
 
   const [duration, setDuration] = useState(originalDuration);
 
@@ -70,7 +71,7 @@ export default function PlaylistItemCard({
 
   const durationChanged = duration !== originalDuration;
 
-  const audioChanged = isVideo && muted !== originalMuted;
+  const audioChanged = isVideo && !hasNoAudioTrack && muted !== originalMuted;
 
   const hasChanges = durationChanged || audioChanged;
 
@@ -79,8 +80,8 @@ export default function PlaylistItemCard({
   }, [item.duration, item.media.duration]);
 
   useEffect(() => {
-    setMuted(item.muted ?? false);
-  }, [item.muted]);
+    setMuted(hasNoAudioTrack || (item.muted ?? false));
+  }, [hasNoAudioTrack, item.muted]);
 
   function adjustDuration(amount: number) {
     setDuration((current) =>
@@ -152,7 +153,7 @@ export default function PlaylistItemCard({
             <video
               src={resolveMediaUrl(item.media.fileUrl)}
               controls
-              muted={muted}
+              muted={hasNoAudioTrack || muted}
               preload="metadata"
               className="h-full w-full object-cover"
             />
@@ -217,9 +218,18 @@ export default function PlaylistItemCard({
               <button
                 type="button"
                 onClick={() => setMuted((current) => !current)}
-                disabled={saving}
+                disabled={saving || hasNoAudioTrack}
                 aria-pressed={muted}
-                title="Alternar áudio do vídeo"
+                aria-label={
+                  hasNoAudioTrack
+                    ? "Sem áudio: o vídeo não possui faixa de áudio"
+                    : "Alternar áudio do vídeo"
+                }
+                title={
+                  hasNoAudioTrack
+                    ? "Este vídeo não possui faixa de áudio"
+                    : "Alternar áudio do vídeo"
+                }
                 className={`inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-[10px] font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                   muted
                     ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"

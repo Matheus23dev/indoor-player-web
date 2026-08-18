@@ -38,7 +38,7 @@ export default function MediaCard({ media, onDelete }: MediaCardProps) {
           {isVideo ? (
             <span className="inline-flex items-center gap-1">
               <Video size={12} />
-              Vídeo
+              {media.hasAudio === false ? "Vídeo · sem áudio" : "Vídeo"}
             </span>
           ) : (
             <span className="inline-flex items-center gap-1">

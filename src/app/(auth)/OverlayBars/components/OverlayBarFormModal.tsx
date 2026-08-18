@@ -3,7 +3,9 @@ import {
   AlignHorizontalSpaceAround,
   AlignVerticalSpaceAround,
   ImageIcon,
+  Monitor,
   Save,
+  Smartphone,
   X,
 } from "lucide-react";
 
@@ -16,7 +18,7 @@ import type {
   OverlayBarPosition,
   OverlayBarWidgetType,
 } from "../types";
-import { OverlayBarPreview } from "./OverlayBarPreview";
+import { OverlayBarPreview, type OverlayPreviewOrientation } from "./OverlayBarPreview";
 import { OverlayBarContentEditor } from "./OverlayBarContentEditor";
 
 interface OverlayBarFormModalProps {
@@ -78,10 +80,13 @@ export function OverlayBarFormModal({
   onSave,
 }: OverlayBarFormModalProps) {
   const [form, setForm] = useState<OverlayBarPayload>(defaultPayload);
+  const [previewOrientation, setPreviewOrientation] =
+    useState<OverlayPreviewOrientation>("LANDSCAPE");
 
   useEffect(() => {
     if (!open) return;
 
+    setPreviewOrientation("LANDSCAPE");
     setForm(
       initialBar
         ? {
@@ -582,19 +587,64 @@ export function OverlayBarFormModal({
             data-testid="overlay-bar-preview-panel"
             className="min-h-0 overflow-hidden border-t border-slate-200 bg-slate-50 p-5 lg:border-l lg:border-t-0 sm:p-6"
           >
-            <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-              <ImageIcon size={17} className="text-blue-700" />
-              Prévia na tela
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                  <ImageIcon size={17} className="text-blue-700" />
+                  Prévia na tela
+                </div>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  Visualize a barra nas duas orientações da playlist.
+                </p>
+              </div>
+
+              <div
+                className="flex shrink-0 items-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm"
+                aria-label="Orientação da prévia"
+              >
+                <button
+                  type="button"
+                  aria-label="Visualizar prévia horizontal"
+                  aria-pressed={previewOrientation === "LANDSCAPE"}
+                  title="Horizontal"
+                  onClick={() => setPreviewOrientation("LANDSCAPE")}
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                    previewOrientation === "LANDSCAPE"
+                      ? "bg-blue-700 text-white shadow-sm"
+                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                  }`}
+                >
+                  <Monitor size={16} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Visualizar prévia vertical"
+                  aria-pressed={previewOrientation === "PORTRAIT"}
+                  title="Vertical"
+                  onClick={() => setPreviewOrientation("PORTRAIT")}
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                    previewOrientation === "PORTRAIT"
+                      ? "bg-blue-700 text-white shadow-sm"
+                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                  }`}
+                >
+                  <Smartphone size={16} />
+                </button>
+              </div>
             </div>
-            <p className="mt-1 text-xs leading-5 text-slate-500">
-              A barra ficará fixa sobre o conteúdo durante toda a playlist.
-            </p>
-            <OverlayBarPreview
-              bar={previewBar}
-              images={images}
-              className="mt-4 shadow-lg"
-              showEmptyState
-            />
+            <div className="mt-4 flex min-h-0 justify-center">
+              <OverlayBarPreview
+                bar={previewBar}
+                images={images}
+                orientation={previewOrientation}
+                className={
+                  previewOrientation === "PORTRAIT"
+                    ? "w-full max-w-[280px] shadow-lg"
+                    : "w-full shadow-lg"
+                }
+                showEmptyState
+              />
+            </div>
             <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-3 text-xs leading-5 text-blue-800">
               Esta barra poderá ser vinculada a várias playlists sem precisar ser recriada.
             </div>

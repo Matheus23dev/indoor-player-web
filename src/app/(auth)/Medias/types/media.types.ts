@@ -17,6 +17,7 @@ export interface Media {
 
   fileSize?: number | null;
   duration?: number | null;
+  hasAudio?: boolean | null;
 
   companyId?: string;
 

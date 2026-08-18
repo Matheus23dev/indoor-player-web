@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   FilterX,
   Loader2,
   RefreshCw,
@@ -221,14 +223,21 @@ export default function AuditLogs() {
       <PageScrollArea ariaLabel="Tabela de auditoria">
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1080px] border-collapse text-left">
+            <table className="w-full min-w-[1080px] table-fixed border-collapse text-left">
+              <colgroup>
+                <col className="w-44" />
+                <col />
+                <col className="w-40" />
+                <col className="w-48" />
+                <col className="w-56" />
+              </colgroup>
               <thead className="border-b border-slate-200 bg-slate-50">
                 <tr className="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">
-                  <TableHeader className="w-44">Data e hora</TableHeader>
+                  <TableHeader>Data e hora</TableHeader>
                   <TableHeader>Evento</TableHeader>
-                  <TableHeader className="w-44">Origem</TableHeader>
-                  <TableHeader className="w-52">Usuário</TableHeader>
-                  <TableHeader className="w-56">Dispositivo</TableHeader>
+                  <TableHeader>Origem</TableHeader>
+                  <TableHeader>Usuário</TableHeader>
+                  <TableHeader>Dispositivo</TableHeader>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -309,9 +318,12 @@ export default function AuditLogs() {
 }
 
 function AuditTableRow({ entry, parsed }: { entry: AuditLogEntry; parsed: ParsedDeviceLog }) {
+  const [messageExpanded, setMessageExpanded] = useState(false);
+  const hasLongMessage = parsed.displayMessage.length > 160;
+
   return (
     <tr className="align-top transition hover:bg-slate-50/80">
-      <td className="px-4 py-3.5">
+      <td className="whitespace-nowrap px-4 py-3.5">
         <time className="text-sm font-semibold text-slate-700">
           {new Date(parsed.occurredAt).toLocaleDateString("pt-BR")}
         </time>
@@ -319,19 +331,44 @@ function AuditTableRow({ entry, parsed }: { entry: AuditLogEntry; parsed: Parsed
           {new Date(parsed.occurredAt).toLocaleTimeString("pt-BR")}
         </span>
       </td>
-      <td className="px-4 py-3.5">
+      <td className="min-w-0 px-4 py-3.5">
         <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">
           {formatEvent(parsed.event)}
         </span>
-        <p className="mt-1 max-w-2xl text-sm font-semibold leading-5 text-slate-800">
+        <p
+          title={parsed.displayMessage}
+          className={`mt-1 break-words text-sm font-semibold leading-5 text-slate-800 [overflow-wrap:anywhere] ${
+            hasLongMessage && !messageExpanded ? "line-clamp-3" : ""
+          }`}
+        >
           {parsed.displayMessage}
         </p>
+        {hasLongMessage ? (
+          <button
+            type="button"
+            aria-expanded={messageExpanded}
+            onClick={() => setMessageExpanded((current) => !current)}
+            className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 transition hover:text-blue-900"
+          >
+            {messageExpanded ? (
+              <>
+                <ChevronUp size={13} />
+                Recolher mensagem
+              </>
+            ) : (
+              <>
+                <ChevronDown size={13} />
+                Ver mensagem completa
+              </>
+            )}
+          </button>
+        ) : null}
       </td>
       <td className="px-4 py-3.5">
         <SourceBadge parsed={parsed} />
       </td>
       <td className="px-4 py-3.5">
-        <p className="text-sm font-semibold text-slate-700">
+        <p className="break-words text-sm font-semibold text-slate-700 [overflow-wrap:anywhere]">
           {parsed.actor?.name ?? getAutomatedActor(parsed)}
         </p>
         <span className="mt-0.5 block text-xs text-slate-400">
@@ -465,10 +502,64 @@ function getAutomatedActor(parsed: ParsedDeviceLog) {
 
 function formatEvent(event: string) {
   const labels: Record<string, string> = {
+    ACTIVE_SCHEDULE_APPLIED: "Agendamento ativo aplicado",
+    ACTIVE_SCHEDULE_MEDIA_NOT_READY: "Mídia do agendamento indisponível",
+    ACTIVE_SCHEDULE_NO_CONTENT: "Agendamento sem conteúdo",
+    CACHE_CLEARED: "Cache limpo",
+    CACHE_CLEANUP_FAILED: "Falha ao limpar cache antigo",
+    CACHE_CLEAR_FAILED: "Falha ao limpar cache",
+    DEVICE_LINKED: "Dispositivo vinculado",
+    DEVICE_UPDATED: "Dispositivo atualizado",
+    DEVICE_SESSION_ENDED: "Sessão do dispositivo encerrada",
+    DEVICE_SESSION_INVALID: "Sessão do dispositivo inválida",
+    DEVICE_UNLINKED: "Dispositivo desvinculado",
+    ENGINE_STARTED: "Player iniciado",
+    ENGINE_STARTING: "Player iniciando",
+    ENGINE_START_FAILED: "Falha ao iniciar o player",
+    ENGINE_STOPPED: "Player interrompido",
+    HEARTBEAT_FAILED: "Falha na comunicação com o servidor",
+    HEARTBEAT_RESTORED: "Comunicação com o servidor restabelecida",
+    MEDIA_DOWNLOAD_COMPLETED: "Download da mídia concluído",
+    MEDIA_DOWNLOAD_FAILED: "Falha no download da mídia",
+    MEDIA_DOWNLOAD_STARTED: "Download da mídia iniciado",
+    MEDIA_STARTED: "Reprodução da mídia iniciada",
+    MEDIA_DELETED: "Mídia excluída",
+    MEDIA_UPLOADED: "Mídia enviada",
+    NO_ACTIVE_SCHEDULE: "Nenhum agendamento ativo",
+    PLAYBACK_STOPPED: "Reprodução interrompida",
     PLAYER_CONNECTION_LOST: "Conexão perdida",
     PLAYER_CONNECTION_RESTORED: "Conexão restabelecida",
+    PLAYLIST_DELETED: "Playlist excluída",
+    PLAYLIST_CREATED: "Playlist criada",
+    PLAYLIST_MEDIA_ADDED: "Mídia adicionada à playlist",
+    PLAYLIST_MEDIA_REMOVED: "Mídia removida da playlist",
+    PLAYLIST_MEDIA_UPDATED: "Mídia da playlist atualizada",
+    PLAYLIST_ORIENTATION_UPDATED: "Orientação da playlist atualizada",
     PLAYLIST_PLAYBACK_STARTED: "Playlist iniciada",
     PLAYLIST_PLAYBACK_FINISHED: "Playlist finalizada",
+    PLAYLIST_REORDERED: "Playlist reordenada",
+    PLAYLIST_RESTORED_FROM_CACHE: "Playlist restaurada do cache",
+    PLAYLIST_UPDATED: "Playlist atualizada",
+    PROGRAMMING_CHANGE_RECEIVED: "Alteração de programação recebida",
+    PROGRAMMING_SYNCED: "Programação sincronizada",
+    PROGRAMMING_SYNC_FAILED: "Falha ao sincronizar a programação",
+    REALTIME_SYNC_FAILED: "Falha na sincronização em tempo real",
+    SCHEDULE_ACTIVATED: "Agendamento ativado",
+    SCHEDULE_CREATED: "Agendamento criado",
+    SCHEDULE_DEACTIVATED: "Agendamento desativado",
+    SCHEDULE_DELETED: "Agendamento excluído",
+    SCHEDULE_MOVED_FROM_DEVICE: "Agendamento removido do dispositivo",
+    SCHEDULE_MOVED_TO_DEVICE: "Agendamento adicionado ao dispositivo",
+    SCHEDULE_UPDATED: "Agendamento atualizado",
+    SESSION_VERIFICATION_FAILED: "Falha ao verificar a sessão",
+    SOCKET_CONNECTION_ERROR: "Erro na conexão em tempo real",
+    SOCKET_DISCONNECTED: "Conexão em tempo real encerrada",
+    SYNC_CONNECTION_RESTORED: "Conexão de sincronização restabelecida",
+    TV_POWER_COMMAND_FAILED: "Falha no comando de energia da TV",
+    TV_POWER_ON: "TV ligada",
+    TV_STANDBY: "TV em modo de espera",
+    VIDEO_AUDIO_CHANGED: "Áudio do vídeo alterado",
+    VIDEO_PLAYBACK_FAILED: "Falha ao reproduzir o vídeo",
   };
 
   return labels[event] ?? event.replace(/_/g, " ");

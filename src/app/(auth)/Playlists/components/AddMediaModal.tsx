@@ -283,7 +283,11 @@ export default function AddMediaModal({ open, saving, onClose, onAdd }: AddMedia
                         <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-gray-500">
                           {media.type === "VIDEO" ? <Video size={13} /> : <ImageIcon size={13} />}
 
-                          {media.type === "VIDEO" ? "Vídeo" : "Imagem"}
+                          {media.type === "VIDEO"
+                            ? media.hasAudio === false
+                              ? "Vídeo · sem áudio"
+                              : "Vídeo"
+                            : "Imagem"}
                         </p>
                       </div>
                     </button>

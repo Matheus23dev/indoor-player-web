@@ -15,8 +15,11 @@ const REFERENCE_PLAYER_HEIGHT = 540;
 const FALLBACK_PREVIEW_SCALE = 1 / 3;
 const REFERENCE_TV_SAFE_INSET = 16;
 const REFERENCE_TV_LATERAL_SAFE_INSET = 16;
+const REFERENCE_TV_IMAGE_OPTICAL_CORRECTION = 8;
 const MAX_BLOCK_CROSS_PADDING_SHARE = 0.15;
 const PREVIEW_DATE = "05/\u200B08/\u200B2026";
+
+export type OverlayPreviewOrientation = "LANDSCAPE" | "PORTRAIT";
 
 export type OverlayBarPreviewData = Pick<
   OverlayBar,
@@ -44,6 +47,7 @@ interface OverlayBarPreviewProps {
   images?: Media[];
   className?: string;
   showEmptyState?: boolean;
+  orientation?: OverlayPreviewOrientation;
 }
 
 interface OverlayBarsPreviewProps {
@@ -52,6 +56,7 @@ interface OverlayBarsPreviewProps {
   className?: string;
   showEmptyState?: boolean;
   mediaContent?: ReactNode;
+  orientation?: OverlayPreviewOrientation;
 }
 
 export function OverlayBarPreview({
@@ -59,6 +64,7 @@ export function OverlayBarPreview({
   images = [],
   className = "",
   showEmptyState = false,
+  orientation = "LANDSCAPE",
 }: OverlayBarPreviewProps) {
   return (
     <OverlayBarsPreview
@@ -66,6 +72,7 @@ export function OverlayBarPreview({
       images={images}
       className={className}
       showEmptyState={showEmptyState}
+      orientation={orientation}
     />
   );
 }
@@ -76,16 +83,20 @@ export function OverlayBarsPreview({
   className = "",
   showEmptyState = false,
   mediaContent,
+  orientation = "LANDSCAPE",
 }: OverlayBarsPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
-  const previewScale = usePreviewScale(previewRef);
+  const previewScale = usePreviewScale(previewRef, orientation);
   const barInsets = getOverlayBarInsets(bars);
   const mediaInsets = getMediaFrameInsets(bars);
 
   return (
     <div
       ref={previewRef}
-      className={`relative aspect-video overflow-hidden rounded-xl bg-slate-950 ${className}`}
+      data-testid="overlay-bars-preview"
+      data-orientation={orientation}
+      className={`relative overflow-hidden rounded-xl bg-slate-950 ${className}`}
+      style={{ aspectRatio: orientation === "PORTRAIT" ? "9 / 16" : "16 / 9" }}
       aria-label="Prévia das barras no player"
     >
       <div
@@ -111,6 +122,7 @@ export function OverlayBarsPreview({
           insets={barInsets}
           previewScale={previewScale}
           showEmptyState={showEmptyState}
+          orientation={orientation}
         />
       ))}
     </div>
@@ -123,16 +135,25 @@ interface PreviewBarProps {
   insets: OverlayBarInsets;
   previewScale: number;
   showEmptyState: boolean;
+  orientation: OverlayPreviewOrientation;
 }
 
-function PreviewBar({ bar, images, insets, previewScale, showEmptyState }: PreviewBarProps) {
+function PreviewBar({
+  bar,
+  images,
+  insets,
+  previewScale,
+  showEmptyState,
+  orientation,
+}: PreviewBarProps) {
   const isHorizontal = bar.position === "TOP" || bar.position === "BOTTOM";
   const imageUrl = bar.media?.fileUrl ? resolveMediaUrl(bar.media.fileUrl) : "";
   const dynamicText = resolvePreviewText(bar.textContent ?? "", bar.weatherLocation);
   const widgetText = getWidgetPreview(bar.widgetType, bar.weatherLocation);
   const contentItems = bar.contentItems ?? [];
-  const imageSafeOffsetX = getLateralImageSafeOffsetX(
+  const imageSafeOffset = getOverlayImageSafeOffset(
     bar.position,
+    orientation,
     bar.contentAlignment,
     previewScale,
   );
@@ -185,7 +206,7 @@ function PreviewBar({ bar, images, insets, previewScale, showEmptyState }: Previ
               objectFit: fitToObjectFit(bar.fit),
               flex: "0 0 auto",
               aspectRatio: getPreviewImageAspectRatio(bar.fit),
-              transform: `translateX(${imageSafeOffsetX}px)`,
+              transform: `translate(${imageSafeOffset.x}px, ${imageSafeOffset.y}px)`,
               ...(isHorizontal
                 ? {
                     height: `${bar.imageSizePercent}%`,
@@ -219,6 +240,7 @@ function PreviewBar({ bar, images, insets, previewScale, showEmptyState }: Previ
             images={images}
             isHorizontal={isHorizontal}
             previewScale={previewScale}
+            orientation={orientation}
           />
         ))}
 
@@ -255,6 +277,7 @@ interface PreviewContentItemProps {
   images: Media[];
   isHorizontal: boolean;
   previewScale: number;
+  orientation: OverlayPreviewOrientation;
 }
 
 function PreviewContentItem({
@@ -263,6 +286,7 @@ function PreviewContentItem({
   images,
   isHorizontal,
   previewScale,
+  orientation,
 }: PreviewContentItemProps) {
   if (item.type === "SPACER") {
     return (
@@ -292,14 +316,15 @@ function PreviewContentItem({
       return null;
     }
 
-    const imageSafeOffsetX = getLateralImageSafeOffsetX(
+    const imageSafeOffset = getOverlayImageSafeOffset(
       bar.position,
+      orientation,
       bar.contentAlignment,
       previewScale,
     );
     const imageTransform = `translate(${
-      scaleSignedPreviewValue(item.offsetX ?? 0, previewScale) + imageSafeOffsetX
-    }px, ${scaleSignedPreviewValue(item.offsetY ?? 0, previewScale)}px)`;
+      scaleSignedPreviewValue(item.offsetX ?? 0, previewScale) + imageSafeOffset.x
+    }px, ${scaleSignedPreviewValue(item.offsetY ?? 0, previewScale) + imageSafeOffset.y}px)`;
 
     return (
       <img
@@ -465,7 +490,10 @@ function getTextBlockPadding(
   };
 }
 
-function usePreviewScale(ref: React.RefObject<HTMLDivElement | null>) {
+function usePreviewScale(
+  ref: React.RefObject<HTMLDivElement | null>,
+  orientation: OverlayPreviewOrientation,
+) {
   const [previewScale, setPreviewScale] = useState(FALLBACK_PREVIEW_SCALE);
 
   useLayoutEffect(() => {
@@ -475,7 +503,9 @@ function usePreviewScale(ref: React.RefObject<HTMLDivElement | null>) {
     const updateScale = () => {
       const width = element.getBoundingClientRect().width;
       if (width > 0) {
-        setPreviewScale(width / REFERENCE_PLAYER_WIDTH);
+        const referenceWidth =
+          orientation === "PORTRAIT" ? REFERENCE_PLAYER_HEIGHT : REFERENCE_PLAYER_WIDTH;
+        setPreviewScale(width / referenceWidth);
       }
     };
 
@@ -487,7 +517,7 @@ function usePreviewScale(ref: React.RefObject<HTMLDivElement | null>) {
     observer.observe(element);
 
     return () => observer.disconnect();
-  }, [ref]);
+  }, [orientation, ref]);
 
   return previewScale;
 }
@@ -567,19 +597,34 @@ function scaleSignedPreviewValue(value: number, previewScale: number) {
   return Math.round(value * previewScale * 1000) / 1000;
 }
 
-function getLateralImageSafeOffsetX(
+function getOverlayImageSafeOffset(
   position: OverlayBar["position"],
+  orientation: OverlayPreviewOrientation,
   alignment: OverlayBar["contentAlignment"],
   previewScale: number,
 ) {
-  if (alignment !== "CENTER") return 0;
+  if (alignment !== "CENTER") return { x: 0, y: 0 };
+
+  const safeOffset = scaleSignedPreviewValue(
+    REFERENCE_TV_LATERAL_SAFE_INSET + REFERENCE_TV_IMAGE_OPTICAL_CORRECTION,
+    previewScale,
+  );
+
+  if (orientation === "PORTRAIT") {
+    if (position === "TOP") return { x: 0, y: safeOffset };
+    if (position === "BOTTOM") return { x: 0, y: -safeOffset };
+
+    return { x: 0, y: 0 };
+  }
+
   if (position === "LEFT") {
-    return scaleSignedPreviewValue(REFERENCE_TV_LATERAL_SAFE_INSET, previewScale);
+    return { x: safeOffset, y: 0 };
   }
   if (position === "RIGHT") {
-    return scaleSignedPreviewValue(-REFERENCE_TV_LATERAL_SAFE_INSET, previewScale);
+    return { x: -safeOffset, y: 0 };
   }
-  return 0;
+
+  return { x: 0, y: 0 };
 }
 
 function getLateralImageWidth(sizePercent: number, previewScale: number) {

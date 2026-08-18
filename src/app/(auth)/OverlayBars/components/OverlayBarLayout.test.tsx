@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { OverlayBar } from "../types";
@@ -194,7 +194,7 @@ describe("layout das barras", () => {
       width: "calc(300% + 32px)",
       maxWidth: "none",
       maxHeight: "none",
-      transform: "translate(5.333px, 0px)",
+      transform: "translate(8px, 0px)",
     });
     expect(getByTestId("overlay-bar-preview-bar")).toHaveStyle({
       overflow: "visible",
@@ -259,5 +259,64 @@ describe("layout das barras", () => {
     expect(screen.getByTestId("overlay-bar-modal-body")).toHaveClass("overflow-hidden");
     expect(screen.getByTestId("overlay-bar-editor-scroll")).toHaveClass("overflow-y-auto");
     expect(screen.getByTestId("overlay-bar-preview-panel")).toHaveClass("overflow-hidden");
+  });
+
+  it("permite alternar a prévia entre horizontal e vertical", () => {
+    render(
+      <OverlayBarFormModal
+        open
+        saving={false}
+        images={[]}
+        onClose={vi.fn()}
+        onSave={vi.fn().mockResolvedValue({})}
+      />,
+    );
+
+    const preview = screen.getByTestId("overlay-bars-preview");
+
+    expect(preview).toHaveAttribute("data-orientation", "LANDSCAPE");
+    expect(preview).toHaveStyle({ aspectRatio: "16 / 9" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Visualizar prévia vertical" }));
+
+    expect(preview).toHaveAttribute("data-orientation", "PORTRAIT");
+    expect(preview).toHaveStyle({ aspectRatio: "9 / 16" });
+  });
+
+  it("aplica o afastamento no topo somente na prévia vertical", () => {
+    const image = {
+      id: "image-1",
+      name: "Logo",
+      type: "IMAGE" as const,
+      fileUrl: "/files/logo.png",
+      createdAt: "2026-08-06T12:00:00.000Z",
+      updatedAt: "2026-08-06T12:00:00.000Z",
+    };
+    const imageContent = {
+      ...previewBar.contentItems![0],
+      id: "content-image",
+      type: "IMAGE" as const,
+      mediaId: image.id,
+      imageSizePercent: 80,
+      fit: "CONTAIN" as const,
+      offsetX: 0,
+      offsetY: 0,
+    };
+    const { getByTestId } = render(
+      <OverlayBarPreview
+        bar={{
+          ...previewBar,
+          position: "TOP",
+          contentAlignment: "CENTER",
+          contentItems: [imageContent],
+        }}
+        images={[image]}
+        orientation="PORTRAIT"
+      />,
+    );
+
+    expect(getByTestId("overlay-bar-preview-content-image")).toHaveStyle({
+      transform: "translate(0px, 8px)",
+    });
   });
 });
