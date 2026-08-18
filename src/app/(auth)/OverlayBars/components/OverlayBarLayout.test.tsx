@@ -281,6 +281,7 @@ describe("layout das barras", () => {
 
     expect(preview).toHaveAttribute("data-orientation", "PORTRAIT");
     expect(preview).toHaveStyle({ aspectRatio: "9 / 16" });
+    expect(preview).toHaveClass("h-[min(38vh,340px)]", "w-auto", "max-w-full");
   });
 
   it("aplica o afastamento no topo somente na prévia vertical", () => {

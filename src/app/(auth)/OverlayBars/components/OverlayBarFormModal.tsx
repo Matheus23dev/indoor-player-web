@@ -639,7 +639,7 @@ export function OverlayBarFormModal({
                 orientation={previewOrientation}
                 className={
                   previewOrientation === "PORTRAIT"
-                    ? "w-full max-w-[280px] shadow-lg"
+                    ? "h-[min(38vh,340px)] w-auto max-w-full shadow-lg"
                     : "w-full shadow-lg"
                 }
                 showEmptyState

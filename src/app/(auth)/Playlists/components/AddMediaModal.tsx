@@ -109,10 +109,7 @@ export default function AddMediaModal({ open, saving, onClose, onAdd }: AddMedia
     }
 
     try {
-      await onAdd(
-        selectedMedia,
-        selectedMedia.type === "IMAGE" ? duration : (selectedMedia.duration ?? undefined),
-      );
+      await onAdd(selectedMedia, selectedMedia.type === "IMAGE" ? duration : undefined);
 
       await Swal.fire({
         icon: "success",

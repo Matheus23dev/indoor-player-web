@@ -81,7 +81,7 @@ export function usePlaylistDetails(playlistId?: string) {
         const item = await addPlaylistItem(playlistId, {
           mediaId: media.id,
 
-          duration: duration ?? (media.type === "IMAGE" ? 5 : undefined),
+          duration: media.type === "IMAGE" ? (duration ?? 5) : undefined,
         });
 
         setPlaylist((current) => {

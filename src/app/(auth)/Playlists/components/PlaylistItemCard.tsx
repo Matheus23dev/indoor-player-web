@@ -69,7 +69,7 @@ export default function PlaylistItemCard({
     zIndex: isDragging ? 50 : undefined,
   };
 
-  const durationChanged = duration !== originalDuration;
+  const durationChanged = !isVideo && duration !== originalDuration;
 
   const audioChanged = isVideo && !hasNoAudioTrack && muted !== originalMuted;
 
@@ -90,7 +90,7 @@ export default function PlaylistItemCard({
   }
 
   async function saveChanges() {
-    if (!Number.isInteger(duration) || duration < 1) {
+    if (!isVideo && (!Number.isInteger(duration) || duration < 1)) {
       await Swal.fire({
         icon: "warning",
 
@@ -241,48 +241,59 @@ export default function PlaylistItemCard({
               </button>
             )}
 
-            <div className="flex h-8 items-center rounded-md border border-slate-200 bg-white">
-              <label
-                htmlFor={`duration-${item.id}`}
-                className="flex h-full items-center gap-1.5 border-r border-slate-200 px-2 text-[10px] font-bold text-slate-500"
+            {isVideo ? (
+              <div
+                className="flex h-8 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 text-[10px] font-bold text-slate-500"
+                title="A duração do vídeo é definida automaticamente pelo arquivo"
               >
                 <Clock3 size={13} className="text-blue-600" />
-                Exibição
-              </label>
+                Duração do vídeo
+                <strong className="text-slate-800">{formatDuration(duration)}</strong>
+              </div>
+            ) : (
+              <div className="flex h-8 items-center rounded-md border border-slate-200 bg-white">
+                <label
+                  htmlFor={`duration-${item.id}`}
+                  className="flex h-full items-center gap-1.5 border-r border-slate-200 px-2 text-[10px] font-bold text-slate-500"
+                >
+                  <Clock3 size={13} className="text-blue-600" />
+                  Exibição
+                </label>
 
-              <button
-                type="button"
-                onClick={() => adjustDuration(-1)}
-                disabled={saving || duration <= 1}
-                aria-label="Diminuir um segundo"
-                className="flex h-full w-7 items-center justify-center text-slate-400 transition hover:bg-slate-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                <Minus size={13} />
-              </button>
+                <button
+                  type="button"
+                  onClick={() => adjustDuration(-1)}
+                  disabled={saving || duration <= 1}
+                  aria-label="Diminuir um segundo"
+                  className="flex h-full w-7 items-center justify-center text-slate-400 transition hover:bg-slate-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <Minus size={13} />
+                </button>
 
-              <input
-                id={`duration-${item.id}`}
-                type="number"
-                min={1}
-                value={duration}
-                onChange={(event) => setDuration(Number(event.target.value))}
-                disabled={saving}
-                aria-label="Duração em segundos"
-                className="h-full w-9 bg-transparent text-center text-xs font-extrabold text-slate-900 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none disabled:opacity-50"
-              />
+                <input
+                  id={`duration-${item.id}`}
+                  type="number"
+                  min={1}
+                  value={duration}
+                  onChange={(event) => setDuration(Number(event.target.value))}
+                  disabled={saving}
+                  aria-label="Duração em segundos"
+                  className="h-full w-9 bg-transparent text-center text-xs font-extrabold text-slate-900 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none disabled:opacity-50"
+                />
 
-              <span className="px-1 text-[9px] font-bold text-slate-400">seg</span>
+                <span className="px-1 text-[9px] font-bold text-slate-400">seg</span>
 
-              <button
-                type="button"
-                onClick={() => adjustDuration(1)}
-                disabled={saving}
-                aria-label="Aumentar um segundo"
-                className="flex h-full w-7 items-center justify-center border-l border-slate-200 text-slate-400 transition hover:bg-slate-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                <Plus size={13} />
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => adjustDuration(1)}
+                  disabled={saving}
+                  aria-label="Aumentar um segundo"
+                  className="flex h-full w-7 items-center justify-center border-l border-slate-200 text-slate-400 transition hover:bg-slate-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <Plus size={13} />
+                </button>
+              </div>
+            )}
 
             <button
               type="button"
@@ -299,4 +310,12 @@ export default function PlaylistItemCard({
       </div>
     </article>
   );
+}
+
+function formatDuration(totalSeconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
