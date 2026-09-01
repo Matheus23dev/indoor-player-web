@@ -1,15 +1,28 @@
 import { useCallback, useMemo, useState, type ReactNode } from "react";
-import Cookies from "js-cookie";
 
 import instance from "../services/axios";
+import {
+  clearAuthSession,
+  readAuthToken,
+  readAuthUser,
+  storeAuthToken,
+  storeAuthUser,
+} from "../lib/authSession";
 import { useApp } from "./useApp";
 import { AuthContext, type AuthUser } from "./auth-context";
 
-const TOKEN_COOKIE = "@TOKEN";
-const USER_COOKIE = "user";
+interface AuthSessionState {
+  token: string | null;
+  user: AuthUser | null;
+}
+
+const EMPTY_SESSION: AuthSessionState = {
+  token: null,
+  user: null,
+};
 
 function readStoredUser(): AuthUser | null {
-  const value = Cookies.get(USER_COOKIE);
+  const value = readAuthUser();
 
   if (!value) {
     return null;
@@ -27,41 +40,43 @@ function readStoredUser(): AuthUser | null {
       return user as AuthUser;
     }
   } catch {
-    Cookies.remove(USER_COOKIE);
+    return null;
   }
 
   return null;
 }
 
+function readStoredSession(): AuthSessionState {
+  const token = readAuthToken();
+  const user = readStoredUser();
+
+  if (!token || !user) {
+    clearAuthSession();
+    return EMPTY_SESSION;
+  }
+
+  return { token, user };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { showToast } = useApp();
-  const [user, setUser] = useState<AuthUser | null>(readStoredUser);
-  const [token, setToken] = useState<string | null>(() => Cookies.get(TOKEN_COOKIE) ?? null);
+  const [session, setSession] = useState<AuthSessionState>(readStoredSession);
 
   const logout = useCallback(() => {
-    setUser(null);
-    setToken(null);
-    Cookies.remove(USER_COOKIE);
-    Cookies.remove(TOKEN_COOKIE);
+    setSession(EMPTY_SESSION);
+    clearAuthSession();
   }, []);
 
   const login = useCallback(
     async (tokenData: string, navigate: (path: string) => void) => {
-      Cookies.set(TOKEN_COOKIE, tokenData, {
-        expires: 1,
-        sameSite: "strict",
-      });
+      storeAuthToken(tokenData);
 
       try {
         const response = await instance.get<AuthUser>("/users/me");
         const authenticatedUser = response.data;
 
-        setToken(tokenData);
-        setUser(authenticatedUser);
-        Cookies.set(USER_COOKIE, JSON.stringify(authenticatedUser), {
-          expires: 1,
-          sameSite: "strict",
-        });
+        storeAuthUser(JSON.stringify(authenticatedUser));
+        setSession({ token: tokenData, user: authenticatedUser });
 
         navigate("/home/dashboard");
       } catch (error) {
@@ -75,13 +90,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({
-      isAuthenticated: Boolean(token),
-      user,
-      token,
+      isAuthenticated: Boolean(session.token && session.user),
+      user: session.user,
+      token: session.token,
       login,
       logout,
     }),
-    [login, logout, token, user],
+    [login, logout, session],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

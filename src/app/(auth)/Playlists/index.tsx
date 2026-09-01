@@ -25,7 +25,10 @@ export default function Playlists() {
   return (
     <>
       <PageContainer scrollable>
-        <header className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center">
+        <header
+          data-help-tour="playlist-create"
+          className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center"
+        >
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-700">
               Organização e sequência
@@ -38,6 +41,7 @@ export default function Playlists() {
           </div>
 
           <button
+            data-help-tour="playlist-create-button"
             type="button"
             onClick={() => setModalOpen(true)}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-800"
@@ -67,7 +71,10 @@ export default function Playlists() {
           />
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+        <div
+          data-help-tour="playlist-library"
+          className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm"
+        >
           <div className="relative max-w-md">
             <Search size={19} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
 

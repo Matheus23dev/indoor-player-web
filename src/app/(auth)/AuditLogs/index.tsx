@@ -120,6 +120,7 @@ export default function AuditLogs() {
   return (
     <PageContainer width="wide" scrollable>
       <PageHeader
+        tourId="audit-summary"
         eyebrow="Segurança e governança"
         title="Auditoria geral"
         description="Consulte as atividades administrativas e operacionais registradas nos players."
@@ -138,7 +139,7 @@ export default function AuditLogs() {
         }
       />
 
-      <PageToolbar>
+      <PageToolbar tourId="audit-filters">
         <div className="grid gap-3 lg:grid-cols-[minmax(220px,1.4fr)_repeat(4,minmax(150px,0.7fr))_auto]">
           <label className="relative block">
             <span className="sr-only">Buscar nos logs</span>
@@ -220,7 +221,7 @@ export default function AuditLogs() {
         </div>
       ) : null}
 
-      <PageScrollArea ariaLabel="Tabela de auditoria">
+      <PageScrollArea ariaLabel="Tabela de auditoria" tourId="audit-table">
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1080px] table-fixed border-collapse text-left">
@@ -532,6 +533,7 @@ function formatEvent(event: string) {
     PLAYLIST_DELETED: "Playlist excluída",
     PLAYLIST_CREATED: "Playlist criada",
     PLAYLIST_MEDIA_ADDED: "Mídia adicionada à playlist",
+    PLAYLIST_MEDIA_DUPLICATED: "Mídia duplicada na playlist",
     PLAYLIST_MEDIA_REMOVED: "Mídia removida da playlist",
     PLAYLIST_MEDIA_UPDATED: "Mídia da playlist atualizada",
     PLAYLIST_ORIENTATION_UPDATED: "Orientação da playlist atualizada",

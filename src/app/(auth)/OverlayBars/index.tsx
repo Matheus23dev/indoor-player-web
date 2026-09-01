@@ -61,12 +61,14 @@ export default function OverlayBars() {
     <>
       <PageContainer scrollable>
         <PageHeader
+          tourId="bar-create"
           eyebrow="Composição da tela"
           title="Barras fixas"
           description="Crie barras com cor, imagem ou logo e reutilize a mesma configuração em várias playlists."
           icon={Layers3}
           actions={
             <button
+              data-help-tour="bar-create-button"
               type="button"
               onClick={openCreate}
               className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-800"
@@ -99,7 +101,7 @@ export default function OverlayBars() {
           />
         </div>
 
-        <PageToolbar>
+        <PageToolbar tourId="bar-library">
           <div className="relative max-w-md">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input

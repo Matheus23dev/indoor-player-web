@@ -259,6 +259,15 @@ describe("layout das barras", () => {
     expect(screen.getByTestId("overlay-bar-modal-body")).toHaveClass("overflow-hidden");
     expect(screen.getByTestId("overlay-bar-editor-scroll")).toHaveClass("overflow-y-auto");
     expect(screen.getByTestId("overlay-bar-preview-panel")).toHaveClass("overflow-hidden");
+
+    const contentTourTarget = document.querySelector('[data-help-tour="bar-modal-content"]');
+    const previewTourTarget = document.querySelector('[data-help-tour="bar-modal-preview"]');
+
+    expect(contentTourTarget).toHaveTextContent("Adicione os blocos que formarão a barra");
+    expect(previewTourTarget).toContainElement(screen.getByTestId("overlay-bars-preview"));
+    expect(previewTourTarget).not.toHaveTextContent(
+      "Esta barra poderá ser vinculada a várias playlists",
+    );
   });
 
   it("permite alternar a prévia entre horizontal e vertical", () => {

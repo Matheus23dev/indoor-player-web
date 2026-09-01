@@ -1,13 +1,16 @@
 import api from "../../../../services/axios";
+import { normalizeNamedRecord } from "../../../../lib/textEncoding";
 
 import type {
   AddPlaylistItemPayload,
   CreatePlaylistPayload,
   DeletePlaylistItemResponse,
+  DeletePlaylistItemsResponse,
   DeletePlaylistResponse,
   Playlist,
   PlaylistItem,
   ReorderPlaylistPayload,
+  SavePlaylistCompositionPayload,
   UpdatePlaylistItemPayload,
   UpdatePlaylistPayload,
 } from "../types";
@@ -15,7 +18,7 @@ import type {
 export async function getPlaylists(): Promise<Playlist[]> {
   const response = await api.get<Playlist[]>("/playlists");
 
-  return response.data;
+  return response.data.map(normalizePlaylistMediaNames);
 }
 
 export async function getPlaylist(id: string): Promise<Playlist> {
@@ -23,19 +26,19 @@ export async function getPlaylist(id: string): Promise<Playlist> {
     timeout: 15_000,
   });
 
-  return response.data;
+  return normalizePlaylistMediaNames(response.data);
 }
 
 export async function createPlaylist(data: CreatePlaylistPayload): Promise<Playlist> {
   const response = await api.post<Playlist>("/playlists", data);
 
-  return response.data;
+  return normalizePlaylistMediaNames(response.data);
 }
 
 export async function updatePlaylist(id: string, data: UpdatePlaylistPayload): Promise<Playlist> {
   const response = await api.patch<Playlist>(`/playlists/${id}`, data);
 
-  return response.data;
+  return normalizePlaylistMediaNames(response.data);
 }
 
 export async function deletePlaylist(id: string): Promise<DeletePlaylistResponse> {
@@ -50,7 +53,13 @@ export async function addPlaylistItem(
 ): Promise<PlaylistItem> {
   const response = await api.post<PlaylistItem>(`/playlists/${playlistId}/items`, data);
 
-  return response.data;
+  return normalizePlaylistItemMediaName(response.data);
+}
+
+export async function duplicatePlaylistItem(itemId: string): Promise<PlaylistItem> {
+  const response = await api.post<PlaylistItem>(`/playlists/items/${itemId}/duplicate`);
+
+  return normalizePlaylistItemMediaName(response.data);
 }
 
 export async function updatePlaylistItem(
@@ -59,7 +68,7 @@ export async function updatePlaylistItem(
 ): Promise<PlaylistItem> {
   const response = await api.patch<PlaylistItem>(`/playlists/items/${itemId}`, data);
 
-  return response.data;
+  return normalizePlaylistItemMediaName(response.data);
 }
 
 export async function deletePlaylistItem(itemId: string): Promise<DeletePlaylistItemResponse> {
@@ -74,5 +83,36 @@ export async function reorderPlaylist(
 ): Promise<Playlist> {
   const response = await api.patch<Playlist>(`/playlists/${playlistId}/reorder`, data);
 
+  return normalizePlaylistMediaNames(response.data);
+}
+
+export async function savePlaylistComposition(
+  playlistId: string,
+  data: SavePlaylistCompositionPayload,
+): Promise<Playlist> {
+  const response = await api.patch<Playlist>(`/playlists/${playlistId}/composition`, data);
+
+  return normalizePlaylistMediaNames(response.data);
+}
+
+export async function deletePlaylistItems(
+  playlistId: string,
+  itemIds: string[],
+): Promise<DeletePlaylistItemsResponse> {
+  const response = await api.delete<DeletePlaylistItemsResponse>(`/playlists/${playlistId}/items`, {
+    data: { itemIds },
+  });
+
   return response.data;
+}
+
+function normalizePlaylistMediaNames(playlist: Playlist): Playlist {
+  return {
+    ...playlist,
+    items: (playlist.items ?? []).map(normalizePlaylistItemMediaName),
+  };
+}
+
+function normalizePlaylistItemMediaName(item: PlaylistItem): PlaylistItem {
+  return { ...item, media: normalizeNamedRecord(item.media) };
 }

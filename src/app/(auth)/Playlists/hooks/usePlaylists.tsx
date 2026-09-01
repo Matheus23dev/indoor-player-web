@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import Swal from "sweetalert2";
+import { appAlert as Swal } from "@/lib/alert";
 
 import { createPlaylist, deletePlaylist, getPlaylists } from "../services/Playlists.services";
 
@@ -74,7 +74,7 @@ export function usePlaylists() {
       showCancelButton: true,
       confirmButtonText: "Sim, excluir",
       cancelButtonText: "Cancelar",
-      confirmButtonColor: "#dc2626",
+      customClass: { confirmButton: "indoor-swal-danger" },
     });
 
     if (!result.isConfirmed) {

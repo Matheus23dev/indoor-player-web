@@ -15,8 +15,8 @@ interface PlaylistBarsModalProps {
   saving: boolean;
   currentBars: PlaylistOverlayBar[];
   onClose: () => void;
-  onAttach: (overlayBarId: string) => Promise<unknown>;
-  onDetach: (overlayBarId: string) => Promise<unknown>;
+  onAttach: (overlayBar: OverlayBar) => void;
+  onDetach: (overlayBarId: string) => void;
 }
 
 export function PlaylistBarsModal({
@@ -71,7 +71,8 @@ export function PlaylistBarsModal({
             </p>
             <h2 className="mt-0.5 text-xl font-bold text-slate-950">Barras fixas da playlist</h2>
             <p className="mt-1 text-xs leading-5 text-slate-500">
-              Selecione barras já criadas. A mesma barra pode ser usada em outras playlists.
+              Selecione barras já criadas. As mudanças serão aplicadas somente ao salvar a
+              composição.
             </p>
           </div>
           <button
@@ -115,7 +116,7 @@ export function PlaylistBarsModal({
                     type="button"
                     aria-pressed={selected}
                     disabled={saving}
-                    onClick={() => void (selected ? onDetach(bar.id) : onAttach(bar.id))}
+                    onClick={() => (selected ? onDetach(bar.id) : onAttach(bar))}
                     className={`overflow-hidden rounded-2xl border p-2 text-left transition disabled:opacity-60 ${
                       selected
                         ? "border-blue-500 bg-blue-50 ring-2 ring-blue-100"
@@ -160,7 +161,7 @@ export function PlaylistBarsModal({
         <footer className="flex items-center justify-between gap-3 border-t border-slate-200 px-5 py-4 sm:px-6">
           <span className="text-xs font-semibold text-slate-500">
             {currentBars.length}{" "}
-            {currentBars.length === 1 ? "barra vinculada" : "barras vinculadas"}
+            {currentBars.length === 1 ? "barra no rascunho" : "barras no rascunho"}
           </span>
           <button
             type="button"

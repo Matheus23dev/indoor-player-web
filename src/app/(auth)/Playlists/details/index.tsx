@@ -23,20 +23,33 @@ import {
   Loader2,
   Monitor,
   Plus,
+  Save,
   Smartphone,
+  Trash2,
+  Undo2,
 } from "lucide-react";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useNavigate, useParams } from "react-router-dom";
 
 import { PageContainer, PageScrollArea } from "../../../../components/layout/Page";
+import { appAlert as Swal } from "@/lib/alert";
 
 import AddMediaModal from "../components/AddMediaModal";
 import { PlaylistBarsModal } from "../components/PlaylistBarsModal";
+import { PlaylistChangesModal } from "../components/PlaylistChangesModal";
 import PlaylistItemCard from "../components/PlaylistItemCard";
+import type { PlaylistItemDraftChanges } from "../components/PlaylistItemCard";
 
 import { usePlaylistDetails } from "../hooks/usePlaylistDetails";
+import type { OverlayBar, PlaylistOverlayBar } from "../../OverlayBars/types";
+import type { PlaylistItem, PlaylistOrientation } from "../types";
+import {
+  buildPlaylistChangeSummary,
+  buildPlaylistSettingsChangeSummary,
+  countPlaylistChanges,
+} from "../utils/playlistChangeSummary";
 
 export default function PlaylistDetails() {
   const { id } = useParams<{
@@ -47,6 +60,11 @@ export default function PlaylistDetails() {
 
   const [addMediaModalOpen, setAddMediaModalOpen] = useState(false);
   const [barsModalOpen, setBarsModalOpen] = useState(false);
+  const [changesModalOpen, setChangesModalOpen] = useState(false);
+  const [draftItems, setDraftItems] = useState<PlaylistItem[]>([]);
+  const [draftOrientation, setDraftOrientation] = useState<PlaylistOrientation>("LANDSCAPE");
+  const [draftBars, setDraftBars] = useState<PlaylistOverlayBar[]>([]);
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(() => new Set());
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -71,18 +89,69 @@ export default function PlaylistDetails() {
     playlist,
     loading,
     saving,
-    totalDuration,
 
     loadPlaylist,
     addMedia,
-    updateDuration,
-    removeItem,
-    reorderItems,
-    updateMuted,
-    updateOrientation,
-    attachOverlayBar,
-    detachOverlayBar,
+    saveComposition,
+    removeItems,
   } = usePlaylistDetails(id);
+
+  const playlistItems = playlist?.items;
+
+  useEffect(() => {
+    if (!playlistItems) {
+      setDraftItems([]);
+      setSelectedItemIds(new Set());
+      return;
+    }
+
+    setDraftItems(normalizeItemOrder(playlistItems));
+    setSelectedItemIds(new Set());
+  }, [playlistItems]);
+
+  useEffect(() => {
+    if (playlist?.orientation) {
+      setDraftOrientation(playlist.orientation);
+    }
+  }, [playlist?.orientation]);
+
+  useEffect(() => {
+    setDraftBars(playlist?.overlayBars ?? []);
+  }, [playlist?.overlayBars]);
+
+  const changeSummary = useMemo(
+    () => [
+      ...buildPlaylistChangeSummary(playlist?.items ?? [], draftItems),
+      ...buildPlaylistSettingsChangeSummary(
+        playlist?.orientation ?? "LANDSCAPE",
+        draftOrientation,
+        playlist?.overlayBars ?? [],
+        draftBars,
+      ),
+    ],
+    [
+      draftBars,
+      draftItems,
+      draftOrientation,
+      playlist?.items,
+      playlist?.orientation,
+      playlist?.overlayBars,
+    ],
+  );
+
+  const dirtyItemIds = useMemo(
+    () => new Set(changeSummary.map((change) => change.id)),
+    [changeSummary],
+  );
+
+  const hasDraftChanges = dirtyItemIds.size > 0;
+  const pendingChangeCount = countPlaylistChanges(changeSummary);
+
+  const totalDuration = useMemo(
+    () =>
+      draftItems.reduce((total, item) => total + (item.duration ?? item.media.duration ?? 0), 0),
+    [draftItems],
+  );
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -91,7 +160,159 @@ export default function PlaylistDetails() {
       return;
     }
 
-    await reorderItems(String(active.id), String(over.id));
+    const activeItemId = String(active.id);
+    const overItemId = String(over.id);
+
+    setDraftItems((currentItems) => {
+      const currentIndex = currentItems.findIndex((item) => item.id === activeItemId);
+      const targetIndex = currentItems.findIndex((item) => item.id === overItemId);
+
+      if (currentIndex < 0 || targetIndex < 0) {
+        return currentItems;
+      }
+
+      const reorderedItems = [...currentItems];
+      const [movedItem] = reorderedItems.splice(currentIndex, 1);
+
+      if (!movedItem) {
+        return currentItems;
+      }
+
+      reorderedItems.splice(targetIndex, 0, movedItem);
+
+      return normalizeItemOrder(reorderedItems);
+    });
+  }
+
+  function handleDraftChange(itemId: string, changes: PlaylistItemDraftChanges) {
+    setDraftItems((currentItems) =>
+      currentItems.map((item) => (item.id === itemId ? { ...item, ...changes } : item)),
+    );
+  }
+
+  function handleDuplicateDraft(item: PlaylistItem) {
+    setDraftItems((currentItems) => {
+      const sourceIndex = currentItems.findIndex((currentItem) => currentItem.id === item.id);
+
+      if (sourceIndex < 0) {
+        return currentItems;
+      }
+
+      const duplicatedItem: PlaylistItem = {
+        ...item,
+        id: `draft-duplicate-${crypto.randomUUID()}`,
+        sourceItemId: item.sourceItemId ?? item.id,
+        createdAt: new Date().toISOString(),
+      };
+      const updatedItems = [...currentItems];
+
+      updatedItems.splice(sourceIndex + 1, 0, duplicatedItem);
+
+      return normalizeItemOrder(updatedItems);
+    });
+  }
+
+  function handleAttachOverlayBar(overlayBar: OverlayBar) {
+    setDraftBars((currentBars) => {
+      if (currentBars.some((item) => item.overlayBarId === overlayBar.id)) {
+        return currentBars;
+      }
+
+      return [
+        ...currentBars,
+        {
+          playlistId: playlist?.id ?? "",
+          overlayBarId: overlayBar.id,
+          order: currentBars.length + 1,
+          createdAt: new Date().toISOString(),
+          overlayBar,
+        },
+      ];
+    });
+  }
+
+  function handleDetachOverlayBar(overlayBarId: string) {
+    setDraftBars((currentBars) =>
+      currentBars
+        .filter((item) => item.overlayBarId !== overlayBarId)
+        .map((item, index) => ({ ...item, order: index + 1 })),
+    );
+  }
+
+  function handleSelectedChange(itemId: string, selected: boolean) {
+    setSelectedItemIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+
+      if (selected) {
+        nextIds.add(itemId);
+      } else {
+        nextIds.delete(itemId);
+      }
+
+      return nextIds;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelectedItemIds((currentIds) =>
+      currentIds.size === draftItems.length
+        ? new Set()
+        : new Set(draftItems.map((item) => item.id)),
+    );
+  }
+
+  async function handleSaveComposition() {
+    if (hasDraftChanges) {
+      setChangesModalOpen(true);
+    }
+  }
+
+  async function handleConfirmSaveComposition() {
+    const saved = await saveComposition(draftItems, draftOrientation, draftBars);
+
+    if (saved) {
+      setChangesModalOpen(false);
+    }
+  }
+
+  async function handleDiscardChanges() {
+    if (!playlist || !hasDraftChanges) {
+      return;
+    }
+
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Descartar alterações?",
+      text: "Mídias, orientação e barras voltarão aos últimos valores salvos.",
+      showCancelButton: true,
+      confirmButtonText: "Descartar alterações",
+      cancelButtonText: "Continuar editando",
+      customClass: { confirmButton: "indoor-swal-danger" },
+    });
+
+    if (result.isConfirmed) {
+      setDraftItems(normalizeItemOrder(playlist.items));
+      setDraftOrientation(playlist.orientation);
+      setDraftBars(playlist.overlayBars ?? []);
+      const persistedItemIds = new Set(playlist.items.map((item) => item.id));
+
+      setSelectedItemIds(
+        (currentIds) => new Set([...currentIds].filter((itemId) => persistedItemIds.has(itemId))),
+      );
+    }
+  }
+
+  async function handleDeleteSelected() {
+    const selectedItems = draftItems.filter((item) => selectedItemIds.has(item.id));
+    const remainingDraftItems = normalizeItemOrder(
+      draftItems.filter((item) => !selectedItemIds.has(item.id)),
+    );
+    const removed = await removeItems(selectedItems);
+
+    if (removed) {
+      setDraftItems(remainingDraftItems);
+      setSelectedItemIds(new Set());
+    }
   }
 
   if (loading) {
@@ -121,9 +342,13 @@ export default function PlaylistDetails() {
   return (
     <>
       <PageContainer scrollable>
-        <header className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center">
+        <header
+          data-help-tour="composition-actions"
+          className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center"
+        >
           <div className="flex items-start gap-3">
             <button
+              data-help-tour="composition-bars"
               type="button"
               onClick={() => navigate("/home/playlists")}
               className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border bg-white text-gray-600 hover:bg-gray-50"
@@ -152,17 +377,17 @@ export default function PlaylistDetails() {
             >
               <OrientationButton
                 label="Horizontal"
-                active={playlist.orientation === "LANDSCAPE"}
+                active={draftOrientation === "LANDSCAPE"}
                 disabled={saving}
                 icon={<Monitor size={15} />}
-                onClick={() => void updateOrientation("LANDSCAPE")}
+                onClick={() => setDraftOrientation("LANDSCAPE")}
               />
               <OrientationButton
                 label="Vertical"
-                active={playlist.orientation === "PORTRAIT"}
+                active={draftOrientation === "PORTRAIT"}
                 disabled={saving}
                 icon={<Smartphone size={15} />}
-                onClick={() => void updateOrientation("PORTRAIT")}
+                onClick={() => setDraftOrientation("PORTRAIT")}
               />
             </div>
 
@@ -173,13 +398,18 @@ export default function PlaylistDetails() {
               className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-700 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Layers3 size={18} />
-              Barras ({playlist.overlayBars?.length ?? 0})
+              Barras ({draftBars.length})
             </button>
 
             <button
               type="button"
               onClick={() => setAddMediaModalOpen(true)}
-              disabled={saving}
+              disabled={saving || hasDraftChanges}
+              title={
+                hasDraftChanges
+                  ? "Salve as alterações pendentes antes de adicionar uma mídia"
+                  : "Adicionar mídia"
+              }
               className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Plus size={19} />
@@ -192,7 +422,7 @@ export default function PlaylistDetails() {
           <SummaryCard
             icon={<Images size={21} />}
             label="Mídias"
-            value={String(playlist.items.length)}
+            value={String(draftItems.length)}
           />
 
           <SummaryCard
@@ -210,7 +440,7 @@ export default function PlaylistDetails() {
           <SummaryCard
             icon={<Layers3 size={21} />}
             label="Barras fixas"
-            value={String(playlist.overlayBars?.length ?? 0)}
+            value={String(draftBars.length)}
           />
         </div>
 
@@ -221,8 +451,84 @@ export default function PlaylistDetails() {
           </div>
         )}
 
+        {(draftItems.length > 0 || hasDraftChanges) && (
+          <section className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              {draftItems.length > 0 && (
+                <label className="relative flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedItemIds.size === draftItems.length}
+                    onChange={toggleSelectAll}
+                    disabled={saving}
+                    aria-label="Selecionar todas as mídias"
+                    className="h-5 w-5 cursor-pointer rounded-md border-slate-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </label>
+              )}
+
+              <div className="min-w-0">
+                <p className="text-sm font-extrabold text-slate-900">
+                  {selectedItemIds.size > 0
+                    ? `${selectedItemIds.size} ${selectedItemIds.size === 1 ? "mídia selecionada" : "mídias selecionadas"}`
+                    : draftItems.length > 0
+                      ? "Selecione as mídias que deseja excluir"
+                      : "Configurações da playlist"}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {hasDraftChanges
+                    ? `${pendingChangeCount} ${pendingChangeCount === 1 ? "alteração pendente" : "alterações pendentes"}. Nada mudou no player ainda.`
+                    : "Edite e reorganize à vontade. As mudanças só serão aplicadas ao salvar."}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => void handleDeleteSelected()}
+                disabled={saving || selectedItemIds.size === 0}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-bold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+              >
+                <Trash2 size={17} />
+                Excluir selecionadas
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void handleDiscardChanges()}
+                disabled={saving || !hasDraftChanges}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-700 transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-800 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+              >
+                <Undo2 size={17} />
+                Descartar alterações
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void handleSaveComposition()}
+                disabled={saving || !hasDraftChanges}
+                title={
+                  hasDraftChanges
+                    ? `${pendingChangeCount} ${pendingChangeCount === 1 ? "alteração pendente" : "alterações pendentes"}. Clique para ver o resumo e confirmar.`
+                    : "Nenhuma alteração pendente para salvar"
+                }
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-bold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+              >
+                {saving ? <Loader2 size={17} className="animate-spin" /> : <Save size={17} />}
+                Salvar alterações
+                {hasDraftChanges && (
+                  <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-black leading-none text-white">
+                    {pendingChangeCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          </section>
+        )}
+
         <PageScrollArea ariaLabel="Mídias da playlist">
-          {playlist.items.length > 0 ? (
+          {draftItems.length > 0 ? (
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -231,19 +537,21 @@ export default function PlaylistDetails() {
               }}
             >
               <SortableContext
-                items={playlist.items.map((item) => item.id)}
+                items={draftItems.map((item) => item.id)}
                 strategy={verticalListSortingStrategy}
               >
                 <section className="space-y-3">
-                  {playlist.items.map((item, index) => (
+                  {draftItems.map((item, index) => (
                     <PlaylistItemCard
                       key={item.id}
                       item={item}
-                      onUpdateMuted={updateMuted}
                       index={index}
                       saving={saving}
-                      onUpdateDuration={updateDuration}
-                      onDelete={removeItem}
+                      selected={selectedItemIds.has(item.id)}
+                      dirty={dirtyItemIds.has(item.id)}
+                      onSelectedChange={handleSelectedChange}
+                      onChange={handleDraftChange}
+                      onDuplicate={handleDuplicateDraft}
                     />
                   ))}
                 </section>
@@ -288,13 +596,28 @@ export default function PlaylistDetails() {
       <PlaylistBarsModal
         open={barsModalOpen}
         saving={saving}
-        currentBars={playlist.overlayBars ?? []}
+        currentBars={draftBars}
         onClose={() => setBarsModalOpen(false)}
-        onAttach={attachOverlayBar}
-        onDetach={detachOverlayBar}
+        onAttach={handleAttachOverlayBar}
+        onDetach={handleDetachOverlayBar}
+      />
+
+      <PlaylistChangesModal
+        open={changesModalOpen}
+        saving={saving}
+        changes={changeSummary}
+        onClose={() => setChangesModalOpen(false)}
+        onConfirm={handleConfirmSaveComposition}
       />
     </>
   );
+}
+
+function normalizeItemOrder(items: PlaylistItem[]) {
+  return items.map((item, index) => ({
+    ...item,
+    order: index + 1,
+  }));
 }
 
 interface OrientationButtonProps {

@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 
 import { Check, ListVideo, Monitor, Save, Smartphone, X } from "lucide-react";
 
-import Swal from "sweetalert2";
+import { appAlert as Swal } from "@/lib/alert";
 import { getApiErrorMessage } from "../../../../lib/apiError";
 import type { PlaylistOrientation } from "../types";
 
@@ -83,7 +83,9 @@ export default function CreatePlaylistModal({
           </div>
 
           <button
+            data-help-tour="playlist-create-close"
             type="button"
+            aria-label="Fechar criação da playlist"
             onClick={onClose}
             disabled={saving}
             className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 disabled:opacity-50"
@@ -97,7 +99,7 @@ export default function CreatePlaylistModal({
             Nome da playlist
           </label>
 
-          <div className="relative">
+          <div data-help-tour="playlist-modal-name" className="relative">
             <ListVideo
               size={19}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -115,7 +117,7 @@ export default function CreatePlaylistModal({
             />
           </div>
 
-          <fieldset>
+          <fieldset data-help-tour="playlist-modal-orientation">
             <legend className="text-sm font-bold text-gray-700">Orientação da tela</legend>
             <p className="mt-1 text-xs leading-5 text-gray-500">
               O player ajustará a tela automaticamente quando esta playlist entrar em exibição.
@@ -144,7 +146,10 @@ export default function CreatePlaylistModal({
           </fieldset>
         </div>
 
-        <footer className="flex justify-end gap-3 border-t px-6 py-4">
+        <footer
+          data-help-tour="playlist-modal-actions"
+          className="flex justify-end gap-3 border-t px-6 py-4"
+        >
           <button
             type="button"
             onClick={onClose}
@@ -209,7 +214,9 @@ function OrientationOption({
       </span>
       <span className="min-w-0">
         <strong className="block text-sm">{title}</strong>
-        <span className="block text-[11px] text-gray-500">{description}</span>
+        <span className={`block text-[11px] ${selected ? "text-blue-700" : "text-gray-500"}`}>
+          {description}
+        </span>
       </span>
       {selected && (
         <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-white">

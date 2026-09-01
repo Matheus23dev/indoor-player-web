@@ -2,6 +2,7 @@ export type {
   AddPlaylistItemPayload,
   CreatePlaylistPayload,
   DeletePlaylistItemResponse,
+  DeletePlaylistItemsResponse,
   DeletePlaylistResponse,
   Playlist,
   PlaylistCount,
@@ -10,6 +11,8 @@ export type {
   PlaylistSchedule,
   ReorderPlaylistItem,
   ReorderPlaylistPayload,
+  SavePlaylistCompositionItem,
+  SavePlaylistCompositionPayload,
   UpdatePlaylistItemPayload,
   UpdatePlaylistPayload,
 } from "./playlist.types";

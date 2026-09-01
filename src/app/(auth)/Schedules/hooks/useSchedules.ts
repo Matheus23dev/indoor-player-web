@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import Swal from "sweetalert2";
+import { appAlert as Swal } from "@/lib/alert";
 
 import {
   createSchedule,
@@ -183,7 +183,7 @@ export function useSchedules() {
 
       cancelButtonText: "Cancelar",
 
-      confirmButtonColor: "#dc2626",
+      customClass: { confirmButton: "indoor-swal-danger" },
     });
 
     if (!result.isConfirmed) {

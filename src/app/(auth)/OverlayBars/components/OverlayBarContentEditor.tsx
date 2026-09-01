@@ -65,6 +65,28 @@ export function OverlayBarContentEditor({
     <fieldset className="rounded-2xl border border-slate-200 p-4">
       <legend className="px-2 text-sm font-bold text-slate-700">Conteúdos independentes</legend>
 
+      <div
+        data-help-tour="bar-modal-content"
+        className="mb-4 rounded-xl border border-blue-100 bg-blue-50/70 p-3"
+      >
+        <p className="text-xs font-semibold leading-5 text-blue-900">
+          Adicione os blocos que formarão a barra. Cada um pode ter estilo e posição próprios.
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {contentTypes.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              disabled={disabled || items.length >= 20}
+              onClick={() => onChange([...items, createContentItem(option.value)])}
+              className="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[10px] font-bold text-blue-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-100 disabled:opacity-40"
+            >
+              <Plus size={12} /> {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="space-y-3">
         {items.map((item, index) => (
           <div key={item.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -326,20 +348,6 @@ export function OverlayBarContentEditor({
               </div>
             )}
           </div>
-        ))}
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-2">
-        {contentTypes.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            disabled={disabled || items.length >= 20}
-            onClick={() => onChange([...items, createContentItem(option.value)])}
-            className="inline-flex items-center gap-1 rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1.5 text-[10px] font-bold text-blue-700 hover:bg-blue-100 disabled:opacity-40"
-          >
-            <Plus size={12} /> {option.label}
-          </button>
         ))}
       </div>
 

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-
 import {
   AlertCircle,
   CheckCircle2,
@@ -11,7 +10,6 @@ import {
   WifiOff,
   X,
 } from "lucide-react";
-
 import {
   MetricCard,
   PageContainer,
@@ -19,15 +17,10 @@ import {
   PageScrollArea,
 } from "../../../components/layout/Page";
 import { useAuth } from "../../../contexts/useAuth";
-
 import { DeviceCard } from "./components/DeviceCard";
-
 import { DeviceLogsModal } from "./components/DeviceLogsModal";
-
 import { PairDeviceModal } from "./components/PairDeviceModal";
-
 import { useDevices } from "./hooks/useDevices";
-
 import { getApiErrorMessage, pairDevice } from "./services/devices.services";
 
 export default function Devices() {
@@ -57,9 +50,7 @@ export default function Devices() {
 
     return {
       total: devices.length,
-
       online,
-
       offline: devices.length - online,
     };
   }, [devices]);
@@ -114,6 +105,7 @@ export default function Devices() {
     <>
       <PageContainer width="wide" scrollable>
         <PageHeader
+          tourId="device-pair"
           eyebrow="Gestão de players"
           title="Dispositivos"
           description="Monitore a conectividade e acompanhe o conteúdo exibido em cada ponto da operação."
@@ -136,6 +128,7 @@ export default function Devices() {
               </button>
 
               <button
+                data-help-tour="device-pair-button"
                 type="button"
                 onClick={() => setModalOpen(true)}
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
@@ -179,7 +172,10 @@ export default function Devices() {
           </div>
         )}
 
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <section
+          data-help-tour="device-overview"
+          className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+        >
           <MetricCard
             label="Total"
             value={summary.total}

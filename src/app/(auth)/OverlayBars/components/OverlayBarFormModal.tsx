@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useContext, useEffect, useState, type FormEvent } from "react";
 import {
   AlignHorizontalSpaceAround,
   AlignVerticalSpaceAround,
@@ -20,6 +20,7 @@ import type {
 } from "../types";
 import { OverlayBarPreview, type OverlayPreviewOrientation } from "./OverlayBarPreview";
 import { OverlayBarContentEditor } from "./OverlayBarContentEditor";
+import { HelpTourContext } from "../../Help/help-tour-context";
 
 interface OverlayBarFormModalProps {
   open: boolean;
@@ -51,6 +52,56 @@ const defaultPayload: OverlayBarPayload = {
   mediaId: null,
 };
 
+const tourExampleContentItems: OverlayBarContentItem[] = [
+  {
+    id: "tour-example-text",
+    type: "TEXT",
+    text: "Bem-vindo à nossa empresa",
+    textColor: "#FFFFFF",
+    fontSize: 28,
+    fontWeight: "BOLD",
+    fontFamily: "SANS_SERIF",
+    italic: false,
+    padding: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 0,
+    spacerSize: 24,
+    offsetX: 0,
+    offsetY: 0,
+  },
+  {
+    id: "tour-example-spacer",
+    type: "SPACER",
+    textColor: "#FFFFFF",
+    fontSize: 28,
+    fontWeight: "BOLD",
+    padding: 0,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    borderRadius: 0,
+    spacerSize: 32,
+    offsetX: 0,
+    offsetY: 0,
+  },
+  {
+    id: "tour-example-clock",
+    type: "CLOCK",
+    textColor: "#FFFFFF",
+    fontSize: 28,
+    fontWeight: "SEMIBOLD",
+    fontFamily: "MONOSPACE",
+    italic: false,
+    padding: 0,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 0,
+    spacerSize: 24,
+    offsetX: 0,
+    offsetY: 0,
+  },
+];
+
 const dynamicTokens = [
   "{{hora}}",
   "{{data}}",
@@ -79,6 +130,8 @@ export function OverlayBarFormModal({
   onClose,
   onSave,
 }: OverlayBarFormModalProps) {
+  const helpTour = useContext(HelpTourContext);
+  const isTourActive = Boolean(helpTour?.isTourActive);
   const [form, setForm] = useState<OverlayBarPayload>(defaultPayload);
   const [previewOrientation, setPreviewOrientation] =
     useState<OverlayPreviewOrientation>("LANDSCAPE");
@@ -114,9 +167,15 @@ export function OverlayBarFormModal({
             weatherLocation: initialBar.weatherLocation ?? null,
             mediaId: null,
           }
-        : defaultPayload,
+        : isTourActive
+          ? {
+              ...defaultPayload,
+              name: "Rodapé institucional (exemplo)",
+              contentItems: tourExampleContentItems.map((item) => ({ ...item })),
+            }
+          : defaultPayload,
     );
-  }, [initialBar, open]);
+  }, [initialBar, isTourActive, open]);
 
   const previewBar = {
     ...form,
@@ -185,7 +244,7 @@ export function OverlayBarFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 px-4 py-6 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 px-4 py-6">
       <form
         onSubmit={handleSubmit}
         className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
@@ -204,6 +263,7 @@ export function OverlayBarFormModal({
           </div>
 
           <button
+            data-help-tour="bar-modal-close"
             type="button"
             onClick={onClose}
             disabled={saving}
@@ -222,7 +282,7 @@ export function OverlayBarFormModal({
             data-testid="overlay-bar-editor-scroll"
             className="min-h-0 space-y-5 overflow-y-auto p-5 sm:p-6"
           >
-            <label className="block">
+            <label data-help-tour="bar-modal-name" className="block">
               <span className="text-sm font-bold text-slate-700">Nome da barra</span>
               <input
                 autoFocus
@@ -237,7 +297,7 @@ export function OverlayBarFormModal({
               />
             </label>
 
-            <fieldset>
+            <fieldset data-help-tour="bar-modal-position">
               <legend className="text-sm font-bold text-slate-700">Posição</legend>
               <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {positionOptions.map((option) => {
@@ -268,7 +328,7 @@ export function OverlayBarFormModal({
               </div>
             </fieldset>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div data-help-tour="bar-modal-size" className="grid gap-4 sm:grid-cols-2">
               <label>
                 <span className="flex items-center justify-between text-sm font-bold text-slate-700">
                   Espessura
@@ -309,7 +369,7 @@ export function OverlayBarFormModal({
               </label>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div data-help-tour="bar-modal-alignment" className="grid gap-4 sm:grid-cols-2">
               <label>
                 <span className="text-sm font-bold text-slate-700">
                   {isHorizontalBar ? "Alinhamento horizontal" : "Alinhamento vertical"}
@@ -541,16 +601,18 @@ export function OverlayBarFormModal({
               </label>
             </div>
 
-            <OverlayBarContentEditor
-              items={form.contentItems}
-              images={images}
-              disabled={saving}
-              weatherLocation={form.weatherLocation}
-              onChange={(contentItems) => setForm((current) => ({ ...current, contentItems }))}
-              onWeatherLocationChange={(weatherLocation) =>
-                setForm((current) => ({ ...current, weatherLocation }))
-              }
-            />
+            <div>
+              <OverlayBarContentEditor
+                items={form.contentItems}
+                images={images}
+                disabled={saving}
+                weatherLocation={form.weatherLocation}
+                onChange={(contentItems) => setForm((current) => ({ ...current, contentItems }))}
+                onWeatherLocationChange={(weatherLocation) =>
+                  setForm((current) => ({ ...current, weatherLocation }))
+                }
+              />
+            </div>
 
             <label className="block">
               <span className="text-sm font-bold text-slate-700">Cor de fundo</span>
@@ -587,63 +649,65 @@ export function OverlayBarFormModal({
             data-testid="overlay-bar-preview-panel"
             className="min-h-0 overflow-hidden border-t border-slate-200 bg-slate-50 p-5 lg:border-l lg:border-t-0 sm:p-6"
           >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                  <ImageIcon size={17} className="text-blue-700" />
-                  Prévia na tela
+            <div data-help-tour="bar-modal-preview" className="rounded-xl">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                    <ImageIcon size={17} className="text-blue-700" />
+                    Prévia na tela
+                  </div>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Visualize a barra nas duas orientações da playlist.
+                  </p>
                 </div>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
-                  Visualize a barra nas duas orientações da playlist.
-                </p>
-              </div>
 
-              <div
-                className="flex shrink-0 items-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm"
-                aria-label="Orientação da prévia"
-              >
-                <button
-                  type="button"
-                  aria-label="Visualizar prévia horizontal"
-                  aria-pressed={previewOrientation === "LANDSCAPE"}
-                  title="Horizontal"
-                  onClick={() => setPreviewOrientation("LANDSCAPE")}
-                  className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
-                    previewOrientation === "LANDSCAPE"
-                      ? "bg-blue-700 text-white shadow-sm"
-                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-                  }`}
+                <div
+                  className="flex shrink-0 items-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm"
+                  aria-label="Orientação da prévia"
                 >
-                  <Monitor size={16} />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Visualizar prévia vertical"
-                  aria-pressed={previewOrientation === "PORTRAIT"}
-                  title="Vertical"
-                  onClick={() => setPreviewOrientation("PORTRAIT")}
-                  className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
-                    previewOrientation === "PORTRAIT"
-                      ? "bg-blue-700 text-white shadow-sm"
-                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-                  }`}
-                >
-                  <Smartphone size={16} />
-                </button>
+                  <button
+                    type="button"
+                    aria-label="Visualizar prévia horizontal"
+                    aria-pressed={previewOrientation === "LANDSCAPE"}
+                    title="Horizontal"
+                    onClick={() => setPreviewOrientation("LANDSCAPE")}
+                    className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                      previewOrientation === "LANDSCAPE"
+                        ? "bg-blue-700 text-white shadow-sm"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                    }`}
+                  >
+                    <Monitor size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Visualizar prévia vertical"
+                    aria-pressed={previewOrientation === "PORTRAIT"}
+                    title="Vertical"
+                    onClick={() => setPreviewOrientation("PORTRAIT")}
+                    className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                      previewOrientation === "PORTRAIT"
+                        ? "bg-blue-700 text-white shadow-sm"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                    }`}
+                  >
+                    <Smartphone size={16} />
+                  </button>
+                </div>
               </div>
-            </div>
-            <div className="mt-4 flex min-h-0 justify-center">
-              <OverlayBarPreview
-                bar={previewBar}
-                images={images}
-                orientation={previewOrientation}
-                className={
-                  previewOrientation === "PORTRAIT"
-                    ? "h-[min(38vh,340px)] w-auto max-w-full shadow-lg"
-                    : "w-full shadow-lg"
-                }
-                showEmptyState
-              />
+              <div className="mt-4 flex min-h-0 justify-center">
+                <OverlayBarPreview
+                  bar={previewBar}
+                  images={images}
+                  orientation={previewOrientation}
+                  className={
+                    previewOrientation === "PORTRAIT"
+                      ? "h-[min(38vh,340px)] w-auto max-w-full shadow-lg"
+                      : "w-full shadow-lg"
+                  }
+                  showEmptyState
+                />
+              </div>
             </div>
             <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-3 text-xs leading-5 text-blue-800">
               Esta barra poderá ser vinculada a várias playlists sem precisar ser recriada.
@@ -651,7 +715,10 @@ export function OverlayBarFormModal({
           </aside>
         </div>
 
-        <footer className="flex justify-end gap-3 border-t border-slate-200 px-5 py-4 sm:px-6">
+        <footer
+          data-help-tour="bar-modal-actions"
+          className="flex justify-end gap-3 border-t border-slate-200 px-5 py-4 sm:px-6"
+        >
           <button
             type="button"
             onClick={onClose}

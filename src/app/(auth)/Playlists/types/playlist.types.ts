@@ -12,6 +12,7 @@ export interface PlaylistItem {
   muted?: boolean | null;
   createdAt: string;
   media: Media;
+  sourceItemId?: string;
 }
 
 export interface PlaylistSchedule {
@@ -79,6 +80,20 @@ export interface ReorderPlaylistPayload {
   items: ReorderPlaylistItem[];
 }
 
+export interface SavePlaylistCompositionItem {
+  id?: string;
+  sourceItemId?: string;
+  order: number;
+  duration?: number;
+  muted?: boolean;
+}
+
+export interface SavePlaylistCompositionPayload {
+  items: SavePlaylistCompositionItem[];
+  orientation: PlaylistOrientation;
+  overlayBarIds: string[];
+}
+
 export interface DeletePlaylistResponse {
   success: boolean;
   message: string;
@@ -89,4 +104,8 @@ export interface DeletePlaylistResponse {
 export interface DeletePlaylistItemResponse {
   success: boolean;
   message: string;
+}
+
+export interface DeletePlaylistItemsResponse extends DeletePlaylistItemResponse {
+  removedItems: number;
 }

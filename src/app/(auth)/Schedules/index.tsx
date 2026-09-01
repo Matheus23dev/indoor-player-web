@@ -101,7 +101,10 @@ export default function Schedules() {
   return (
     <>
       <PageContainer scrollable>
-        <header className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center">
+        <header
+          data-help-tour="schedule-create"
+          className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center"
+        >
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-700">
               Grade de programação
@@ -116,6 +119,7 @@ export default function Schedules() {
           </div>
 
           <button
+            data-help-tour="schedule-create-button"
             type="button"
             onClick={openCreateModal}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
@@ -133,7 +137,10 @@ export default function Schedules() {
           <SummaryCard label="Inativos" value={totalInactive} icon={<PauseCircle size={22} />} />
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+        <div
+          data-help-tour="schedule-planning"
+          className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm"
+        >
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="relative w-full md:max-w-md">
               <Search

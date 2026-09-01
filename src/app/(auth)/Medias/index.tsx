@@ -72,7 +72,10 @@ export default function MediasPage() {
   return (
     <>
       <PageContainer scrollable>
-        <header className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center">
+        <header
+          data-help-tour="media-actions"
+          className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center"
+        >
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-700">
               Gestão de conteúdo
@@ -86,6 +89,7 @@ export default function MediasPage() {
 
           <div className="flex flex-col gap-2 sm:flex-row">
             <button
+              data-help-tour="media-folder-button"
               type="button"
               onClick={openCreateFolder}
               className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 shadow-sm transition hover:bg-gray-50"
@@ -95,6 +99,7 @@ export default function MediasPage() {
             </button>
 
             <button
+              data-help-tour="media-upload-button"
               type="button"
               onClick={() => setUploadModalOpen(true)}
               className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
@@ -133,7 +138,10 @@ export default function MediasPage() {
           <SummaryCard title="Vídeos" value={totalVideos} icon={<FileVideo size={22} />} />
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+        <div
+          data-help-tour="media-library"
+          className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm"
+        >
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="relative w-full md:max-w-md">
               <Search

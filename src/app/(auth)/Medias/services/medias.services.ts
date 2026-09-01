@@ -1,11 +1,12 @@
 import api from "../../../../services/axios";
+import { normalizeNamedRecord } from "../../../../lib/textEncoding";
 
 import type { Media, RemoveMediaResponse } from "../types";
 
 export async function getMedias(): Promise<Media[]> {
   const response = await api.get<Media[]>("/medias");
 
-  return response.data;
+  return response.data.map(normalizeNamedRecord);
 }
 
 export async function uploadMedia(file: File, folderId?: string | null): Promise<Media> {
@@ -19,7 +20,7 @@ export async function uploadMedia(file: File, folderId?: string | null): Promise
 
   const response = await api.post<Media>("/medias/upload", formData);
 
-  return response.data;
+  return normalizeNamedRecord(response.data);
 }
 
 export async function deleteMedia(id: string): Promise<RemoveMediaResponse> {

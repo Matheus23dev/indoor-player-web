@@ -1,0 +1,74 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introdução/Visão geral" />
+
+# Indoor Player UI
+
+Catálogo visual dos componentes usados no painel administrativo do Indoor Player. Cada exemplo
+representa um estado real da aplicação e pode ser analisado isoladamente, sem depender da API ou de
+um usuário autenticado.
+
+## Como usar este catálogo
+
+- **Canvas:** mostra o componente em funcionamento.
+- **Documentação:** apresenta propósito, propriedades e estados disponíveis.
+- **Controles:** permite alterar propriedades e conferir o resultado imediatamente.
+- **Acessibilidade:** aponta problemas de contraste, semântica e navegação por teclado.
+- **Viewport:** ajuda a revisar o comportamento em desktop e dispositivos menores.
+
+## Organização
+
+<table>
+  <thead>
+    <tr>
+      <th>Área</th>
+      <th>Conteúdo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Fundamentos</td>
+      <td>Botões, indicadores, campos e cartões básicos</td>
+    </tr>
+    <tr>
+      <td>Layout</td>
+      <td>Cabeçalho, indicadores e estrutura padrão das páginas</td>
+    </tr>
+    <tr>
+      <td>Dispositivos</td>
+      <td>Estado, prévia ao vivo e cartão do player</td>
+    </tr>
+    <tr>
+      <td>Mídias</td>
+      <td>Pastas, imagens e vídeos da biblioteca</td>
+    </tr>
+    <tr>
+      <td>Playlists</td>
+      <td>Cartões, orientação e configuração dos itens</td>
+    </tr>
+    <tr>
+      <td>Agendamentos</td>
+      <td>Estados ativo, inativo e em processamento</td>
+    </tr>
+    <tr>
+      <td>Barras fixas</td>
+      <td>Prévia horizontal, lateral, composição e reutilização</td>
+    </tr>
+    <tr>
+      <td>Modais</td>
+      <td>Principais fluxos de criação e configuração</td>
+    </tr>
+  </tbody>
+</table>
+
+## Convenções visuais
+
+O azul identifica ações primárias e navegação. Verde comunica disponibilidade ou sucesso, amarelo
+indica atenção e vermelho é reservado para ações destrutivas e falhas. Textos importantes usam alto
+contraste e todos os controles interativos devem permanecer acessíveis pelo teclado.
+
+## Manutenção
+
+Ao criar ou alterar um componente reutilizável, atualize sua story no mesmo pull request. Estados de
+carregamento, vazio, erro, desabilitado e conteúdo longo devem ser representados sempre que forem
+relevantes para o comportamento do componente.

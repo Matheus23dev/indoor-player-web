@@ -1,4 +1,5 @@
 import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { PlaylistItem } from "../types";
@@ -44,9 +45,11 @@ describe("PlaylistItemCard", () => {
         item={item}
         index={0}
         saving={false}
-        onUpdateDuration={vi.fn()}
-        onUpdateMuted={vi.fn()}
-        onDelete={vi.fn()}
+        selected={false}
+        dirty={false}
+        onSelectedChange={vi.fn()}
+        onChange={vi.fn()}
+        onDuplicate={vi.fn()}
       />,
     );
 
@@ -64,7 +67,9 @@ describe("PlaylistItemCard", () => {
     expect(screen.getByText("00:20")).toBeInTheDocument();
   });
 
-  it("permite editar o tempo de exibição da imagem", () => {
+  it("mantém a edição da imagem como alteração pendente", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
     const item: PlaylistItem = {
       id: "item-2",
       playlistId: "playlist-1",
@@ -88,14 +93,103 @@ describe("PlaylistItemCard", () => {
         item={item}
         index={1}
         saving={false}
-        onUpdateDuration={vi.fn()}
-        onUpdateMuted={vi.fn()}
-        onDelete={vi.fn()}
+        selected={false}
+        dirty
+        onSelectedChange={vi.fn()}
+        onChange={onChange}
+        onDuplicate={vi.fn()}
       />,
     );
 
     expect(screen.getByLabelText("Duração em segundos")).toBeEnabled();
     expect(screen.getByRole("button", { name: "Diminuir um segundo" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Aumentar um segundo" })).toBeEnabled();
+    expect(screen.getByTestId("playlist-item-drag-rail")).toContainElement(
+      screen.getByRole("button", { name: "Arrastar Campanha.png para alterar a posição" }),
+    );
+    expect(screen.getByText("Alteração pendente")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Aumentar um segundo" }));
+
+    expect(onChange).toHaveBeenCalledWith(item.id, { duration: 9 });
+  });
+
+  it("solicita a duplicação da mídia selecionada", async () => {
+    const user = userEvent.setup();
+    const onDuplicate = vi.fn().mockResolvedValue(undefined);
+    const item: PlaylistItem = {
+      id: "item-3",
+      playlistId: "playlist-1",
+      mediaId: "media-3",
+      order: 3,
+      duration: 5,
+      createdAt: "2026-08-18T10:00:00.000Z",
+      media: {
+        id: "media-3",
+        name: "Oferta.png",
+        type: "IMAGE",
+        fileUrl: "/files/oferta.png",
+        duration: null,
+        createdAt: "2026-08-18T10:00:00.000Z",
+        updatedAt: "2026-08-18T10:00:00.000Z",
+      },
+    };
+
+    render(
+      <PlaylistItemCard
+        item={item}
+        index={2}
+        saving={false}
+        selected={false}
+        dirty={false}
+        onSelectedChange={vi.fn()}
+        onChange={vi.fn()}
+        onDuplicate={onDuplicate}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Duplicar Oferta.png" }));
+
+    expect(onDuplicate).toHaveBeenCalledWith(item);
+  });
+
+  it("permite selecionar a mídia sem excluí-la imediatamente", async () => {
+    const user = userEvent.setup();
+    const onSelectedChange = vi.fn();
+    const item: PlaylistItem = {
+      id: "item-4",
+      playlistId: "playlist-1",
+      mediaId: "media-4",
+      order: 4,
+      duration: 5,
+      createdAt: "2026-08-18T10:00:00.000Z",
+      media: {
+        id: "media-4",
+        name: "Institucional.png",
+        type: "IMAGE",
+        fileUrl: "/files/institucional.png",
+        duration: null,
+        createdAt: "2026-08-18T10:00:00.000Z",
+        updatedAt: "2026-08-18T10:00:00.000Z",
+      },
+    };
+
+    render(
+      <PlaylistItemCard
+        item={item}
+        index={3}
+        saving={false}
+        selected={false}
+        dirty={false}
+        onSelectedChange={onSelectedChange}
+        onChange={vi.fn()}
+        onDuplicate={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("checkbox", { name: "Selecionar Institucional.png" }));
+
+    expect(onSelectedChange).toHaveBeenCalledWith(item.id, true);
+    expect(screen.queryByRole("button", { name: "Remover mídia" })).not.toBeInTheDocument();
   });
 });

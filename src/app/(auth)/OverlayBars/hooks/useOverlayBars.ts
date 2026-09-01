@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Swal from "sweetalert2";
+import { appAlert as Swal } from "@/lib/alert";
 
 import { getApiErrorMessage } from "../../../../lib/apiError";
 import { getMedias } from "../../Medias/services/medias.services";
@@ -107,7 +107,7 @@ export function useOverlayBars() {
       showCancelButton: true,
       confirmButtonText: "Sim, excluir",
       cancelButtonText: "Cancelar",
-      confirmButtonColor: "#dc2626",
+      customClass: { confirmButton: "indoor-swal-danger" },
     });
 
     if (!result.isConfirmed) return;

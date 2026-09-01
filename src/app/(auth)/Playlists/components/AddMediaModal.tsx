@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Check, ChevronRight, Folder, ImageIcon, Loader2, Search, Video, X } from "lucide-react";
 
-import Swal from "sweetalert2";
+import { appAlert as Swal } from "@/lib/alert";
 import { resolveMediaUrl } from "../../../../lib/mediaUrl";
 import { getApiErrorMessage } from "../../../../lib/apiError";
 

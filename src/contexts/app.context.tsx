@@ -1,48 +1,46 @@
 import { useCallback, useMemo, useState, type ReactNode } from "react";
-import Swal, { type SweetAlertOptions, type SweetAlertResult } from "sweetalert2";
 import { HelmetProvider } from "react-helmet-async";
-import { toast, Toaster } from "sonner";
-import { Colors } from "../constants";
 import Overlay from "../components/feedback/Overlay";
+import GlobalTooltip from "../components/feedback/GlobalTooltip";
+import AlertHost from "../components/feedback/AlertHost";
+import ToastViewport from "../components/feedback/ToastViewport";
+import { appAlert, type AppAlertOptions, type AppAlertResult } from "../lib/alert";
+import { appToast } from "../lib/toast";
 import { AppContext, type ToastType } from "./app-context";
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [overlay, setOverlay] = useState({ message: "", isLoading: false });
 
   const notifySuccess = useCallback(
-    (message: string) => toast.success(message, { duration: 4000 }),
+    (message: string) => appToast.success(message, { duration: 4000 }),
     [],
   );
-  const notifyError = useCallback((message: string) => toast.error(message), []);
+  const notifyError = useCallback(
+    (message: string) => appToast.error(message, { duration: 5000 }),
+    [],
+  );
 
   const showToast = useCallback((text: string, type: ToastType) => {
-    const toastColors: Record<ToastType, string> = {
-      success: Colors.verde,
-      info: Colors.azulSecundario,
-      error: Colors.vermelho,
-      warn: Colors.amarelo,
-    };
-    const color = toastColors[type];
-    toast.custom((toastId) => (
-      <div
-        className="relative w-full animate-fade-in rounded-lg p-4 pr-10 text-white shadow-md"
-        style={{ backgroundColor: color }}
-      >
-        <span className="text-sm text-white">{text}</span>
-        <button
-          type="button"
-          aria-label="Fechar notificação"
-          onClick={() => toast.dismiss(toastId)}
-          className="absolute right-4 top-1 text-2xl font-bold text-white"
-        >
-          &times;
-        </button>
-      </div>
-    ));
+    if (type === "success") {
+      appToast.success(text);
+      return;
+    }
+
+    if (type === "error") {
+      appToast.error(text);
+      return;
+    }
+
+    if (type === "warn") {
+      appToast.warning(text);
+      return;
+    }
+
+    appToast.info(text);
   }, []);
 
-  const SAlert = useCallback((config: SweetAlertOptions): Promise<SweetAlertResult> => {
-    return Swal.fire(config);
+  const SAlert = useCallback((config: AppAlertOptions): Promise<AppAlertResult> => {
+    return appAlert.fire(config);
   }, []);
 
   const handleOverlay = useCallback((message: string, isLoading: boolean) => {
@@ -59,7 +57,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       <HelmetProvider>
         <title>Indoor Player</title>
       </HelmetProvider>
-      <Toaster richColors position="top-right" />
+      <AlertHost />
+      <ToastViewport />
+      <GlobalTooltip />
       <Overlay message={overlay.message || "Carregando..."} isLoading={overlay.isLoading} />
       {children}
     </AppContext.Provider>

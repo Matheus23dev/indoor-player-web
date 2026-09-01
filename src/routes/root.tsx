@@ -14,8 +14,10 @@ const OverlayBars = lazy(() => import("@/app/(auth)/OverlayBars"));
 const MediasPage = lazy(() => import("@/app/(auth)/Medias"));
 const Schedules = lazy(() => import("@/app/(auth)/Schedules"));
 const PlaylistDetails = lazy(() => import("@/app/(auth)/Playlists/details"));
+const PlaylistCompositionGuide = lazy(() => import("@/app/(auth)/Playlists/guide"));
 const Users = lazy(() => import("@/app/(auth)/Users"));
 const AuditLogs = lazy(() => import("@/app/(auth)/AuditLogs"));
+const Help = lazy(() => import("@/app/(auth)/Help"));
 
 const errorElement = <ErrorPage />;
 
@@ -83,6 +85,11 @@ export const router = createBrowserRouter([
         errorElement,
       },
       {
+        path: "playlist-guide",
+        element: lazyPage(<PlaylistCompositionGuide />),
+        errorElement,
+      },
+      {
         path: "playlists/:id",
         element: lazyPage(<PlaylistDetails />),
         errorElement,
@@ -95,6 +102,11 @@ export const router = createBrowserRouter([
       {
         path: "schedules",
         element: lazyPage(<Schedules />),
+        errorElement,
+      },
+      {
+        path: "help",
+        element: lazyPage(<Help />),
         errorElement,
       },
     ],

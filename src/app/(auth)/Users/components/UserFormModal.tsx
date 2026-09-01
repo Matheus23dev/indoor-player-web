@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { Eye, EyeOff, Save, ShieldCheck, UserRound, X } from "lucide-react";
 
-import Swal from "sweetalert2";
+import { appAlert as Swal } from "@/lib/alert";
 
 import { getAssignableRoles } from "../utils/permissions";
 
@@ -174,6 +174,7 @@ export default function UserFormModal({
           </div>
 
           <button
+            data-help-tour="user-modal-close"
             type="button"
             onClick={onClose}
             disabled={saving}
@@ -185,7 +186,7 @@ export default function UserFormModal({
         </header>
 
         <div className="space-y-5 p-6">
-          <div>
+          <div data-help-tour="user-modal-identity">
             <label htmlFor="user-name" className="mb-2 block text-sm font-bold text-gray-700">
               Nome
             </label>
@@ -208,7 +209,7 @@ export default function UserFormModal({
             </div>
           </div>
 
-          <div>
+          <div data-help-tour="user-modal-email">
             <label htmlFor="user-email" className="mb-2 block text-sm font-bold text-gray-700">
               E-mail
             </label>
@@ -225,7 +226,7 @@ export default function UserFormModal({
             />
           </div>
 
-          <div>
+          <div data-help-tour="user-modal-password">
             <label htmlFor="user-password" className="mb-2 block text-sm font-bold text-gray-700">
               {isEditing ? "Nova senha (opcional)" : "Senha"}
             </label>
@@ -255,7 +256,7 @@ export default function UserFormModal({
             </div>
           </div>
 
-          <div>
+          <div data-help-tour="user-modal-role">
             <label
               htmlFor="user-role"
               className="mb-2 flex items-center gap-2 text-sm font-bold text-gray-700"
@@ -292,7 +293,10 @@ export default function UserFormModal({
           </div>
         </div>
 
-        <footer className="flex justify-end gap-3 border-t px-6 py-4">
+        <footer
+          data-help-tour="user-modal-actions"
+          className="flex justify-end gap-3 border-t px-6 py-4"
+        >
           <button
             type="button"
             onClick={onClose}

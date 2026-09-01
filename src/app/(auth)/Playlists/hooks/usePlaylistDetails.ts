@@ -1,21 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import Swal from "sweetalert2";
+import { appAlert as Swal } from "@/lib/alert";
 
 import {
   addPlaylistItem,
-  deletePlaylistItem,
+  deletePlaylistItems,
   getPlaylist,
-  reorderPlaylist,
-  updatePlaylist as updatePlaylistRequest,
-  updatePlaylistItem,
+  savePlaylistComposition,
 } from "../services/Playlists.services";
-import {
-  attachOverlayBar as attachOverlayBarRequest,
-  detachOverlayBar as detachOverlayBarRequest,
-} from "../../OverlayBars/services/overlay-bars.service";
 
 import type { Media } from "../../Medias/types";
+import type { PlaylistOverlayBar } from "../../OverlayBars/types";
 
 import type { Playlist, PlaylistItem, PlaylistOrientation } from "../types";
 import { getApiErrorMessage } from "../../../../lib/apiError";
@@ -106,283 +101,48 @@ export function usePlaylistDetails(playlistId?: string) {
     [playlistId],
   );
 
-  const updateDuration = useCallback(async (itemId: string, duration: number) => {
-    try {
-      setSaving(true);
+  const saveComposition = useCallback(
+    async (
+      items: PlaylistItem[],
+      orientation: PlaylistOrientation,
+      overlayBars: PlaylistOverlayBar[],
+    ) => {
+      if (!playlistId) {
+        return false;
+      }
 
-      const updatedItem = await updatePlaylistItem(itemId, {
-        duration,
-      });
+      const invalidImage = items.find(
+        (item) =>
+          item.media.type === "IMAGE" &&
+          (!Number.isInteger(item.duration) || (item.duration ?? 0) < 1),
+      );
 
-      setPlaylist((current) => {
-        if (!current) {
-          return current;
-        }
+      if (invalidImage) {
+        await Swal.fire({
+          icon: "warning",
+          title: "Duração inválida",
+          text: `Informe uma duração válida para a imagem "${invalidImage.media.name}".`,
+        });
 
-        return {
-          ...current,
-
-          items: current.items.map((item) => (item.id === itemId ? updatedItem : item)),
-        };
-      });
-
-      return updatedItem;
-    } finally {
-      setSaving(false);
-    }
-  }, []);
-
-  const updateMuted = useCallback(async (itemId: string, muted: boolean) => {
-    try {
-      setSaving(true);
-
-      const updatedItem = await updatePlaylistItem(itemId, {
-        muted,
-      });
-
-      setPlaylist((current) => {
-        if (!current) {
-          return current;
-        }
-
-        return {
-          ...current,
-
-          items: current.items.map((item) => (item.id === itemId ? updatedItem : item)),
-
-          updatedAt: new Date().toISOString(),
-        };
-      });
-
-      return updatedItem;
-    } catch (error: unknown) {
-      const message = getApiErrorMessage(error, "Não foi possível atualizar o áudio.");
-
-      await Swal.fire({
-        icon: "error",
-        title: "Erro ao atualizar áudio",
-        text: message,
-      });
-
-      throw error;
-    } finally {
-      setSaving(false);
-    }
-  }, []);
-
-  const updateOrientation = useCallback(
-    async (orientation: PlaylistOrientation) => {
-      if (!playlistId || playlist?.orientation === orientation) {
-        return playlist;
+        return false;
       }
 
       try {
         setSaving(true);
 
-        const updatedPlaylist = await updatePlaylistRequest(playlistId, {
-          orientation,
-        });
-
-        setPlaylist((current) =>
-          current
-            ? {
-                ...current,
-                orientation: updatedPlaylist.orientation,
-                updatedAt: updatedPlaylist.updatedAt ?? new Date().toISOString(),
-              }
-            : current,
-        );
-
-        return updatedPlaylist;
-      } catch (error: unknown) {
-        const message = getApiErrorMessage(error, "Não foi possível atualizar a orientação.");
-
-        await Swal.fire({
-          icon: "error",
-          title: "Erro ao atualizar orientação",
-          text: message,
-        });
-
-        throw error;
-      } finally {
-        setSaving(false);
-      }
-    },
-    [playlist, playlistId],
-  );
-
-  const attachOverlayBar = useCallback(
-    async (overlayBarId: string) => {
-      if (!playlistId) return;
-
-      try {
-        setSaving(true);
-        const relation = await attachOverlayBarRequest(overlayBarId, playlistId);
-
-        setPlaylist((current) => {
-          if (!current) return current;
-          const overlayBars = current.overlayBars ?? [];
-
-          if (overlayBars.some((item) => item.overlayBarId === overlayBarId)) {
-            return current;
-          }
-
-          return {
-            ...current,
-            overlayBars: [...overlayBars, relation].sort(
-              (first, second) => first.order - second.order,
-            ),
-            updatedAt: new Date().toISOString(),
-          };
-        });
-
-        return relation;
-      } catch (error: unknown) {
-        await Swal.fire({
-          icon: "error",
-          title: "Erro ao adicionar barra",
-          text: getApiErrorMessage(error, "Não foi possível adicionar a barra à playlist."),
-        });
-        throw error;
-      } finally {
-        setSaving(false);
-      }
-    },
-    [playlistId],
-  );
-
-  const detachOverlayBar = useCallback(
-    async (overlayBarId: string) => {
-      if (!playlistId) return;
-
-      try {
-        setSaving(true);
-        await detachOverlayBarRequest(overlayBarId, playlistId);
-
-        setPlaylist((current) =>
-          current
-            ? {
-                ...current,
-                overlayBars: (current.overlayBars ?? [])
-                  .filter((item) => item.overlayBarId !== overlayBarId)
-                  .map((item, index) => ({ ...item, order: index + 1 })),
-                updatedAt: new Date().toISOString(),
-              }
-            : current,
-        );
-      } catch (error: unknown) {
-        await Swal.fire({
-          icon: "error",
-          title: "Erro ao remover barra",
-          text: getApiErrorMessage(error, "Não foi possível remover a barra da playlist."),
-        });
-        throw error;
-      } finally {
-        setSaving(false);
-      }
-    },
-    [playlistId],
-  );
-
-  const removeItem = useCallback(async (item: PlaylistItem) => {
-    const result = await Swal.fire({
-      icon: "warning",
-      title: "Remover mídia?",
-      text: `"${item.media.name}" será removida desta playlist.`,
-      showCancelButton: true,
-      confirmButtonText: "Sim, remover",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#dc2626",
-    });
-
-    if (!result.isConfirmed) {
-      return;
-    }
-
-    try {
-      setSaving(true);
-
-      await deletePlaylistItem(item.id);
-
-      setPlaylist((current) => {
-        if (!current) {
-          return current;
-        }
-
-        const remaining = current.items
-          .filter((currentItem) => currentItem.id !== item.id)
-          .map((currentItem, index) => ({
-            ...currentItem,
-
+        const updatedPlaylist = await savePlaylistComposition(playlistId, {
+          items: items.map((item, index) => ({
+            ...(item.sourceItemId ? { sourceItemId: item.sourceItemId } : { id: item.id }),
             order: index + 1,
-          }));
-
-        return {
-          ...current,
-          items: remaining,
-
-          updatedAt: new Date().toISOString(),
-        };
-      });
-    } catch (error: unknown) {
-      const message = getApiErrorMessage(error, "Não foi possível remover o item.");
-
-      await Swal.fire({
-        icon: "error",
-        title: "Erro ao remover",
-        text: message,
-      });
-    } finally {
-      setSaving(false);
-    }
-  }, []);
-
-  const reorderItems = useCallback(
-    async (activeItemId: string, overItemId: string) => {
-      if (!playlist || activeItemId === overItemId || saving) {
-        return;
-      }
-
-      const currentIndex = playlist.items.findIndex((item) => item.id === activeItemId);
-
-      const targetIndex = playlist.items.findIndex((item) => item.id === overItemId);
-
-      if (currentIndex < 0 || targetIndex < 0) {
-        return;
-      }
-
-      const previousItems = playlist.items;
-
-      const reorderedItems = [...previousItems];
-
-      const [movedItem] = reorderedItems.splice(currentIndex, 1);
-
-      if (!movedItem) {
-        return;
-      }
-
-      reorderedItems.splice(targetIndex, 0, movedItem);
-
-      const normalizedItems = reorderedItems.map((item, index) => ({
-        ...item,
-
-        order: index + 1,
-      }));
-
-      setPlaylist({
-        ...playlist,
-        items: normalizedItems,
-      });
-
-      try {
-        setSaving(true);
-
-        const updatedPlaylist = await reorderPlaylist(playlist.id, {
-          items: normalizedItems.map((item) => ({
-            id: item.id,
-
-            order: item.order,
+            ...(item.media.type === "IMAGE"
+              ? { duration: item.duration ?? item.media.duration ?? 5 }
+              : {}),
+            ...(item.media.type === "VIDEO"
+              ? { muted: item.media.hasAudio === false || Boolean(item.muted) }
+              : {}),
           })),
+          orientation,
+          overlayBarIds: overlayBars.map((item) => item.overlayBarId),
         });
 
         setPlaylist((current) =>
@@ -390,34 +150,115 @@ export function usePlaylistDetails(playlistId?: string) {
             ? {
                 ...current,
                 ...updatedPlaylist,
-
-                items: updatedPlaylist.items?.length > 0 ? updatedPlaylist.items : normalizedItems,
+                items: updatedPlaylist.items,
+                overlayBars: updatedPlaylist.overlayBars,
               }
-            : current,
+            : updatedPlaylist,
         );
-      } catch (error: unknown) {
-        setPlaylist((current) =>
-          current
-            ? {
-                ...current,
-
-                items: previousItems,
-              }
-            : current,
-        );
-
-        const message = getApiErrorMessage(error, "Não foi possível reordenar a playlist.");
 
         await Swal.fire({
-          icon: "error",
-          title: "Erro ao reordenar",
-          text: message,
+          icon: "success",
+          title: "Composição salva",
+          text: "Todas as alterações foram aplicadas com segurança.",
+          timer: 1400,
+          showConfirmButton: false,
         });
+
+        return true;
+      } catch (error: unknown) {
+        await Swal.fire({
+          icon: "error",
+          title: "Erro ao salvar",
+          text: getApiErrorMessage(error, "Não foi possível salvar a composição."),
+        });
+
+        return false;
       } finally {
         setSaving(false);
       }
     },
-    [playlist, saving],
+    [playlistId],
+  );
+
+  const removeItems = useCallback(
+    async (items: PlaylistItem[]) => {
+      if (!playlistId || items.length === 0) {
+        return false;
+      }
+
+      const selectedNames = items
+        .slice(0, 3)
+        .map((item) => `“${item.media.name}”`)
+        .join(", ");
+      const remainingCount = Math.max(0, items.length - 3);
+
+      const result = await Swal.fire({
+        icon: "warning",
+        title:
+          items.length === 1 ? "Excluir mídia selecionada?" : `Excluir ${items.length} mídias?`,
+        text: `${selectedNames}${remainingCount > 0 ? ` e mais ${remainingCount}` : ""} serão removidas da playlist.`,
+        showCancelButton: true,
+        confirmButtonText: items.length === 1 ? "Excluir mídia" : "Excluir mídias",
+        cancelButtonText: "Cancelar",
+        customClass: { confirmButton: "indoor-swal-danger" },
+      });
+
+      if (!result.isConfirmed) {
+        return false;
+      }
+
+      try {
+        setSaving(true);
+
+        const persistedItemIds = new Set(
+          items.filter((item) => !item.sourceItemId).map((item) => item.id),
+        );
+
+        if (persistedItemIds.size > 0) {
+          await deletePlaylistItems(playlistId, [...persistedItemIds]);
+        }
+
+        setPlaylist((current) => {
+          if (!current) {
+            return current;
+          }
+
+          const remaining = current.items
+            .filter((currentItem) => !persistedItemIds.has(currentItem.id))
+            .map((currentItem, index) => ({
+              ...currentItem,
+              order: index + 1,
+            }));
+
+          return {
+            ...current,
+            items: remaining,
+
+            updatedAt: new Date().toISOString(),
+          };
+        });
+
+        await Swal.fire({
+          icon: "success",
+          title: items.length === 1 ? "Mídia excluída" : "Mídias excluídas",
+          timer: 1300,
+          showConfirmButton: false,
+        });
+
+        return true;
+      } catch (error: unknown) {
+        await Swal.fire({
+          icon: "error",
+          title: "Erro ao excluir",
+          text: getApiErrorMessage(error, "Não foi possível excluir as mídias selecionadas."),
+        });
+
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [playlistId],
   );
 
   useEffect(() => {
@@ -432,12 +273,7 @@ export function usePlaylistDetails(playlistId?: string) {
 
     loadPlaylist,
     addMedia,
-    updateDuration,
-    updateMuted,
-    updateOrientation,
-    attachOverlayBar,
-    detachOverlayBar,
-    removeItem,
-    reorderItems,
+    saveComposition,
+    removeItems,
   };
 }

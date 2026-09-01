@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useContext, useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { CalendarDays, Clock3, ListVideo, Monitor, Save, X } from "lucide-react";
 
-import Swal from "sweetalert2";
+import { appAlert as Swal } from "@/lib/alert";
 
 import type { CreateSchedulePayload, Schedule, ScheduleDevice, SchedulePlaylist } from "../types";
 import { getApiErrorMessage } from "../../../../lib/apiError";
+import { HelpTourContext } from "../../Help/help-tour-context";
 
 interface ScheduleModalProps {
   open: boolean;
@@ -71,6 +72,8 @@ export default function ScheduleModal({
   onSubmit,
 }: ScheduleModalProps) {
   const editing = Boolean(schedule);
+  const helpTour = useContext(HelpTourContext);
+  const showTourExamples = Boolean(helpTour?.isTourActive);
 
   const [name, setName] = useState("");
 
@@ -318,6 +321,7 @@ export default function ScheduleModal({
           </div>
 
           <button
+            data-help-tour="schedule-modal-close"
             type="button"
             onClick={handleClose}
             disabled={saving}
@@ -329,7 +333,10 @@ export default function ScheduleModal({
         </header>
 
         <div className="space-y-6 overflow-y-auto p-6">
-          <section className="grid gap-4 md:grid-cols-2">
+          <section
+            data-help-tour="schedule-modal-association"
+            className="grid gap-4 md:grid-cols-2"
+          >
             <div className="md:col-span-2">
               <label htmlFor="schedule-name" className="mb-2 block text-sm font-bold text-gray-700">
                 Nome do agendamento
@@ -362,7 +369,11 @@ export default function ScheduleModal({
                 disabled={saving}
                 className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
               >
-                <option value="">Selecione um player</option>
+                <option value="">
+                  {linkedDevices.length === 0 && showTourExamples
+                    ? "Exemplo: TV Recepção — Online"
+                    : "Selecione um player"}
+                </option>
 
                 {linkedDevices.map((device) => (
                   <option key={device.id} value={device.id}>
@@ -372,8 +383,12 @@ export default function ScheduleModal({
               </select>
 
               {linkedDevices.length === 0 && (
-                <p className="mt-2 text-xs font-semibold text-red-600">
-                  Nenhum player vinculado encontrado.
+                <p
+                  className={`mt-2 text-xs font-semibold ${showTourExamples ? "text-blue-700" : "text-red-600"}`}
+                >
+                  {showTourExamples
+                    ? "Dado ilustrativo: nenhum Player será vinculado durante o guia."
+                    : "Nenhum player vinculado encontrado."}
                 </p>
               )}
             </div>
@@ -394,7 +409,11 @@ export default function ScheduleModal({
                 disabled={saving}
                 className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:opacity-50"
               >
-                <option value="">Selecione uma playlist</option>
+                <option value="">
+                  {playlists.length === 0 && showTourExamples
+                    ? "Exemplo: Campanha da recepção"
+                    : "Selecione uma playlist"}
+                </option>
 
                 {playlists.map((playlist) => (
                   <option key={playlist.id} value={playlist.id}>
@@ -404,14 +423,18 @@ export default function ScheduleModal({
               </select>
 
               {playlists.length === 0 && (
-                <p className="mt-2 text-xs font-semibold text-red-600">
-                  Nenhuma playlist cadastrada.
+                <p
+                  className={`mt-2 text-xs font-semibold ${showTourExamples ? "text-blue-700" : "text-red-600"}`}
+                >
+                  {showTourExamples
+                    ? "Dado ilustrativo: nenhuma programação será criada durante o guia."
+                    : "Nenhuma playlist cadastrada."}
                 </p>
               )}
             </div>
           </section>
 
-          <section className="grid gap-4 md:grid-cols-2">
+          <section data-help-tour="schedule-modal-period" className="grid gap-4 md:grid-cols-2">
             <div>
               <label
                 htmlFor="schedule-start-date"
@@ -490,7 +513,7 @@ export default function ScheduleModal({
             </div>
           </section>
 
-          <section>
+          <section data-help-tour="schedule-modal-days">
             <div className="mb-3 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
                 <h3 className="text-sm font-black text-gray-900">Dias da semana</h3>
@@ -546,7 +569,10 @@ export default function ScheduleModal({
           </section>
 
           <section className="grid gap-4 md:grid-cols-2">
-            <div>
+            <div
+              data-help-tour="schedule-modal-priority"
+              className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4"
+            >
               <label
                 htmlFor="schedule-priority"
                 className="mb-2 block text-sm font-bold text-gray-700"
@@ -596,7 +622,10 @@ export default function ScheduleModal({
           </section>
         </div>
 
-        <footer className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4">
+        <footer
+          data-help-tour="schedule-modal-actions"
+          className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4"
+        >
           <button
             type="button"
             onClick={handleClose}

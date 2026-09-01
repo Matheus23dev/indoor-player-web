@@ -8,8 +8,8 @@ const { fire } = vi.hoisted(() => ({
   fire: vi.fn().mockResolvedValue({}),
 }));
 
-vi.mock("sweetalert2", () => ({
-  default: {
+vi.mock("@/lib/alert", () => ({
+  appAlert: {
     fire,
   },
 }));

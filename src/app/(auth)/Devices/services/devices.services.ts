@@ -2,6 +2,7 @@ import axios from "axios";
 
 import instance from "../../../../services/axios";
 import { resolveMediaUrl } from "../../../../lib/mediaUrl";
+import { normalizeNamedRecord } from "../../../../lib/textEncoding";
 
 export { resolveMediaUrl };
 
@@ -14,13 +15,13 @@ interface ApiErrorResponse {
 export async function getDevices(): Promise<Device[]> {
   const response = await instance.get<Device[]>("/devices");
 
-  return response.data;
+  return response.data.map(normalizeDeviceMediaName);
 }
 
 export async function getDevicePreview(deviceId: string): Promise<Device> {
   const response = await instance.get<Device>(`/devices/${deviceId}/preview`);
 
-  return response.data;
+  return normalizeDeviceMediaName(response.data);
 }
 
 export async function pairDevice(code: string, name: string): Promise<Device> {
@@ -90,4 +91,18 @@ export function getApiErrorMessage(
   }
 
   return fallback;
+}
+
+function normalizeDeviceMediaName(device: Device): Device {
+  if (!device.preview.media) {
+    return device;
+  }
+
+  return {
+    ...device,
+    preview: {
+      ...device.preview,
+      media: normalizeNamedRecord(device.preview.media),
+    },
+  };
 }

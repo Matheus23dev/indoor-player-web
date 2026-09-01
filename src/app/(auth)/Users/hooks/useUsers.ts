@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import Swal from "sweetalert2";
+import { appAlert as Swal } from "@/lib/alert";
 
 import { createUser, deleteUser, getUsers, updateUser } from "../services/Users.services";
 
@@ -84,7 +84,7 @@ export function useUsers({ enabled = true }: UseUsersOptions = {}) {
       showCancelButton: true,
       confirmButtonText: "Sim, excluir",
       cancelButtonText: "Cancelar",
-      confirmButtonColor: "#dc2626",
+      customClass: { confirmButton: "indoor-swal-danger" },
     });
 
     if (!result.isConfirmed) {

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
 import { ImagePlus, Info, Trash2, Upload, Video, X } from "lucide-react";
 
-import Swal from "sweetalert2";
+import { appAlert as Swal } from "@/lib/alert";
 
 import { uploadMedia } from "../services/medias.services";
 
@@ -233,6 +233,7 @@ export default function UploadMediaModal({
           </div>
 
           <button
+            data-help-tour="media-upload-close"
             type="button"
             onClick={handleClose}
             disabled={uploading}
@@ -244,7 +245,10 @@ export default function UploadMediaModal({
         </header>
 
         <div className="space-y-5 overflow-y-auto p-6">
-          <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+          <div
+            data-help-tour="media-upload-rules"
+            className="rounded-2xl border border-blue-200 bg-blue-50 p-4"
+          >
             <div className="flex items-start gap-3">
               <Info size={22} className="mt-0.5 shrink-0 text-blue-600" />
 
@@ -273,7 +277,7 @@ export default function UploadMediaModal({
             </div>
           </div>
 
-          <div>
+          <div data-help-tour="media-upload-folder">
             <label htmlFor="media-folder" className="mb-2 block text-sm font-bold text-gray-700">
               Pasta
             </label>
@@ -296,6 +300,7 @@ export default function UploadMediaModal({
           </div>
 
           <label
+            data-help-tour="media-upload-files"
             htmlFor="media-files"
             className={`flex min-h-48 flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition ${
               uploading
@@ -375,7 +380,10 @@ export default function UploadMediaModal({
           )}
         </div>
 
-        <footer className="flex justify-end gap-3 border-t px-6 py-4">
+        <footer
+          data-help-tour="media-upload-actions"
+          className="flex justify-end gap-3 border-t px-6 py-4"
+        >
           <button
             type="button"
             onClick={handleClose}

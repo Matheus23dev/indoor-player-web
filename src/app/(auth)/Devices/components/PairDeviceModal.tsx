@@ -101,7 +101,7 @@ export function PairDeviceModal({ open, loading = false, onClose, onConfirm }: P
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !loading) {
           handleClose();
@@ -130,6 +130,7 @@ export function PairDeviceModal({ open, loading = false, onClose, onConfirm }: P
             </div>
 
             <button
+              data-help-tour="device-pair-close"
               type="button"
               onClick={handleClose}
               disabled={loading}
@@ -148,7 +149,7 @@ export function PairDeviceModal({ open, loading = false, onClose, onConfirm }: P
               </div>
             )}
 
-            <div>
+            <div data-help-tour="device-pair-code">
               <label htmlFor={codeId} className="mb-2 block text-sm font-bold text-slate-700">
                 Código do dispositivo
               </label>
@@ -178,7 +179,7 @@ export function PairDeviceModal({ open, loading = false, onClose, onConfirm }: P
               </div>
             </div>
 
-            <div>
+            <div data-help-tour="device-pair-name">
               <label htmlFor={nameId} className="mb-2 block text-sm font-bold text-slate-700">
                 Nome do dispositivo
               </label>
@@ -201,7 +202,10 @@ export function PairDeviceModal({ open, loading = false, onClose, onConfirm }: P
             </div>
           </div>
 
-          <footer className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-5 sm:flex-row sm:justify-end">
+          <footer
+            data-help-tour="device-pair-actions"
+            className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-5 sm:flex-row sm:justify-end"
+          >
             <button
               type="button"
               onClick={handleClose}

@@ -105,6 +105,7 @@ export default function Dashboard() {
   return (
     <PageContainer width="wide" scrollable>
       <PageHeader
+        tourId="dashboard-actions"
         eyebrow="Central de operação"
         title={`${getGreeting()}, ${firstName}`}
         description="Acompanhe a saúde dos players, o acervo e a programação da sua rede em um só lugar."
@@ -118,25 +119,15 @@ export default function Dashboard() {
             : "Sincronizando indicadores operacionais"
         }
         actions={
-          <>
-            <button
-              type="button"
-              onClick={() => void loadDashboard()}
-              disabled={loading || refreshing}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <RefreshCw size={17} className={refreshing ? "animate-spin" : ""} />
-              {refreshing ? "Atualizando" : "Atualizar"}
-            </button>
-
-            <Link
-              to="/home/medias"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
-            >
-              <CloudUpload size={17} />
-              Adicionar mídia
-            </Link>
-          </>
+          <button
+            type="button"
+            onClick={() => void loadDashboard()}
+            disabled={loading || refreshing}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <RefreshCw size={17} className={refreshing ? "animate-spin" : ""} />
+            {refreshing ? "Atualizando" : "Atualizar"}
+          </button>
         }
       />
 
@@ -165,6 +156,7 @@ export default function Dashboard() {
         ) : (
           <div className="space-y-4 xl:flex xl:h-full xl:min-h-0 xl:flex-col xl:gap-4 xl:space-y-0">
             <section
+              data-help-tour="dashboard-overview"
               aria-label="Indicadores principais"
               className="grid shrink-0 gap-3 sm:grid-cols-2 xl:grid-cols-4"
             >

@@ -1,7 +1,7 @@
 import axios from "axios";
-import Cookies from "js-cookie";
-import Swal from "sweetalert2";
+import { appAlert as Swal } from "@/lib/alert";
 import { API_BASE_URL } from "../lib/environment";
+import { clearAuthSession, readAuthToken } from "../lib/authSession";
 
 let handlingExpiredSession = false;
 
@@ -15,7 +15,7 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
   (req) => {
-    const token = Cookies.get("@TOKEN");
+    const token = readAuthToken();
 
     if (token && req.headers) {
       req.headers.Authorization = `Bearer ${token}`;
@@ -36,8 +36,7 @@ instance.interceptors.response.use(
       !handlingExpiredSession
     ) {
       handlingExpiredSession = true;
-      Cookies.remove("@TOKEN");
-      Cookies.remove("user");
+      clearAuthSession();
 
       await Swal.fire({
         icon: "warning",
@@ -47,7 +46,6 @@ instance.interceptors.response.use(
         allowOutsideClick: false,
         allowEscapeKey: false,
       });
-
       window.location.assign("/");
     }
 

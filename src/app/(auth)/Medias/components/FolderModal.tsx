@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 
 import { FolderPlus, Save, X } from "lucide-react";
 
-import Swal from "sweetalert2";
+import { appAlert as Swal } from "@/lib/alert";
 
 import { createFolder, updateFolder } from "../services/folders.services";
 
@@ -123,6 +123,7 @@ export default function FolderModal({ open, folder, onClose, onSaved }: FolderMo
           </div>
 
           <button
+            data-help-tour="media-folder-close"
             type="button"
             onClick={handleClose}
             disabled={saving}
@@ -133,7 +134,7 @@ export default function FolderModal({ open, folder, onClose, onSaved }: FolderMo
           </button>
         </header>
 
-        <div className="p-6">
+        <div data-help-tour="media-folder-form" className="p-6">
           <label htmlFor="folder-name" className="mb-2 block text-sm font-bold text-gray-700">
             Nome da pasta
           </label>
@@ -159,7 +160,10 @@ export default function FolderModal({ open, folder, onClose, onSaved }: FolderMo
           <p className="mt-2 text-right text-xs text-gray-400">{name.length}/100</p>
         </div>
 
-        <footer className="flex justify-end gap-3 border-t px-6 py-4">
+        <footer
+          data-help-tour="media-folder-actions"
+          className="flex justify-end gap-3 border-t px-6 py-4"
+        >
           <button
             type="button"
             onClick={handleClose}

@@ -36,13 +36,20 @@ interface PageScrollAreaProps {
   children: ReactNode;
   className?: string;
   ariaLabel?: string;
+  tourId?: string;
 }
 
-export function PageScrollArea({ children, className = "", ariaLabel }: PageScrollAreaProps) {
+export function PageScrollArea({
+  children,
+  className = "",
+  ariaLabel,
+  tourId,
+}: PageScrollAreaProps) {
   return (
     <div
       role={ariaLabel ? "region" : undefined}
       aria-label={ariaLabel}
+      data-help-tour={tourId}
       className={`min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-2 [scrollbar-gutter:stable] ${className}`}
     >
       {children}
@@ -57,6 +64,7 @@ interface PageHeaderProps {
   icon: ElementType;
   actions?: ReactNode;
   meta?: ReactNode;
+  tourId?: string;
 }
 
 export function PageHeader({
@@ -66,9 +74,13 @@ export function PageHeader({
   icon: Icon,
   actions,
   meta,
+  tourId,
 }: PageHeaderProps) {
   return (
-    <header className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+    <header
+      data-help-tour={tourId}
+      className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+    >
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400" />
 
       <div className="relative flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
@@ -140,9 +152,12 @@ export function MetricCard({
   );
 }
 
-export function PageToolbar({ children }: { children: ReactNode }) {
+export function PageToolbar({ children, tourId }: { children: ReactNode; tourId?: string }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+    <section
+      data-help-tour={tourId}
+      className="rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+    >
       {children}
     </section>
   );
