@@ -106,7 +106,7 @@ export function OverlayBarsPreview({
       >
         {mediaContent ?? (
           <>
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#334155_0,_#0f172a_66%)]" />
+            <div className="absolute inset-0 bg-slate-900" />
             <div className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
               Conteúdo da playlist
             </div>

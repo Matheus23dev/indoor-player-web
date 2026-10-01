@@ -63,14 +63,15 @@ export const workflowSteps: WorkflowStep[] = [
   },
   {
     number: 3,
-    title: "Adicione barras opcionais",
+    title: "Adicione barras (opcional)",
     description: "Crie faixas reutilizáveis com textos, imagens, relógio, data e clima.",
     url: "/home/overlay-bars",
   },
   {
     number: 4,
-    title: "Vincule o Player",
-    description: "Use o código exibido na TV Box para identificar e acompanhar o dispositivo.",
+    title: "Instale o aplicativo",
+    description:
+      "Instale o Indoor Player no TV Box e use o código exibido na TV para vinculá-lo ao painel.",
     url: "/home/devices",
   },
   {

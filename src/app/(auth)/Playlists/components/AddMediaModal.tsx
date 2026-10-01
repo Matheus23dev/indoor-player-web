@@ -1,15 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-
 import { Check, ChevronRight, Folder, ImageIcon, Loader2, Search, Video, X } from "lucide-react";
-
 import { appAlert as Swal } from "@/lib/alert";
 import { resolveMediaUrl } from "../../../../lib/mediaUrl";
 import { getApiErrorMessage } from "../../../../lib/apiError";
-
 import { getFolders } from "../../Medias/services/folders.services";
-
 import { getMedias } from "../../Medias/services/medias.services";
-
 import type { Folder as MediaFolder, Media } from "../../Medias/types";
 
 interface AddMediaModalProps {
@@ -21,19 +16,12 @@ interface AddMediaModalProps {
 
 export default function AddMediaModal({ open, saving, onClose, onAdd }: AddMediaModalProps) {
   const [medias, setMedias] = useState<Media[]>([]);
-
   const [folders, setFolders] = useState<MediaFolder[]>([]);
-
   const [loading, setLoading] = useState(false);
-
   const [search, setSearch] = useState("");
-
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
-
   const [duration, setDuration] = useState(5);
-
   const selectedFolder = folders.find((folder) => folder.id === selectedFolderId);
 
   const visibleFolders = useMemo(() => {

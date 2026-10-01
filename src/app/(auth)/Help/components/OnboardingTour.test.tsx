@@ -81,6 +81,32 @@ describe("OnboardingTour", () => {
     await user.click(screen.getByRole("button", { name: "Pular apresentação" }));
     expect(screen.queryByTestId("upload-modal-example")).not.toBeInTheDocument();
   });
+
+  it("keeps administrative tour cards in one fixed position", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter initialEntries={["/home/dashboard"]}>
+        <TourScreenFixture />
+        <OnboardingTour
+          open
+          userId="admin-1"
+          userRole="ADMIN"
+          onOpenChange={vi.fn()}
+          onTargetChange={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    const firstPopover = await screen.findByRole("dialog");
+    expect(firstPopover).toHaveClass("indoor-driver-popover--fixed");
+
+    await user.click(firstPopover.querySelector(".driver-popover-next-btn") as HTMLButtonElement);
+
+    await waitFor(() => {
+      expect(screen.getByRole("dialog")).toHaveClass("indoor-driver-popover--fixed");
+    });
+  });
 });
 
 function TourScreenFixture() {

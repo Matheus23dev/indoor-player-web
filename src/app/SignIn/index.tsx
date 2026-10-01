@@ -89,7 +89,7 @@ const SignIn = () => {
       </section>
 
       <section className="relative flex min-h-dvh items-center justify-center bg-[#f7f9fc] px-5 py-10 sm:px-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-800 via-blue-500 to-cyan-400 lg:hidden" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-blue-700 lg:hidden" />
 
         <div className="w-full max-w-md">
           <div className="mb-8 flex items-center gap-3 lg:hidden">

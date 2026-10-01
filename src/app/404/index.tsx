@@ -8,10 +8,7 @@ const ErrorPage = () => {
 
   return (
     <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#f3f6fa] px-5 py-8 text-slate-950 sm:px-8">
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-blue-700 via-cyan-400 to-blue-700"
-      />
+      <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-blue-700" />
       <div
         aria-hidden="true"
         className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-blue-300/30 blur-3xl"

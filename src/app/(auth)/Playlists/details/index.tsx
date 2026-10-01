@@ -344,8 +344,10 @@ export default function PlaylistDetails() {
       <PageContainer scrollable>
         <header
           data-help-tour="composition-actions"
-          className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center"
+          className="relative flex flex-col justify-between gap-3 overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center"
         >
+          <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-blue-700" />
+
           <div className="flex items-start gap-3">
             <button
               data-help-tour="composition-bars"

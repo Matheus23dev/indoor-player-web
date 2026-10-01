@@ -27,8 +27,10 @@ export default function Playlists() {
       <PageContainer scrollable>
         <header
           data-help-tour="playlist-create"
-          className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center"
+          className="relative flex flex-col justify-between gap-3 overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center"
         >
+          <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-blue-700" />
+
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-700">
               Organização e sequência
@@ -75,19 +77,33 @@ export default function Playlists() {
           data-help-tour="playlist-library"
           className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm"
         >
-          <div className="relative max-w-md">
-            <Search size={19} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="relative w-full flex-1">
+              <Search
+                size={19}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
 
-            <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar playlist..."
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-            />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar playlist..."
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            <div
+              aria-label="Legenda de status das playlists"
+              className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-medium text-slate-500"
+            >
+              <StatusLegend colorClassName="bg-red-500" label="Sem mídia" />
+              <StatusLegend colorClassName="bg-slate-400" label="Sem agenda" />
+              <StatusLegend colorClassName="bg-emerald-500" label="Agendada" />
+            </div>
           </div>
         </div>
 
-        <PageScrollArea ariaLabel="Lista de playlists">
+        <PageScrollArea ariaLabel="Lista de playlists" alignRightEdge>
           {loading && (
             <div className="flex min-h-80 items-center justify-center rounded-2xl border bg-white">
               <Loader2 size={36} className="animate-spin text-blue-600" />
@@ -140,5 +156,19 @@ function SummaryCard({ label, value }: SummaryCardProps) {
 
       <p className="mt-1 text-2xl font-black text-gray-900">{value}</p>
     </div>
+  );
+}
+
+interface StatusLegendProps {
+  colorClassName: string;
+  label: string;
+}
+
+function StatusLegend({ colorClassName, label }: StatusLegendProps) {
+  return (
+    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+      <span aria-hidden="true" className={`h-2 w-2 rounded-full ${colorClassName}`} />
+      {label}
+    </span>
   );
 }

@@ -114,14 +114,16 @@ function parseStructuredSystemLog(log: DeviceLog): ParsedDeviceLog {
       ? (payload.level as DeviceLogLevel)
       : "INFO";
 
+    const event = typeof payload.event === "string" ? payload.event : "SYSTEM_EVENT";
+    const metadata = normalizeMetadata(payload.metadata);
+
     return {
       ...log,
-      event: typeof payload.event === "string" ? payload.event : "SYSTEM_EVENT",
+      event,
       category: "CONNECTION",
       level,
-      displayMessage:
-        typeof payload.message === "string" ? payload.message : "Estado da conexão alterado.",
-      metadata: normalizeMetadata(payload.metadata),
+      displayMessage: getSystemDisplayMessage(event, payload.message, metadata),
+      metadata,
       occurredAt: isValidDate(payload.occurredAt) ? String(payload.occurredAt) : log.createdAt,
       source: "SYSTEM",
       actor: null,
@@ -130,6 +132,34 @@ function parseStructuredSystemLog(log: DeviceLog): ParsedDeviceLog {
   } catch {
     return createAdministrativeLog(log);
   }
+}
+
+function getSystemDisplayMessage(
+  event: string,
+  message: unknown,
+  metadata: Record<string, string | number | boolean | null>,
+) {
+  if (event === "PLAYER_CONNECTION_RESTORED" && typeof metadata.offlineSeconds === "number") {
+    return `A conexão do Player foi restabelecida após ${formatElapsedDuration(metadata.offlineSeconds)}.`;
+  }
+
+  return typeof message === "string" ? message : "Estado da conexão alterado.";
+}
+
+export function formatElapsedDuration(totalSeconds: number) {
+  const normalizedSeconds = Math.max(0, Math.floor(totalSeconds));
+  const days = Math.floor(normalizedSeconds / 86_400);
+  const hours = Math.floor((normalizedSeconds % 86_400) / 3_600);
+  const minutes = Math.floor((normalizedSeconds % 3_600) / 60);
+  const seconds = normalizedSeconds % 60;
+  const parts: string[] = [];
+
+  if (days > 0) parts.push(`${days} ${days === 1 ? "dia" : "dias"}`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}min`);
+  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+
+  return parts.join(" ");
 }
 
 function parseStructuredAdminLog(log: DeviceLog): ParsedDeviceLog {

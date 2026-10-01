@@ -13,6 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import type { Playlist } from "../types";
+import { getPlaylistUsageStatus } from "../utils/playlistUsageStatus";
 
 interface PlaylistCardProps {
   playlist: Playlist;
@@ -23,6 +24,7 @@ export default function PlaylistCard({ playlist, onDelete }: PlaylistCardProps) 
   const navigate = useNavigate();
   const itemsCount = playlist._count?.items ?? playlist.items?.length ?? 0;
   const schedulesCount = playlist._count?.schedules ?? 0;
+  const usageStatus = getPlaylistUsageStatus(itemsCount, schedulesCount);
   const totalDuration =
     playlist.items?.reduce((total, item) => {
       const duration = item.duration ?? item.media.duration ?? 0;
@@ -39,8 +41,13 @@ export default function PlaylistCard({ playlist, onDelete }: PlaylistCardProps) 
   }
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
-      <div className="h-1 bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400" />
+    <article className="group h-full w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
+      <div
+        className={`h-1 ${usageStatus.stripeClassName}`}
+        title={usageStatus.label}
+        aria-hidden="true"
+      />
+      <span className="sr-only">{usageStatus.label}</span>
 
       <div className="p-4">
         <header className="flex items-start gap-3">

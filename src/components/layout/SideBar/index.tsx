@@ -148,9 +148,6 @@ export function AppSidebar({
         tourActive ? "pointer-events-none z-50 lg:z-[90]" : "z-50"
       }`}
     >
-      <div className="institutional-grid pointer-events-none absolute inset-0 opacity-35" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-blue-700/20 to-transparent" />
-
       <button
         type="button"
         onClick={onMobileClose}

@@ -37,6 +37,7 @@ interface PageScrollAreaProps {
   className?: string;
   ariaLabel?: string;
   tourId?: string;
+  alignRightEdge?: boolean;
 }
 
 export function PageScrollArea({
@@ -44,13 +45,16 @@ export function PageScrollArea({
   className = "",
   ariaLabel,
   tourId,
+  alignRightEdge = false,
 }: PageScrollAreaProps) {
   return (
     <div
       role={ariaLabel ? "region" : undefined}
       aria-label={ariaLabel}
       data-help-tour={tourId}
-      className={`min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:pr-2 [scrollbar-gutter:stable] ${className}`}
+      className={`min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain ${
+        alignRightEdge ? "" : "lg:pr-2 [scrollbar-gutter:stable]"
+      } ${className}`}
     >
       {children}
     </div>
@@ -81,7 +85,7 @@ export function PageHeader({
       data-help-tour={tourId}
       className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
     >
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400" />
+      <div className="absolute inset-x-0 top-0 h-1 bg-blue-700" />
 
       <div className="relative flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 items-start gap-4">

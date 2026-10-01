@@ -20,6 +20,7 @@ const TARGET_WAIT_ATTEMPTS = 50;
 const TARGET_WAIT_INTERVAL = 80;
 const COMPACT_VIEWPORT_WIDTH = 640;
 const COMPACT_VIEWPORT_HEIGHT = 680;
+const ADMINISTRATIVE_ROLES: UserRole[] = ["OWNER", "ADMIN"];
 const TOUR_MODAL_CLOSE_TARGETS = [
   "media-folder-close",
   "media-upload-close",
@@ -85,6 +86,7 @@ export function OnboardingTour({
 
     const steps = getOnboardingSteps(userRole);
     const compactViewport = isCompactViewport();
+    const keepPopoverFixed = ADMINISTRATIVE_ROLES.includes(userRole);
     let disposed = false;
 
     function stopDriver(instance: Driver) {
@@ -187,7 +189,12 @@ export function OnboardingTour({
       stagePadding: compactViewport ? 6 : 10,
       stageRadius: compactViewport ? 12 : 18,
       disableActiveInteraction: true,
-      popoverClass: "indoor-driver-popover",
+      popoverClass: [
+        "indoor-driver-popover",
+        keepPopoverFixed ? "indoor-driver-popover--fixed" : "",
+      ]
+        .filter(Boolean)
+        .join(" "),
       popoverOffset: compactViewport ? 10 : 18,
       showButtons: ["previous", "next"],
       showProgress: true,

@@ -23,8 +23,10 @@ export default function PlaylistCompositionGuide() {
     <PageContainer scrollable>
       <header
         data-help-tour="composition-actions"
-        className="flex flex-col justify-between gap-3 rounded-2xl border border-blue-200 bg-white px-5 py-4 shadow-sm md:flex-row md:items-center"
+        className="relative flex flex-col justify-between gap-3 overflow-hidden rounded-2xl border border-blue-200 bg-white px-5 py-4 shadow-sm md:flex-row md:items-center"
       >
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-blue-700" />
+
         <div className="flex items-start gap-3">
           <button
             type="button"
@@ -88,7 +90,7 @@ export default function PlaylistCompositionGuide() {
           order={1}
           title="Oferta da semana.jpg"
           type="Imagem"
-          accent="from-blue-500 to-cyan-400"
+          accent="bg-blue-600"
         >
           <div className="flex h-8 items-center rounded-md border border-slate-200 bg-white">
             <span className="border-r border-slate-200 px-2 text-[10px] font-bold text-slate-500">
@@ -103,7 +105,7 @@ export default function PlaylistCompositionGuide() {
           order={2}
           title="Vídeo institucional.mp4"
           type="Vídeo"
-          accent="from-violet-600 to-blue-500"
+          accent="bg-violet-600"
         >
           <span className="inline-flex h-8 items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 text-[10px] font-bold text-emerald-700">
             <Volume2 size={14} /> Com áudio
@@ -162,9 +164,7 @@ function GuideMediaCard({
       className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
     >
       <div className="grid md:grid-cols-[190px_1fr]">
-        <div
-          className={`relative flex min-h-32 items-center justify-center bg-gradient-to-br ${accent}`}
-        >
+        <div className={`relative flex min-h-32 items-center justify-center ${accent}`}>
           <TypeIcon className="text-white/90" size={40} />
           <span className="absolute left-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-slate-950/70 text-xs font-black text-white">
             {order}

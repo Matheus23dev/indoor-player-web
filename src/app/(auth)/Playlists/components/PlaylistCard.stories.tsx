@@ -57,3 +57,14 @@ export const Vazia: Story = {
     },
   },
 };
+
+export const SemAgendamento: Story = {
+  args: {
+    playlist: {
+      ...samplePlaylist,
+      id: "playlist-without-schedule",
+      name: "Campanha aguardando agendamento",
+      _count: { items: 4, overlayBars: 0, schedules: 0 },
+    },
+  },
+};

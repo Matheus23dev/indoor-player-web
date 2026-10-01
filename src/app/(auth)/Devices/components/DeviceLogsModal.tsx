@@ -23,6 +23,7 @@ import { getDeviceLogs } from "../services/devices.services";
 import type { Device, DeviceLog } from "../types/device";
 
 import {
+  formatElapsedDuration,
   parseDeviceLog,
   type DeviceLogCategory,
   type DeviceLogLevel,
@@ -399,10 +400,7 @@ function formatMetadataValue(key: string, value: string | number | boolean | nul
   }
 
   if (key === "offlineSeconds" && typeof value === "number") {
-    const minutes = Math.floor(value / 60);
-    const seconds = value % 60;
-
-    return minutes > 0 ? `${minutes}min ${seconds}s` : `${seconds}s`;
+    return formatElapsedDuration(value);
   }
 
   if (key === "fileSize" && typeof value === "number") {

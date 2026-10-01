@@ -12,10 +12,8 @@ import {
 } from "lucide-react";
 
 import type { CSSProperties } from "react";
-
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
 import type { PlaylistItem } from "../types";
 import { resolveMediaUrl } from "../../../../lib/mediaUrl";
 
